@@ -167,13 +167,13 @@ body{
 .step-tag{align-self:flex-start;margin:0 0 -4px 60px;font-size:.76em;font-weight:800;color:var(--teal-dark);
   background:var(--teal-soft);padding:3px 10px;border-radius:999px;}
 
-.composer{flex:none;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line-2);align-items:center;}
-.composer .cmic{width:44px;height:44px;border-radius:50%;border:1.6px solid var(--teal);background:#fff;color:var(--teal);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;}
+.composer{flex:none;width:100%;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line-2);align-items:center;overflow:hidden;}
+.composer .cmic{width:44px;height:44px;border-radius:50%;border:1.6px solid var(--teal);background:#fff;color:var(--teal);flex:0 0 44px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;}
 .composer .cmic svg{width:22px;height:22px;}
 .composer .cmic.listening{background:var(--teal);color:#fff;border-color:var(--teal);animation:pulse 1.3s infinite;}
 .composer .cmic.off{background:var(--line-2);color:var(--ink-5);border-color:var(--line);}
-.composer .tinput{flex:1;border-radius:22px;background:var(--bg);border:1px solid var(--line);padding:12px 18px;min-height:44px;font-size:1em;}
-.composer .csend{width:44px;height:44px;border-radius:50%;border:none;background:var(--teal);color:#fff;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;}
+.composer .tinput{flex:1 1 auto;min-width:0;border-radius:22px;background:var(--bg);border:1px solid var(--line);padding:12px 18px;min-height:44px;font-size:1em;}
+.composer .csend{width:44px;height:44px;border-radius:50%;border:none;background:var(--teal);color:#fff;flex:0 0 44px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;}
 .composer .csend svg{width:21px;height:21px;}
 .composer .csend:active,.composer .cmic:active{transform:scale(.93);}
 
