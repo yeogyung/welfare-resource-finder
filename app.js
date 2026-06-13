@@ -5,6 +5,7 @@ const state = {
   currentCategory: "all",
   savedAxis: "all",
   largeText: false,
+  region: "서울 광진구",
   recognition: null,
   listening: false,
   tts: false,
@@ -14,35 +15,49 @@ const state = {
 const STORAGE_SAVED = "chajabot_saved_resources_v1";
 const STORAGE_TEXT = "chajabot_large_text_v1";
 const STORAGE_TTS = "chajabot_tts_enabled_v1";
+const STORAGE_REGION = "chajabot_region_v1";
 const HOME_PROMPTS = [
-  "오늘 어떤 도움이 필요하세요?",
-  "요즘 생활하면서 불편한 게 있으세요?",
-  "어디 가서 뭔가 해보고 싶은 마음이 있으세요?",
-  "건강이나 병원 때문에 신경 쓰이는 게 있으세요?",
-  "혼자 있는 시간이 길게 느껴지세요?",
-  "생활비나 집 문제로 신경 쓰이는 게 있으세요?",
-  "새로 배우거나 참여해 보고 싶은 활동이 있으세요?",
+  "오늘은 무엇을 찾아드릴까요?",
+  "요즘 어떤 점이 걱정되세요?",
+  "지금 가장 필요한 게 있으세요?",
+  "요즘 해보고 싶은 게 있으세요?",
+  "어떤 걸 배우거나 즐기고 싶으세요?",
+  "혼자 지내시기 불편한 점이 있으세요?",
+  "오늘은 어떤 도움을 함께 찾아볼까요?",
+];
+const HOME_PLACEHOLDERS = [
+  "예: 혼자 살아서 끼니가 걱정돼요",
+  "예: 스마트폰 쓰는 법을 배우고 싶어요",
+  "예: 경로당 모임에 나가고 싶어요",
+  "예: 병원 가기가 힘들어요",
+  "예: 생활비가 부족해요",
+  "예: 가까운 곳에서 즐길 거리가 있을까요",
+];
+const ROOT_QUESTIONS = [
+  "무엇을 도와드릴까요? 필요한 것도, 해보고 싶은 것도 편하게 골라주세요.",
+  "어떤 이야기든 좋아요. 어떤 점이 궁금하세요?",
+  "필요한 복지든 즐길 거리든, 어떤 걸 찾아드릴까요?",
 ];
 
 const QUICK_GROUPS = [
   {
-    axis: "생활 도움",
-    items: ["생활에 도움이 필요해요", "병원·건강이 궁금해요", "생활비나 집이 걱정돼요"],
+    axis: "필요 · 생활형",
+    items: ["끼니·생활이 걱정돼요", "외롭고 말벗이 필요해요", "건강이 걱정돼요", "생활비가 빠듯해요"],
   },
   {
-    axis: "활동·여가",
-    items: ["뭔가 배우고 싶어요", "공연이나 모임을 찾고 싶어요", "혼자 있는 시간이 많아요"],
+    axis: "욕구 · 여가·문화·배움",
+    items: ["즐길 거리·모임을 찾고 싶어요", "새로운 걸 배우고 싶어요"],
   },
 ];
 
 const FOLLOW_UPS = {
-  "생활에 도움이 필요해요": ["식사 챙기기가 힘들어요", "집 수리가 필요해요", "생활비가 부족해요", "긴급하게 도움이 필요해요"],
-  "그냥 이야기하고 싶어요": ["혼자 있어서 외로워요", "사람들을 만나고 싶어요", "집에서 할 취미가 있을까요", "가까운 모임을 찾아줘"],
-  "병원·건강이 궁금해요": ["병원비가 부담돼요", "눈 검진을 받고 싶어요", "치매가 걱정돼요", "무릎 수술비가 걱정돼요"],
-  "생활비나 집이 걱정돼요": ["생활비가 부족해요", "집 수리가 필요해요", "난방비가 걱정돼요", "연금이 부족해요"],
-  "뭔가 배우고 싶어요": ["스마트폰을 배우고 싶어요", "컴퓨터를 배우고 싶어요", "운동 프로그램이 궁금해요", "문화생활을 하고 싶어요"],
-  "공연이나 모임을 찾고 싶어요": ["공연이나 전시를 보고 싶어요", "노래나 합창 모임이 있을까요", "글쓰기나 독서 모임을 찾고 싶어요", "봉사 활동을 해보고 싶어요"],
-  "혼자 있는 시간이 많아요": ["같이 어울릴 수 있는 모임", "집에서 할 수 있는 취미", "산책이나 운동 프로그램", "배움이나 수업을 찾고 싶어요"],
+  "끼니·생활이 걱정돼요": ["끼니를 거를 때가 많아요", "장보기·요리가 힘들어요", "청소·집안일이 버거워요"],
+  "외롭고 말벗이 필요해요": ["거의 늘 혼자예요", "가끔 외롭고 말벗이 필요해요", "사람들과 어울리고 싶어요"],
+  "건강이 걱정돼요": ["병원 가기가 힘들어요", "약값·치료비가 부담돼요", "기억력·치매가 걱정돼요", "정기 건강검진을 받고 싶어요"],
+  "생활비가 빠듯해요": ["매달 생활비가 부족해요", "일자리를 찾고 싶어요", "갑자기 큰돈이 필요해요"],
+  "즐길 거리·모임을 찾고 싶어요": ["경로당·모임에 나가고 싶어요", "취미·여가 프로그램을 배우고 싶어요", "나들이·문화 행사에 가보고 싶어요"],
+  "새로운 걸 배우고 싶어요": ["스마트폰을 잘 쓰고 싶어요", "키오스크·은행 쓰기가 어려워요", "글·컴퓨터를 배우고 싶어요"],
+  "긴급하게 도움이 필요해요": ["지금 많이 위험해요", "평소를 위해 준비하고 싶어요"],
 };
 
 const CATEGORY_ORDER = [
@@ -73,8 +88,11 @@ const SYNONYMS = [
   ["배우", "교육 문화 디지털 평생교육"],
   ["공연", "문화 여가 전시 티켓 통합문화이용권"],
   ["전시", "문화 여가 공연 티켓 통합문화이용권"],
-  ["모임", "문화 여가 사회참여 복지관 노래교실 독서"],
-  ["여가", "문화 공연 전시 모임 복지관 평생교육"],
+  ["경로당", "문화 여가 모임 복지관 사회참여"],
+  ["모임", "문화 여가 사회참여 복지관 노래교실 독서 경로당"],
+  ["나들이", "문화 공연 행사 여가 복지관"],
+  ["취미", "문화 여가 프로그램 평생교육"],
+  ["여가", "문화 공연 전시 모임 복지관 평생교육 취미"],
   ["활동", "문화 여가 사회참여 복지관 평생교육"],
   ["식사", "생활지원 급식 도시락 반찬 돌봄"],
 ];
@@ -99,13 +117,12 @@ function restoreState() {
     state.saved = JSON.parse(localStorage.getItem(STORAGE_SAVED) || "{}");
     state.largeText = localStorage.getItem(STORAGE_TEXT) === "1";
     state.tts = localStorage.getItem(STORAGE_TTS) === "1";
+    state.region = localStorage.getItem(STORAGE_REGION) || "서울 광진구";
   } catch {
     state.saved = {};
   }
   document.getElementById("app").classList.toggle("large-text", state.largeText);
-  const ttsToggle = document.getElementById("ttsToggle");
-  ttsToggle?.classList.toggle("active", state.tts);
-  if (ttsToggle) ttsToggle.textContent = state.tts ? "음성 안내 켜짐" : "음성 안내 켜기";
+  syncSettingsUi();
 }
 
 async function loadData() {
@@ -127,22 +144,20 @@ function bindEvents() {
     submitQuery(input.value);
     input.value = "";
   });
-  document.getElementById("exploreSearch").addEventListener("click", () => {
+  document.getElementById("exploreSearch")?.addEventListener("click", () => {
     const query = document.getElementById("exploreInput").value.trim();
     renderResourceList(searchResources(query, state.currentCategory, 40));
   });
-  document.getElementById("exploreInput").addEventListener("keydown", (event) => {
+  document.getElementById("exploreInput")?.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      document.getElementById("exploreSearch").click();
+      document.getElementById("exploreSearch")?.click();
     }
   });
   document.getElementById("fontToggle").addEventListener("click", () => {
-    state.largeText = !state.largeText;
-    localStorage.setItem(STORAGE_TEXT, state.largeText ? "1" : "0");
-    document.getElementById("app").classList.toggle("large-text", state.largeText);
-    showToast(state.largeText ? "큰 글자로 볼게요" : "기본 글자로 볼게요");
+    toggleLargeText();
   });
+  document.getElementById("settingsFontToggle")?.addEventListener("click", toggleLargeText);
   document.getElementById("micButton").addEventListener("click", startListening);
   document.querySelectorAll("[data-saved-axis]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -155,26 +170,25 @@ function bindEvents() {
     navigate("chat");
     const thread = document.getElementById("thread");
     thread.innerHTML = "";
-    const greeting = `안녕하세요. 저는 찾아봇이에요. ${state.homePrompt} 말로 편하게 들려주셔도 되고, 아래에서 골라주셔도 돼요.`;
+    const firstQuestion = sample(ROOT_QUESTIONS);
+    const greeting = `안녕하세요. 저는 찾아봇이에요. ${firstQuestion}`;
     addBotMessage(greeting);
-    renderChoices(QUICK_GROUPS.flatMap((group) => group.items));
+    renderChoices([...QUICK_GROUPS.flatMap((group) => group.items), "긴급하게 도움이 필요해요"]);
     if (!state.tts) speak(greeting, true);
   });
-  document.getElementById("ttsToggle").addEventListener("click", () => {
-    state.tts = !state.tts;
-    localStorage.setItem(STORAGE_TTS, state.tts ? "1" : "0");
-    document.getElementById("ttsToggle").classList.toggle("active", state.tts);
-    document.getElementById("ttsToggle").textContent = state.tts ? "음성 안내 켜짐" : "음성 안내 켜기";
-    showToast(state.tts ? "찾아봇 말풍선을 읽어드릴게요" : "음성 안내를 껐어요");
-    if (!state.tts) window.speechSynthesis?.cancel();
-  });
+  document.getElementById("ttsToggle").addEventListener("click", toggleTts);
+  document.getElementById("settingsTtsToggle")?.addEventListener("click", toggleTts);
+  document.getElementById("regionButton")?.addEventListener("click", setRegion);
+  document.getElementById("shareSavedButton")?.addEventListener("click", shareSaved);
 }
 
 function initHomePrompt() {
-  const prompt = HOME_PROMPTS[Math.floor(Math.random() * HOME_PROMPTS.length)];
+  const prompt = sample(HOME_PROMPTS);
   state.homePrompt = prompt;
   const promptNode = document.getElementById("homePrompt");
-  if (promptNode) promptNode.textContent = `${prompt} 말하거나 아래에서 골라주세요.`;
+  if (promptNode) promptNode.textContent = prompt;
+  const queryInput = document.getElementById("queryInput");
+  if (queryInput) queryInput.placeholder = sample(HOME_PLACEHOLDERS);
 }
 
 function navigate(name) {
@@ -184,6 +198,7 @@ function navigate(name) {
     button.classList.toggle("active", button.dataset.nav === name);
   });
   if (name === "saved") renderSaved();
+  if (name === "settings") syncSettingsUi();
 }
 
 function renderQuickButtons() {
@@ -250,9 +265,16 @@ function submitQuery(raw) {
 }
 
 function followUpPrompt(query) {
-  if (/배우|공연|모임|여가|활동|혼자 있는/.test(query)) return "어떤 활동이나 시간을 보내고 싶으신지 조금 더 알려 주실 수 있어요?";
-  if (/병원|건강|치매|무릎|눈/.test(query)) return "건강이나 병원과 관련해 어떤 점이 궁금하신가요?";
-  if (/생활비|집|연금|난방/.test(query)) return "생활비나 집 문제 중 어떤 부분이 가장 신경 쓰이세요?";
+  if (query === "즐길 거리·모임을 찾고 싶어요") return "어떤 활동을 찾고 계세요?";
+  if (query === "새로운 걸 배우고 싶어요") return "무엇을 배우고 싶으세요?";
+  if (query === "끼니·생활이 걱정돼요") return "식사나 집안일은 어떻게 지내세요?";
+  if (query === "외롭고 말벗이 필요해요") return "혼자 계시는 시간은 어떤가요?";
+  if (query === "건강이 걱정돼요") return "어떤 점이 가장 불편하세요?";
+  if (query === "생활비가 빠듯해요") return "돈과 관련해 어떤 도움이 필요하세요?";
+  if (query === "긴급하게 도움이 필요해요") return "지금 위급한 상황이신가요? 위험하시면 먼저 119에 전화해 주세요.";
+  if (/배우|공연|모임|여가|활동|경로당|취미|나들이|문화/.test(query)) return "어떤 활동이나 시간을 보내고 싶으신지 조금 더 알려 주실 수 있어요?";
+  if (/병원|건강|치매|무릎|눈|약값|검진/.test(query)) return "건강이나 병원과 관련해 어떤 점이 궁금하신가요?";
+  if (/생활비|집|연금|난방|끼니|식사|장보기|청소/.test(query)) return "생활에서 어떤 부분이 가장 신경 쓰이세요?";
   return "어떤 상황인지 조금 더 알려 주실 수 있어요?";
 }
 
@@ -278,7 +300,7 @@ function addUserMessage(text) {
 function addBotMessage(text, mode = "default") {
   const msg = document.createElement("div");
   msg.className = "msg bot";
-  const avatar = mode === "listening" ? "listening.png" : mode === "curious" ? "curious.png" : "default.png";
+  const avatar = mode === "listening" ? "state-listening.png" : mode === "curious" ? "state-curious.png" : "state-idle.png";
   msg.innerHTML = `
     <img src="./public/assets/${avatar}" alt="" class="bot-avatar" />
     <div class="bot-stack"><div class="ai-bubble">${escapeHtml(text)}</div></div>
@@ -457,11 +479,73 @@ function renderSaved() {
 }
 
 function resourceAxis(item) {
-  return resourceAxisKey(item) === "activity" ? "활동·여가" : "생활 도움";
+  return resourceAxisKey(item) === "activity" ? "여가·문화·배움" : "생활형";
 }
 
 function resourceAxisKey(item) {
   return ["learning", "culture"].includes(item.category) ? "activity" : "life";
+}
+
+function syncSettingsUi() {
+  const ttsToggle = document.getElementById("ttsToggle");
+  ttsToggle?.classList.toggle("active", state.tts);
+  if (ttsToggle) ttsToggle.textContent = state.tts ? "음성 안내 켜짐" : "음성 안내 켜기";
+  const settingsTtsToggle = document.getElementById("settingsTtsToggle");
+  settingsTtsToggle?.classList.toggle("active", state.tts);
+  if (settingsTtsToggle) settingsTtsToggle.textContent = state.tts ? "켜짐" : "켜기";
+  const settingsFontToggle = document.getElementById("settingsFontToggle");
+  settingsFontToggle?.classList.toggle("active", state.largeText);
+  if (settingsFontToggle) settingsFontToggle.textContent = state.largeText ? "큰 글자" : "기본";
+  const regionButton = document.getElementById("regionButton");
+  if (regionButton) regionButton.textContent = state.region;
+}
+
+function toggleLargeText() {
+  state.largeText = !state.largeText;
+  localStorage.setItem(STORAGE_TEXT, state.largeText ? "1" : "0");
+  document.getElementById("app").classList.toggle("large-text", state.largeText);
+  syncSettingsUi();
+  showToast(state.largeText ? "큰 글자로 볼게요" : "기본 글자로 볼게요");
+}
+
+function toggleTts() {
+  state.tts = !state.tts;
+  localStorage.setItem(STORAGE_TTS, state.tts ? "1" : "0");
+  syncSettingsUi();
+  showToast(state.tts ? "찾아봇 말풍선을 읽어드릴게요" : "음성 안내를 껐어요");
+  if (!state.tts) window.speechSynthesis?.cancel();
+  if (state.tts) speak("음성 안내를 켰어요. 이제 찾아봇의 말을 소리로 읽어드릴게요.", true);
+}
+
+function setRegion() {
+  const value = window.prompt("지역을 입력해 주세요. 예: 서울 광진구", state.region);
+  if (!value) return;
+  state.region = value.trim() || "서울 광진구";
+  localStorage.setItem(STORAGE_REGION, state.region);
+  syncSettingsUi();
+  showToast(`지역을 ${state.region}(으)로 설정했어요`);
+}
+
+function shareSaved() {
+  const list = Object.values(state.saved);
+  if (!list.length) {
+    showToast("먼저 복지자원을 찜해 주세요");
+    return;
+  }
+  const text = ["[찾아봇] 찜한 복지자원", ...list.map((item, index) => {
+    const parts = [`${index + 1}. ${item.name}`];
+    if (item.contact) parts.push(`문의 ${item.contact}`);
+    if (item.url) parts.push(item.url);
+    return parts.join(" / ");
+  })].join("\n");
+  if (navigator.share) {
+    navigator.share({ title: "찾아봇 찜 목록", text }).catch(() => {});
+    return;
+  }
+  navigator.clipboard?.writeText(text).then(
+    () => showToast("찜 목록을 복사했어요"),
+    () => showToast("공유 기능을 사용할 수 없어요")
+  );
 }
 
 function setupSpeechRecognition() {
@@ -478,7 +562,7 @@ function setupSpeechRecognition() {
     state.listening = true;
     document.getElementById("micButton").classList.add("listening");
     document.getElementById("micLabel").textContent = "듣는 중";
-    document.getElementById("homeMascot").src = "./public/assets/listening.png";
+    document.getElementById("homeMascot").src = "./public/assets/state-listening.png";
   };
   recognition.onresult = (event) => {
     const transcript = event.results?.[0]?.[0]?.transcript || "";
@@ -490,7 +574,7 @@ function setupSpeechRecognition() {
     state.listening = false;
     document.getElementById("micButton").classList.remove("listening");
     document.getElementById("micLabel").textContent = "음성으로 묻기";
-    document.getElementById("homeMascot").src = "./public/assets/hand-wave.png";
+    document.getElementById("homeMascot").src = "./public/assets/chajabot-full.png";
   };
   state.recognition = recognition;
 }
@@ -556,4 +640,8 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function sample(list) {
+  return list[Math.floor(Math.random() * list.length)];
 }

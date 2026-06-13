@@ -133,10 +133,10 @@ button {
 }
 
 .mascot.hero {
-  width: 150px;
-  height: 165px;
+  width: 142px;
+  height: 172px;
   grid-row: span 2;
-  transform: translateX(-22px);
+  transform: translateX(-24px);
 }
 
 .hello-bubble,
@@ -306,6 +306,69 @@ button {
   border-color: var(--brand);
   background: var(--brand-soft);
   color: var(--brand);
+}
+
+.settings-list {
+  display: grid;
+  gap: 12px;
+  padding: 0 20px 24px;
+  overflow: auto;
+}
+
+.setting-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 76px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+}
+
+.setting-row strong {
+  display: block;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.setting-row span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.setting-row button,
+.admin-link {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--brand);
+  font-weight: 900;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
+
+.setting-row button.active {
+  border-color: rgba(58, 143, 122, 0.4);
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+
+.admin-link {
+  width: 100%;
+  min-height: 52px;
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
 }
 
 .quick-button:active,
