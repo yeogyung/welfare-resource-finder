@@ -13,11 +13,12 @@
 - 응급·안전 질문 우선순위 처리
 - 근거 자원 카드: 대상, 지역, 신청방법, 출처, URL 표시
 - 찜 저장: `localStorage`
-- 교수 피드백 반영 RAG 예비 평가 탭
+- 사용자 화면과 분리된 내부 RAG/검색 평가 관리자 화면
 
 ## 저장소 구성
 
-- `index.html`, `styles.css`, `app.js`: 배포 가능한 모바일 웹앱
+- `index.html`, `styles.css`, `app.js`: 사용자용 모바일 웹앱
+- `admin.html`, `admin.js`: 내부 RAG/검색 평가 화면
 - `public/assets/`: 찾아봇 로고 및 캐릭터 상태 이미지
 - `public/data/`: 통합 복지자원 JSON
 - `docs/`: IA, RAG 평가, 음성 대화 설계
@@ -70,7 +71,8 @@ git push -u origin main
 - [RAG 평가 설계](docs/rag-evaluation.md)
 - [음성 대화 설계](docs/voice-architecture.md)
 - [선제 안부 대화 설계](docs/proactive-care-plan.md)
+- [DB 정리본](docs/db-resource-design.md)
 
 ## 보고서용 요약
 
-본 MVP는 복지자원 DB 기반 대화형 추천, 음성 입출력, 근거 URL 표시, 찜 저장, RAG 예비 평가 기능을 포함한다. 단순 화면 시안이 아니라 실제 브라우저에서 구동되는 정적 웹앱으로 구현했으며, 향후 NAVER Cloud CLOVA Speech/Voice와 연동하여 현장 실증용 음성 대화 서비스로 확장할 수 있다.
+본 MVP는 복지자원 DB 기반 대화형 추천, 음성 입출력, 근거 URL 표시, 찜 저장 기능을 포함한다. 사용자용 프로토타입은 어르신 경험에 집중하도록 구성하고, RAG/검색 품질 평가는 별도 내부 관리자 화면으로 분리했다. 단순 화면 시안이 아니라 실제 브라우저에서 구동되는 정적 웹앱으로 구현했으며, 향후 NAVER Cloud CLOVA Speech/Voice와 연동하여 현장 실증용 음성 대화 서비스로 확장할 수 있다.

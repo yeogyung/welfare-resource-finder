@@ -41,24 +41,6 @@ const CATEGORY_ORDER = [
   ["culture", "문화"],
 ];
 
-const EVAL_SET = [
-  { q: "혼자 살다가 쓰러질까 봐 걱정돼요.", expect: ["응급안전", "안전안심", "독거노인"], category: "emergency" },
-  { q: "매달 생활비가 부족해요. 집은 있어요.", expect: ["주택담보", "연금", "생계"], category: "money" },
-  { q: "컴퓨터를 배우고 싶은데 어디로 가야 하나요?", expect: ["디지털", "컴퓨터", "스마트폰"], category: "learning" },
-  { q: "병원비가 부담돼요.", expect: ["의료", "수술", "검진", "건강"], category: "health" },
-  { q: "혼자 있어서 너무 외로워요. 사람들을 만나고 싶어요.", expect: ["노인맞춤돌봄", "사회참여", "문화", "복지관"], category: "culture" },
-  { q: "식사 챙기기가 힘들어요.", expect: ["식사", "도시락", "반찬", "생활지원"], category: "care" },
-  { q: "집이 너무 춥고 낡았어요. 고칠 수 있을까요?", expect: ["주거", "에너지", "환경개선", "수리"], category: "housing" },
-  { q: "스마트폰으로 은행 쓰는 법을 배우고 싶어요.", expect: ["디지털", "금융", "스마트폰"], category: "learning" },
-  { q: "치매가 걱정돼요. 어디에 상담하면 좋을까요?", expect: ["치매", "건강", "보건"], category: "health" },
-  { q: "가족이 돌봐주기 어려운데 장기요양 도움을 받을 수 있나요?", expect: ["장기요양", "재가", "요양"], category: "care" },
-  { q: "문화생활을 하고 싶은데 돈이 부담돼요.", expect: ["문화", "공연", "여가"], category: "culture" },
-  { q: "갑자기 생계가 어려워졌어요. 당장 도움 받을 곳이 있나요?", expect: ["긴급", "생계", "생활"], category: "emergency" },
-  { q: "눈이 안 좋아서 검진을 받고 싶어요.", expect: ["안검진", "개안", "눈"], category: "health" },
-  { q: "거동이 불편해서 집으로 와주는 도움이 필요해요.", expect: ["방문", "재가", "돌봄"], category: "care" },
-  { q: "복지 신청을 어디서 해야 하는지 모르겠어요.", expect: ["복지로", "주민센터", "129", "신청"], category: "care" },
-];
-
 const SYNONYMS = [
   ["쓰러", "응급 안전 위기 독거노인 장애인 응급안전안심"],
   ["혼자", "독거 고립 외로움 말벗 맞춤돌봄 사회참여"],
@@ -135,7 +117,6 @@ function bindEvents() {
       document.getElementById("exploreSearch").click();
     }
   });
-  document.getElementById("runEval").addEventListener("click", runEvaluation);
   document.getElementById("fontToggle").addEventListener("click", () => {
     state.largeText = !state.largeText;
     localStorage.setItem(STORAGE_TEXT, state.largeText ? "1" : "0");
@@ -183,7 +164,7 @@ function renderStats() {
   document.getElementById("sourceStrip").innerHTML = `
     <div><b>${state.stats.total}</b><span>근거 자원</span></div>
     <div><b>${Object.keys(state.stats.bySource).length}</b><span>DB 출처</span></div>
-    <div><b>${EVAL_SET.length}</b><span>평가 질문</span></div>
+    <div><b>${CATEGORY_ORDER.length - 1}</b><span>상황 분류</span></div>
   `;
 }
 
@@ -409,40 +390,6 @@ function renderSaved() {
   }
   root.innerHTML = "";
   list.forEach((item) => root.appendChild(resourceCardElement(item)));
-}
-
-function runEvaluation() {
-  const rows = EVAL_SET.map((test) => {
-    const results = searchResources(test.q, "all", 3);
-    const joined = normalize(results.map((item) => `${item.name} ${item.description} ${item.categoryLabel}`).join(" "));
-    const keywordHit = test.expect.some((word) => joined.includes(normalize(word)));
-    const categoryHit = results.some((item) => item.category === test.category);
-    const faithfulness = results.filter((item) => item.url && item.method && !/010-|핸드폰|이메일/.test(item.method)).length;
-    return { ...test, results, keywordHit, categoryHit, faithfulness };
-  });
-  const top3 = rows.filter((row) => row.keywordHit || row.categoryHit).length;
-  const category = rows.filter((row) => row.categoryHit).length;
-  const faithful = rows.reduce((sum, row) => sum + row.faithfulness, 0);
-  const totalCards = rows.reduce((sum, row) => sum + row.results.length, 0);
-  document.getElementById("evalSummary").innerHTML = `
-    <div class="eval-metric"><b>${Math.round((top3 / rows.length) * 100)}%</b><span>Top-3 적합</span></div>
-    <div class="eval-metric"><b>${Math.round((category / rows.length) * 100)}%</b><span>분류 적합</span></div>
-    <div class="eval-metric"><b>${Math.round((faithful / totalCards) * 100)}%</b><span>근거 충실</span></div>
-  `;
-  document.getElementById("evalList").innerHTML = rows
-    .map((row, index) => {
-      const names = row.results.map((item) => item.name).join(", ");
-      const status = row.keywordHit || row.categoryHit ? "통과" : "검토";
-      return `
-        <div class="eval-item">
-          <strong>${index + 1}. ${escapeHtml(row.q)}</strong>
-          <p>기대: ${escapeHtml(row.expect.join(" / "))}</p>
-          <p>Top-3: ${escapeHtml(names || "없음")}</p>
-          <p>판정: ${status} · Faithfulness 체크 ${row.faithfulness}/${row.results.length}</p>
-        </div>
-      `;
-    })
-    .join("");
 }
 
 function setupSpeechRecognition() {

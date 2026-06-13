@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#21866f" />
+    <title>찾아봇 내부 평가</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="admin-body">
+    <main class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">찾아봇 내부 검증</p>
+          <h1>RAG·검색 평가 관리자</h1>
+          <p>사용자 프로토타입과 분리된 내부 평가 화면입니다. 실증/보고서용 정량 검증 결과를 여기서 확인합니다.</p>
+        </div>
+        <a class="admin-link" href="./index.html">사용자 앱 보기</a>
+      </header>
+
+      <section class="admin-grid" id="adminStats"></section>
+
+      <section class="admin-panel">
+        <div class="panel-head">
+          <h2>평가셋 실행</h2>
+          <p>15개 어르신 질문 시나리오로 Top-3 적합도, 분류 적합도, 근거 충실성을 확인합니다.</p>
+        </div>
+        <div class="admin-actions">
+          <button class="primary-wide" id="runEval" type="button">평가셋 15문항 실행</button>
+          <button class="secondary-wide" id="downloadEval" type="button" disabled>결과 JSON 다운로드</button>
+        </div>
+        <div class="eval-summary" id="evalSummary"></div>
+        <div class="eval-list" id="evalList"></div>
+      </section>
+
+      <section class="admin-panel">
+        <div class="panel-head">
+          <h2>운영 버전 평가 설계</h2>
+          <p>모델 연동 후에는 생성 답변을 저장하고, ROUGE/METEOR/BERTScore/Faithfulness와 환각 여부를 별도 산출합니다.</p>
+        </div>
+        <div class="admin-note-grid">
+          <div>
+            <strong>사용자 앱</strong>
+            <span>질문, 추천, 찜, 음성 안내만 제공</span>
+          </div>
+          <div>
+            <strong>관리자 평가</strong>
+            <span>검색 성능, 분류, 근거 충실성, 모델 응답 품질 검증</span>
+          </div>
+          <div>
+            <strong>DB 운영</strong>
+            <span>자원 원본, 신청방법, URL, 문의처, 검수 필요 여부 관리</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./admin.js"></script>
+  </body>
+</html>
