@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#21866f" />
+    <title>찾아봇 AI MVP</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="phone-shell" id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">서울청년기획봉사단 3기 · 찾아봄</p>
+          <img src="./public/assets/logo.png" alt="찾아봇" class="brand-logo" />
+        </div>
+        <button class="ghost-icon" id="fontToggle" type="button" aria-label="글자 크기 변경" title="글자 크기">가</button>
+      </header>
+
+      <section class="screen active" id="screen-home" aria-label="대화 홈">
+        <div class="hero-chat">
+          <img src="./public/assets/hand-wave.png" alt="찾아봇 캐릭터" class="mascot hero" id="homeMascot" />
+          <div class="hello-bubble">
+            <strong>안녕하세요, 찾아봇이에요.</strong>
+            <span>궁금한 복지 혜택을 말하거나 직접 입력해 주세요. 팀 DB 418건을 근거로 찾아드릴게요.</span>
+          </div>
+        </div>
+
+        <div class="voice-tools">
+          <button type="button" id="greetingButton">인사 듣기</button>
+          <button type="button" id="ttsToggle">음성 안내 켜기</button>
+        </div>
+
+        <button class="mic-button" id="micButton" type="button">
+          <span class="mic-mark" aria-hidden="true"></span>
+          <span id="micLabel">음성으로 묻기</span>
+        </button>
+
+        <form class="ask-form" id="askForm">
+          <input id="queryInput" autocomplete="off" placeholder="예: 혼자 살다가 쓰러질까 봐 걱정돼요" />
+          <button type="submit">질문</button>
+        </form>
+
+        <div class="quick-grid" id="quickGrid"></div>
+
+        <div class="source-strip" id="sourceStrip">
+          <div><b>418</b><span>근거 자원</span></div>
+          <div><b>4</b><span>DB 출처</span></div>
+          <div><b>15</b><span>평가 질문</span></div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-chat" aria-label="대화 결과">
+        <div class="thread" id="thread"></div>
+      </section>
+
+      <section class="screen" id="screen-explore" aria-label="복지자원 탐색">
+        <div class="panel-head">
+          <h2>복지자원 탐색</h2>
+          <p>정부24, 복지로, 광진구 민간복지, 찾아봄 TOP10을 합쳐 검색합니다.</p>
+        </div>
+        <div class="search-row">
+          <input id="exploreInput" placeholder="검색어 또는 상황 입력" />
+          <button id="exploreSearch" type="button">검색</button>
+        </div>
+        <div class="filter-row" id="filterRow"></div>
+        <div class="resource-list" id="resourceList"></div>
+      </section>
+
+      <section class="screen" id="screen-saved" aria-label="찜한 자원">
+        <div class="panel-head">
+          <h2>찜한 정보</h2>
+          <p>저장한 복지자원을 보호자나 활동가에게 공유할 수 있습니다.</p>
+        </div>
+        <div class="resource-list" id="savedList"></div>
+      </section>
+
+      <section class="screen" id="screen-eval" aria-label="RAG 예비 평가">
+        <div class="panel-head">
+          <h2>RAG 예비 평가</h2>
+          <p>교수님 피드백을 반영해 검색 적합도와 근거 충실성을 확인합니다.</p>
+        </div>
+        <button class="primary-wide" id="runEval" type="button">평가셋 15문항 실행</button>
+        <div class="eval-summary" id="evalSummary"></div>
+        <div class="eval-list" id="evalList"></div>
+      </section>
+
+      <nav class="bottom-nav" aria-label="주요 메뉴">
+        <button class="nav-item active" data-nav="home" type="button"><span>홈</span></button>
+        <button class="nav-item" data-nav="explore" type="button"><span>탐색</span></button>
+        <button class="nav-item" data-nav="saved" type="button"><span>찜</span></button>
+        <button class="nav-item" data-nav="eval" type="button"><span>평가</span></button>
+      </nav>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
