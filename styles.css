@@ -255,8 +255,21 @@ button {
 .quick-grid {
   padding: 18px 20px 10px;
   display: grid;
-  gap: 8px;
+  gap: 14px;
   overflow: auto;
+}
+
+.quick-section {
+  display: grid;
+  gap: 8px;
+}
+
+.quick-section h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
 }
 
 .quick-button,
@@ -271,6 +284,28 @@ button {
   font-size: 17px;
   font-weight: 700;
   line-height: 1.35;
+}
+
+.saved-axis-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 20px 14px;
+}
+
+.saved-axis-tabs button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.saved-axis-tabs button.active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 
 .quick-button:active,

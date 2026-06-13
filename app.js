@@ -3,31 +3,46 @@ const state = {
   stats: null,
   saved: {},
   currentCategory: "all",
+  savedAxis: "all",
   largeText: false,
   recognition: null,
   listening: false,
   tts: false,
+  homePrompt: "",
 };
 
 const STORAGE_SAVED = "chajabot_saved_resources_v1";
 const STORAGE_TEXT = "chajabot_large_text_v1";
 const STORAGE_TTS = "chajabot_tts_enabled_v1";
-const GREETING_TEXT = "안녕하세요. 저는 찾아봇이에요. 오늘 생활하면서 불편한 점이 있으셨나요? 말로 편하게 들려주시면 맞는 복지 정보를 찾아드릴게요.";
+const HOME_PROMPTS = [
+  "오늘 어떤 도움이 필요하세요?",
+  "요즘 생활하면서 불편한 게 있으세요?",
+  "어디 가서 뭔가 해보고 싶은 마음이 있으세요?",
+  "건강이나 병원 때문에 신경 쓰이는 게 있으세요?",
+  "혼자 있는 시간이 길게 느껴지세요?",
+  "생활비나 집 문제로 신경 쓰이는 게 있으세요?",
+  "새로 배우거나 참여해 보고 싶은 활동이 있으세요?",
+];
 
-const QUICK_QUESTIONS = [
-  "생활에 도움이 필요해요",
-  "그냥 이야기하고 싶어요",
-  "병원·건강이 궁금해요",
-  "뭔가 배우거나 모임을 찾고 싶어요",
-  "혼자 살다가 쓰러질까 봐 걱정돼요",
-  "매달 생활비가 부족해요. 집은 있어요",
+const QUICK_GROUPS = [
+  {
+    axis: "생활 도움",
+    items: ["생활에 도움이 필요해요", "병원·건강이 궁금해요", "생활비나 집이 걱정돼요"],
+  },
+  {
+    axis: "활동·여가",
+    items: ["뭔가 배우고 싶어요", "공연이나 모임을 찾고 싶어요", "혼자 있는 시간이 많아요"],
+  },
 ];
 
 const FOLLOW_UPS = {
   "생활에 도움이 필요해요": ["식사 챙기기가 힘들어요", "집 수리가 필요해요", "생활비가 부족해요", "긴급하게 도움이 필요해요"],
   "그냥 이야기하고 싶어요": ["혼자 있어서 외로워요", "사람들을 만나고 싶어요", "집에서 할 취미가 있을까요", "가까운 모임을 찾아줘"],
   "병원·건강이 궁금해요": ["병원비가 부담돼요", "눈 검진을 받고 싶어요", "치매가 걱정돼요", "무릎 수술비가 걱정돼요"],
-  "뭔가 배우거나 모임을 찾고 싶어요": ["스마트폰을 배우고 싶어요", "컴퓨터를 배우고 싶어요", "운동 프로그램이 궁금해요", "문화생활을 하고 싶어요"],
+  "생활비나 집이 걱정돼요": ["생활비가 부족해요", "집 수리가 필요해요", "난방비가 걱정돼요", "연금이 부족해요"],
+  "뭔가 배우고 싶어요": ["스마트폰을 배우고 싶어요", "컴퓨터를 배우고 싶어요", "운동 프로그램이 궁금해요", "문화생활을 하고 싶어요"],
+  "공연이나 모임을 찾고 싶어요": ["공연이나 전시를 보고 싶어요", "노래나 합창 모임이 있을까요", "글쓰기나 독서 모임을 찾고 싶어요", "봉사 활동을 해보고 싶어요"],
+  "혼자 있는 시간이 많아요": ["같이 어울릴 수 있는 모임", "집에서 할 수 있는 취미", "산책이나 운동 프로그램", "배움이나 수업을 찾고 싶어요"],
 };
 
 const CATEGORY_ORDER = [
@@ -56,7 +71,11 @@ const SYNONYMS = [
   ["스마트폰", "디지털 교육 컴퓨터 금융"],
   ["컴퓨터", "디지털 교육 스마트폰"],
   ["배우", "교육 문화 디지털 평생교육"],
-  ["모임", "문화 여가 사회참여 복지관"],
+  ["공연", "문화 여가 전시 티켓 통합문화이용권"],
+  ["전시", "문화 여가 공연 티켓 통합문화이용권"],
+  ["모임", "문화 여가 사회참여 복지관 노래교실 독서"],
+  ["여가", "문화 공연 전시 모임 복지관 평생교육"],
+  ["활동", "문화 여가 사회참여 복지관 평생교육"],
   ["식사", "생활지원 급식 도시락 반찬 돌봄"],
 ];
 
@@ -65,6 +84,7 @@ document.addEventListener("DOMContentLoaded", init);
 async function init() {
   restoreState();
   bindEvents();
+  initHomePrompt();
   renderQuickButtons();
   await loadData();
   renderStats();
@@ -124,13 +144,21 @@ function bindEvents() {
     showToast(state.largeText ? "큰 글자로 볼게요" : "기본 글자로 볼게요");
   });
   document.getElementById("micButton").addEventListener("click", startListening);
+  document.querySelectorAll("[data-saved-axis]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.savedAxis = button.dataset.savedAxis;
+      document.querySelectorAll("[data-saved-axis]").forEach((item) => item.classList.toggle("active", item === button));
+      renderSaved();
+    });
+  });
   document.getElementById("greetingButton").addEventListener("click", () => {
     navigate("chat");
     const thread = document.getElementById("thread");
     thread.innerHTML = "";
-    addBotMessage(GREETING_TEXT);
-    renderChoices(["생활에 도움이 필요해요", "병원·건강이 궁금해요", "그냥 이야기하고 싶어요"]);
-    if (!state.tts) speak(GREETING_TEXT, true);
+    const greeting = `안녕하세요. 저는 찾아봇이에요. ${state.homePrompt} 말로 편하게 들려주셔도 되고, 아래에서 골라주셔도 돼요.`;
+    addBotMessage(greeting);
+    renderChoices(QUICK_GROUPS.flatMap((group) => group.items));
+    if (!state.tts) speak(greeting, true);
   });
   document.getElementById("ttsToggle").addEventListener("click", () => {
     state.tts = !state.tts;
@@ -140,6 +168,13 @@ function bindEvents() {
     showToast(state.tts ? "찾아봇 말풍선을 읽어드릴게요" : "음성 안내를 껐어요");
     if (!state.tts) window.speechSynthesis?.cancel();
   });
+}
+
+function initHomePrompt() {
+  const prompt = HOME_PROMPTS[Math.floor(Math.random() * HOME_PROMPTS.length)];
+  state.homePrompt = prompt;
+  const promptNode = document.getElementById("homePrompt");
+  if (promptNode) promptNode.textContent = `${prompt} 말하거나 아래에서 골라주세요.`;
 }
 
 function navigate(name) {
@@ -153,7 +188,10 @@ function navigate(name) {
 
 function renderQuickButtons() {
   const grid = document.getElementById("quickGrid");
-  grid.innerHTML = QUICK_QUESTIONS.map((q) => `<button class="quick-button" type="button">${escapeHtml(q)}</button>`).join("");
+  grid.innerHTML = QUICK_GROUPS.map((group) => {
+    const buttons = group.items.map((q) => `<button class="quick-button" type="button">${escapeHtml(q)}</button>`).join("");
+    return `<section class="quick-section"><h3>${escapeHtml(group.axis)}</h3>${buttons}</section>`;
+  }).join("");
   grid.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => submitQuery(button.textContent.trim()));
   });
@@ -194,7 +232,7 @@ function submitQuery(raw) {
   thread.innerHTML = "";
   addUserMessage(query);
   if (FOLLOW_UPS[query]) {
-    addBotMessage("어떤 도움이 필요한지 조금 더 알려 주실 수 있어요?");
+    addBotMessage(followUpPrompt(query));
     renderChoices(FOLLOW_UPS[query]);
     return;
   }
@@ -209,6 +247,13 @@ function submitQuery(raw) {
     addBotMessage(lead);
     results.slice(0, 4).forEach((item, index) => addResourceCard(item, { evidence: true, rank: index + 1 }));
   });
+}
+
+function followUpPrompt(query) {
+  if (/배우|공연|모임|여가|활동|혼자 있는/.test(query)) return "어떤 활동이나 시간을 보내고 싶으신지 조금 더 알려 주실 수 있어요?";
+  if (/병원|건강|치매|무릎|눈/.test(query)) return "건강이나 병원과 관련해 어떤 점이 궁금하신가요?";
+  if (/생활비|집|연금|난방/.test(query)) return "생활비나 집 문제 중 어떤 부분이 가장 신경 쓰이세요?";
+  return "어떤 상황인지 조금 더 알려 주실 수 있어요?";
 }
 
 function renderChoices(choices) {
@@ -278,8 +323,15 @@ function scoreResource(item, query, category) {
   if (category !== "all" && item.category !== category) return 0;
   const text = normalize(`${item.searchText} ${item.categoryLabel} ${item.sourceLabel}`);
   const tokens = tokenize(query);
+  const axis = inferAxis(query);
   let score = item.priority / 40;
   if (category !== "all") score += 5;
+  if (axis === "activity") {
+    if (["learning", "culture"].includes(item.category)) score += 28;
+    if (/문화|여가|모임|사회참여|평생교육|노래|독서|공연|전시|티켓|봉사/.test(text)) score += 16;
+    if (item.source === "gwangjin") score += 8;
+  }
+  if (axis === "life" && !["learning", "culture"].includes(item.category)) score += 10;
   tokens.forEach((token) => {
     if (!token) return;
     if (text.includes(token)) score += token.length > 1 ? 4 : 1;
@@ -313,6 +365,17 @@ function isEmergency(text) {
   return /응급|긴급|쓰러|위기|위험|119|혼자.*아파|죽|학대|고독사/.test(text);
 }
 
+function inferAxis(text) {
+  const value = normalize(text);
+  if (/배우|교육|공연|전시|문화|여가|모임|독서|글쓰기|노래|합창|봉사|참여|활동|스마트폰|컴퓨터/.test(value)) {
+    return "activity";
+  }
+  if (/생활|병원|건강|생활비|집|주거|연금|난방|식사|돌봄|응급|긴급|수술|검진/.test(value)) {
+    return "life";
+  }
+  return "unknown";
+}
+
 function renderResourceList(list) {
   const root = document.getElementById("resourceList");
   if (!list.length) {
@@ -341,6 +404,7 @@ function resourceCardElement(item) {
     <div class="meta-grid">
       <span class="meta-pill">대상 ${escapeHtml(shorten(item.target, 42))}</span>
       <span class="meta-pill">지역 ${escapeHtml(item.region || "확인 필요")}</span>
+      <span class="meta-pill">${escapeHtml(resourceAxis(item))}</span>
       <span class="meta-pill">${escapeHtml(item.period || "상세 확인")}</span>
       <span class="meta-pill">${escapeHtml(item.sourceLabel)}</span>
       ${item.requiresCheck ? '<span class="meta-pill">확인 필요</span>' : ""}
@@ -383,13 +447,21 @@ function persistSaved() {
 
 function renderSaved() {
   const root = document.getElementById("savedList");
-  const list = Object.values(state.saved);
+  const list = Object.values(state.saved).filter((item) => state.savedAxis === "all" || resourceAxisKey(item) === state.savedAxis);
   if (!list.length) {
     root.innerHTML = `<div class="empty">아직 찜한 정보가 없어요.<br />찾아봇에게 먼저 물어보세요.</div>`;
     return;
   }
   root.innerHTML = "";
   list.forEach((item) => root.appendChild(resourceCardElement(item)));
+}
+
+function resourceAxis(item) {
+  return resourceAxisKey(item) === "activity" ? "활동·여가" : "생활 도움";
+}
+
+function resourceAxisKey(item) {
+  return ["learning", "culture"].includes(item.category) ? "activity" : "life";
 }
 
 function setupSpeechRecognition() {

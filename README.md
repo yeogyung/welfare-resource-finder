@@ -6,7 +6,8 @@
 
 ## 핵심 기능
 
-- 찾아봇 캐릭터가 먼저 안부를 묻는 대화형 홈
+- 새로고침마다 달라지는 상황 발견형 첫 질문
+- 생활 도움/활동·여가 두 축의 빠른 질문
 - 음성 질문 입력 STT: 브라우저 Web Speech API
 - 음성 안내 TTS: 브라우저 `speechSynthesis`
 - 정부24, 복지로, 광진구 민간복지, 찾아봄 TOP10 통합 DB 418건 기반 추천
@@ -22,12 +23,12 @@
 - `public/assets/`: 찾아봇 로고 및 캐릭터 상태 이미지
 - `public/data/`: 통합 복지자원 JSON
 - `docs/`: IA, RAG 평가, 음성 대화 설계
-- `scripts/build_resources.py`: 팀 DB 엑셀을 앱 JSON으로 변환한 스크립트
+- `scripts/build_resources.py`: 수집·정리한 DB 엑셀을 앱 JSON으로 변환한 스크립트
 - `*.ipynb`: RAG/LLM 프로토타입 Colab 노트북
 
 ## 데이터 출처
 
-앱 데이터는 팀이 정리한 엑셀 파일을 `scripts/build_resources.py`로 통합 변환했습니다.
+앱 데이터는 수집·라벨링한 엑셀 파일을 `scripts/build_resources.py`로 통합 변환했습니다.
 
 - 정부24 복지서비스 라벨링
 - 복지로 API 수집 정리본
@@ -71,11 +72,11 @@ git push -u origin main
 - [IA 및 구현 범위](docs/ia.md)
 - [RAG 평가 설계](docs/rag-evaluation.md)
 - [음성 대화 설계](docs/voice-architecture.md)
-- [선제 안부 대화 설계](docs/proactive-care-plan.md)
+- [상황 발견형 질문 UX 설계](docs/proactive-care-plan.md)
 - [DB 정리본](docs/db-resource-design.md)
 - [배포·서버·결제 준비 계획](docs/deployment-server-payment-plan.md)
 - [현재 상황 및 다음 작업 계획](docs/current-status-next-steps.md)
 
 ## 보고서용 요약
 
-본 MVP는 복지자원 DB 기반 대화형 추천, 음성 입출력, 근거 URL 표시, 찜 저장 기능을 포함한다. 사용자용 프로토타입은 어르신 경험에 집중하도록 구성하고, RAG/검색 품질 평가는 별도 내부 관리자 화면으로 분리했다. 단순 화면 시안이 아니라 실제 브라우저에서 구동되는 정적 웹앱으로 구현했으며, 향후 NAVER Cloud CLOVA Speech/Voice와 연동하여 현장 실증용 음성 대화 서비스로 확장할 수 있다.
+본 MVP는 복지자원 DB 기반 대화형 추천, 상황 발견형 첫 질문, 생활 도움/활동·여가 축 분류, 음성 입출력, 근거 URL 표시, 찜 저장 기능을 포함한다. 사용자용 프로토타입은 어르신 경험에 집중하도록 구성하고, RAG/검색 품질 평가는 별도 내부 관리자 화면으로 분리했다. 단순 화면 시안이 아니라 실제 브라우저에서 구동되는 정적 웹앱으로 구현했으며, 향후 NAVER Cloud CLOVA Speech/Voice와 연동하여 현장 실증용 음성 대화 서비스로 확장할 수 있다.

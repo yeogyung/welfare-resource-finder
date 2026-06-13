@@ -22,12 +22,12 @@
           <img src="./public/assets/hand-wave.png" alt="찾아봇 캐릭터" class="mascot hero" id="homeMascot" />
           <div class="hello-bubble">
             <strong>안녕하세요, 찾아봇이에요.</strong>
-            <span>궁금한 복지 혜택을 말하거나 직접 입력해 주세요. 팀 DB 418건을 근거로 찾아드릴게요.</span>
+            <span id="homePrompt">오늘 어떤 도움이 필요하세요?</span>
           </div>
         </div>
 
         <div class="voice-tools">
-          <button type="button" id="greetingButton">인사 듣기</button>
+          <button type="button" id="greetingButton">질문 듣기</button>
           <button type="button" id="ttsToggle">음성 안내 켜기</button>
         </div>
 
@@ -37,7 +37,7 @@
         </button>
 
         <form class="ask-form" id="askForm">
-          <input id="queryInput" autocomplete="off" placeholder="예: 혼자 살다가 쓰러질까 봐 걱정돼요" />
+          <input id="queryInput" autocomplete="off" placeholder="예: 스마트폰을 배우고 싶어요" />
           <button type="submit">질문</button>
         </form>
 
@@ -71,6 +71,11 @@
         <div class="panel-head">
           <h2>찜한 정보</h2>
           <p>저장한 복지자원을 보호자나 활동가에게 공유할 수 있습니다.</p>
+        </div>
+        <div class="saved-axis-tabs" id="savedAxisTabs" aria-label="찜한 정보 분류">
+          <button class="active" data-saved-axis="all" type="button">전체</button>
+          <button data-saved-axis="life" type="button">생활 도움</button>
+          <button data-saved-axis="activity" type="button">활동·여가</button>
         </div>
         <div class="resource-list" id="savedList"></div>
       </section>
