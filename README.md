@@ -74,6 +74,7 @@ git push -u origin main
 - [선제 안부 대화 설계](docs/proactive-care-plan.md)
 - [DB 정리본](docs/db-resource-design.md)
 - [배포·서버·결제 준비 계획](docs/deployment-server-payment-plan.md)
+- [현재 상황 및 다음 작업 계획](docs/current-status-next-steps.md)
 
 ## 보고서용 요약
 
