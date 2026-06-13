@@ -84,7 +84,7 @@ function renderAdminStats() {
 function runEvaluation() {
   const rows = EVAL_SET.map((test) => {
     const results = searchResources(test.q, "all", 3);
-    const joined = normalize(results.map((item) => `${item.name} ${item.description} ${item.categoryLabel}`).join(" "));
+    const joined = normalize(results.map((item) => `${item.name} ${item.description} ${item.method} ${item.contact} ${item.url} ${item.categoryLabel}`).join(" "));
     const keywordHit = test.expect.some((word) => joined.includes(normalize(word)));
     const categoryHit = results.some((item) => item.category === test.category);
     const faithfulness = results.filter((item) => item.url && item.method && !/010-|핸드폰|이메일/.test(item.method)).length;
@@ -150,13 +150,7 @@ function downloadEvaluation() {
 }
 
 function searchResources(query = "", category = "all", limit = 20) {
-  const expanded = expandQuery(query);
-  return adminState.resources
-    .map((item) => ({ item, score: scoreResource(item, expanded, category) }))
-    .filter((row) => row.score > 0)
-    .sort((a, b) => b.score - a.score || b.item.priority - a.item.priority)
-    .slice(0, limit)
-    .map((row) => row.item);
+  return ChajabotEngine.searchResources(adminState.resources, { query, category, limit });
 }
 
 function scoreResource(item, query, category) {

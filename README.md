@@ -12,6 +12,7 @@
 - 음성 질문 입력 STT: 브라우저 Web Speech API
 - 음성 안내 TTS: 브라우저 `speechSynthesis`
 - 정부24, 복지로, 광진구 민간복지, 찾아봄 TOP10 통합 DB 418건 기반 추천
+- 내장 RAG 추천 엔진: 생활형/여가·문화·배움/긴급 축 판별, 자원 점수화, 추천 근거 생성
 - 응급·안전 질문 우선순위 처리
 - 근거 자원 카드: 대상, 지역, 신청방법, 출처, URL 표시
 - 찜 저장 및 보호자·활동가 공유: `localStorage`
@@ -22,6 +23,8 @@
 
 - `index.html`, `styles.css`, `app.js`: 사용자용 모바일 웹앱
 - `admin.html`, `admin.js`: 내부 RAG/검색 평가 화면
+- `public/js/chajabot-engine.js`: 사용자 앱, 관리자 평가, API가 공유하는 내장 RAG 추천 엔진
+- `api/recommend.js`: Vercel 배포 후 사용할 추천 API 엔드포인트
 - `public/assets/`: 찾아봇 로고 및 캐릭터 상태 이미지
 - `public/data/`: 통합 복지자원 JSON
 - `docs/`: IA, RAG 평가, 음성 대화 설계
@@ -58,6 +61,12 @@ python3 -m http.server 4173
 ```
 
 브라우저에서 `http://localhost:4173` 접속.
+
+추천 API는 Vercel 배포 후 아래 형태로 확인할 수 있습니다.
+
+```bash
+curl "https://배포주소/api/recommend?q=스마트폰%20배우고%20싶어요&limit=3"
+```
 
 ## 배포
 

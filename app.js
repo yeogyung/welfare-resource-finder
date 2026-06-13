@@ -257,8 +257,9 @@ function submitQuery(raw) {
     return;
   }
   addThinkingThen(() => {
-    const results = searchResources(query, "all", 5);
-    const lead = buildLead(query, results);
+    const recommendation = recommendResources(query, "all", 5);
+    const results = recommendation.results.map((row) => row.item);
+    const lead = recommendation.lead;
     addBotMessage(lead);
     results.slice(0, 4).forEach((item, index) => addResourceCard(item, { evidence: true, rank: index + 1 }));
   });
@@ -326,19 +327,15 @@ function addThinkingThen(callback) {
 }
 
 function buildLead(query, results) {
-  if (!results.length) return "지금 DB에서는 딱 맞는 정보를 찾지 못했어요. 주민센터 또는 보건복지상담센터 129에 먼저 문의해 주세요.";
-  if (isEmergency(query)) return "위험하거나 긴급한 상황일 수 있어요. 아래 자원을 먼저 확인하고, 지금 바로 위험하면 119 또는 가까운 주민센터에 연락해 주세요.";
-  return `말씀해 주셔서 고마워요. "${query}"와 관련된 근거 자원을 찾아봤어요.`;
+  return ChajabotEngine.buildLead(query, results);
+}
+
+function recommendResources(query = "", category = "all", limit = 5) {
+  return ChajabotEngine.recommend(state.resources, { query, category, limit });
 }
 
 function searchResources(query = "", category = "all", limit = 20) {
-  const expanded = expandQuery(query);
-  return state.resources
-    .map((item) => ({ item, score: scoreResource(item, expanded, category) }))
-    .filter((row) => row.score > 0)
-    .sort((a, b) => b.score - a.score || b.item.priority - a.item.priority)
-    .slice(0, limit)
-    .map((row) => row.item);
+  return ChajabotEngine.searchResources(state.resources, { query, category, limit });
 }
 
 function scoreResource(item, query, category) {
@@ -384,18 +381,11 @@ function tokenize(text) {
 }
 
 function isEmergency(text) {
-  return /응급|긴급|쓰러|위기|위험|119|혼자.*아파|죽|학대|고독사/.test(text);
+  return ChajabotEngine.isEmergency(text);
 }
 
 function inferAxis(text) {
-  const value = normalize(text);
-  if (/배우|교육|공연|전시|문화|여가|모임|독서|글쓰기|노래|합창|봉사|참여|활동|스마트폰|컴퓨터/.test(value)) {
-    return "activity";
-  }
-  if (/생활|병원|건강|생활비|집|주거|연금|난방|식사|돌봄|응급|긴급|수술|검진/.test(value)) {
-    return "life";
-  }
-  return "unknown";
+  return ChajabotEngine.inferAxis(text);
 }
 
 function renderResourceList(list) {
@@ -479,11 +469,11 @@ function renderSaved() {
 }
 
 function resourceAxis(item) {
-  return resourceAxisKey(item) === "activity" ? "여가·문화·배움" : "생활형";
+  return ChajabotEngine.resourceAxis(item);
 }
 
 function resourceAxisKey(item) {
-  return ["learning", "culture"].includes(item.category) ? "activity" : "life";
+  return ChajabotEngine.resourceAxisKey(item);
 }
 
 function syncSettingsUi() {
