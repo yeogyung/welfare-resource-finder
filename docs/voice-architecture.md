@@ -7,7 +7,7 @@
 ## 현재 MVP
 
 - STT: 브라우저 Web Speech API 기반 한국어 음성 인식
-- TTS: 브라우저 `speechSynthesis` 기반 한국어 음성 안내
+- TTS: CLOVA Voice API 우선, 미설정 시 브라우저 `speechSynthesis` fallback
 - 상황 질문 듣기: 홈 화면 `질문 듣기` 버튼으로 현재 랜덤 첫 질문을 음성 안내
 - 음성 안내: `음성 안내 켜기`를 누르면 찾아봇 말풍선을 읽어줌
 - 배포 조건: HTTPS 환경 또는 localhost에서 마이크 권한 필요
@@ -62,6 +62,25 @@ flowchart LR
 
 - 출력: `audio/mpeg` 또는 임시 오디오 URL
 
+현재 구현은 `api/tts.js`에서 CLOVA Voice TTS Premium API를 호출한다. 프론트엔드는 `/api/tts`에 텍스트만 보내고, API 키는 Vercel 환경변수에서만 읽는다.
+
+필요 환경변수:
+
+```text
+NCP_CLOVA_VOICE_KEY_ID
+NCP_CLOVA_VOICE_KEY
+NCP_CLOVA_VOICE_SPEAKER
+```
+
+음성 UX 기본값:
+
+- speaker: `NCP_CLOVA_VOICE_SPEAKER` 값, 미설정 시 `nara`
+- speed: `-1`
+- pitch: `0`
+- volume: `0`
+
+어르신 대상 실증에서는 너무 빠르거나 높게 들리지 않도록 속도를 약간 낮추고, 한 문장을 짧게 끊어 안내한다.
+
 ## 어르신 UX 원칙
 
 - 첫 질문은 필요(생활형)와 욕구(여가·문화·배움)를 모두 열어두는 문장으로 랜덤 노출한다.
@@ -73,7 +92,7 @@ flowchart LR
 
 ## 결과보고서 표현
 
-> 음성 기반 접근성을 강화하기 위해 MVP에는 브라우저 내장 STT/TTS를 적용하고, 운영 버전에서는 국내 결제가 가능한 NAVER Cloud CLOVA Speech 및 CLOVA Voice를 서버리스 API로 연동하는 구조를 설계하였다. 이를 통해 어르신이 직접 타자를 입력하지 않아도 현재 상황이나 하고 싶은 활동을 말로 설명하고, 찾아봇이 질문 의도를 필요(생활형)/욕구(여가·문화·배움) 축 및 세부 복지자원 카테고리로 연결하는 확장 가능성을 확보하였다.
+> 음성 기반 접근성을 강화하기 위해 MVP에는 브라우저 내장 STT와 CLOVA Voice 기반 TTS 연동 구조를 적용하였다. CLOVA Voice 설정이 없는 환경에서는 브라우저 TTS로 fallback되도록 구현해 배포 안정성을 확보했으며, 운영 버전에서는 NAVER Cloud CLOVA Speech까지 연결하여 어르신이 직접 타자를 입력하지 않아도 현재 상황이나 하고 싶은 활동을 말로 설명하고, 찾아봇이 질문 의도를 필요(생활형)/욕구(여가·문화·배움) 축 및 세부 복지자원 카테고리로 연결할 수 있도록 확장한다.
 
 ## 참고 공식 문서
 

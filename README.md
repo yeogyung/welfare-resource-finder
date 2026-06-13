@@ -10,7 +10,7 @@
 - 필요(생활형)과 욕구(여가·문화·배움) 두 축의 빠른 질문
 - 입력창 예시 문구와 대화 첫 질문 랜덤화
 - 음성 질문 입력 STT: 브라우저 Web Speech API
-- 음성 안내 TTS: 브라우저 `speechSynthesis`
+- 음성 안내 TTS: CLOVA Voice API 우선, 미설정 시 브라우저 `speechSynthesis` fallback
 - 정부24, 복지로, 광진구 민간복지, 범용 노인복지 TOP10 통합 DB 418건 기반 추천
 - DB 기반 추천 엔진: 생활형/여가·문화·배움/긴급 축 판별, 자원 점수화, 추천 근거 생성
 - RAG 확장 준비: `/api/recommend`에서 검색 결과, 추천 근거, 근거 URL을 반환하며 이후 LLM 답변 생성 단계의 context로 사용할 수 있음
@@ -26,6 +26,7 @@
 - `admin.html`, `admin.js`: 내부 RAG/검색 평가 화면
 - `public/js/chajabot-engine.js`: 사용자 앱, 관리자 평가, API가 공유하는 DB 기반 추천 엔진
 - `api/recommend.js`: Vercel 배포 후 사용할 추천 API 엔드포인트
+- `api/tts.js`: CLOVA Voice 기반 음성 안내 API
 - `public/assets/`: 찾아봇 로고 및 캐릭터 상태 이미지
 - `public/data/`: 통합 복지자원 JSON
 - `docs/`: IA, RAG 평가, 음성 대화 설계
@@ -78,6 +79,16 @@ git push -u origin main
 ```
 
 로컬 파일이 GitHub에 자동 업로드되지는 않습니다. `git add`, `git commit`, `git push` 이후 GitHub와 연결된 Vercel 프로젝트에서 자동 배포됩니다.
+
+### CLOVA Voice 환경변수
+
+Vercel Project Settings > Environment Variables에 아래 값을 넣으면 찾아봇 음성 안내가 CLOVA Voice로 재생됩니다. 값이 없으면 브라우저 기본 TTS로 fallback합니다.
+
+```text
+NCP_CLOVA_VOICE_KEY_ID=네이버클라우드 Client ID
+NCP_CLOVA_VOICE_KEY=네이버클라우드 Client Secret
+NCP_CLOVA_VOICE_SPEAKER=nara
+```
 
 ## 문서
 

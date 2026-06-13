@@ -537,6 +537,8 @@ let fontLevel=parseInt(store.get("cb_font")||"1");
 let region=store.get("cb_region")||"서울 광진구";
 let lastEval=null;
 let ctx={cat:null,tokens:[]}; // 대화 누적 상태
+let voiceAudio=null;
+let voiceAudioUrl=null;
 
 /* 검색/스코어링 */
 function detectCategory(q){let b=null,bv=0;for(const c in CAT_KEYWORDS){let s=0;for(const w of CAT_KEYWORDS[c])if(q.includes(w))s++;if(s>bv){bv=s;b=c;}}return bv>0?b:null;}
@@ -742,8 +744,30 @@ function startVoice(target){sttTarget=target;
   if(!recog&&!initSTT()){const cm=document.getElementById("chatMic");if(cm)cm.classList.add("off");toast("음성 입력이 안 되는 기기예요. 아래에 입력해 주세요");return;}
   if(recogActive){recog.stop();return;}
   try{recog.start();recogActive=true;setMic(true);}catch(e){recogActive=false;setMic(false);}}
-function speak(text,force){if(!force&&!ttsOn)return;if(!("speechSynthesis"in window))return;
-  try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="ko-KR";u.rate=.96;window.speechSynthesis.speak(u);}catch(e){}}
+function fallbackSpeak(text){
+  if(!("speechSynthesis"in window))return;
+  try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="ko-KR";u.rate=.92;u.pitch=1.02;window.speechSynthesis.speak(u);}catch(e){}
+}
+async function speak(text,force){
+  if(!force&&!ttsOn)return;
+  const clean=String(text||"").replace(/\s+/g," ").trim();
+  if(!clean)return;
+  try{
+    if(voiceAudio){voiceAudio.pause();voiceAudio=null;}
+    if(voiceAudioUrl){URL.revokeObjectURL(voiceAudioUrl);voiceAudioUrl=null;}
+    if("speechSynthesis"in window)window.speechSynthesis.cancel();
+    const response=await fetch("/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:clean,speed:-1,pitch:0,volume:0})});
+    if(response.ok){
+      const blob=await response.blob();
+      voiceAudioUrl=URL.createObjectURL(blob);
+      voiceAudio=new Audio(voiceAudioUrl);
+      voiceAudio.onended=()=>{if(voiceAudioUrl){URL.revokeObjectURL(voiceAudioUrl);voiceAudioUrl=null;}};
+      await voiceAudio.play();
+      return;
+    }
+  }catch(e){}
+  fallbackSpeak(clean);
+}
 
 /* 설정 */
 function applyFont(){document.body.className="fs-"+fontLevel;
@@ -753,7 +777,7 @@ function setFont(l){fontLevel=l;store.set("cb_font",String(l));applyFont();toast
 function cycleFont(){setFont((fontLevel+1)%3);}
 function applyTts(){["ttsToggle"].forEach(id=>document.getElementById(id).setAttribute("aria-pressed",ttsOn));document.getElementById("ttsMini").setAttribute("aria-pressed",ttsOn);}
 function toggleTts(){ttsOn=!ttsOn;store.set("cb_tts",ttsOn?"1":"0");applyTts();
-  if(ttsOn){speak("음성 안내를 켰어요. 이제 찾아봇의 말을 소리로 읽어드릴게요.",true);toast("음성 안내를 켰어요 🔊");}else{try{window.speechSynthesis.cancel();}catch(e){}toast("음성 안내를 껐어요");}}
+  if(ttsOn){speak("음성 안내를 켰어요. 이제 찾아봇의 말을 자연스럽게 읽어드릴게요.",true);toast("음성 안내를 켰어요 🔊");}else{try{if(voiceAudio)voiceAudio.pause();if(voiceAudioUrl)URL.revokeObjectURL(voiceAudioUrl);voiceAudio=null;voiceAudioUrl=null;window.speechSynthesis.cancel();}catch(e){}toast("음성 안내를 껐어요");}}
 function pickRegion(){const r=prompt("지역을 입력해 주세요 (예: 서울 광진구)",region);if(r){region=r.trim();store.set("cb_region",region);document.getElementById("regionVal").textContent=region;toast("지역을 "+region+"(으)로 설정했어요");}}
 function shareSaved(){
   if(savedIds.length===0){toast("먼저 복지를 찜해 주세요");return;}
