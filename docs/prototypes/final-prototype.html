@@ -542,7 +542,7 @@ let ttsOn=store.get("cb_tts")==="1";
 let fontLevel=parseInt(store.get("cb_font")||"1");
 let region=store.get("cb_region")||"서울 광진구";
 let lastEval=null;
-let ctx={cat:null,tokens:[]}; // 대화 누적 상태
+let ctx={cat:null,tokens:[],query:""}; // 대화 누적 상태
 let voiceAudio=null;
 let voiceAudioUrl=null;
 
@@ -657,7 +657,7 @@ function sc(){const b=document.getElementById("scroll");requestAnimationFrame(()
 function startChat(seedNode){
   go("chat");
   document.getElementById("thread").innerHTML="";
-  ctx={cat:null,tokens:[]};
+  ctx={cat:null,tokens:[],query:""};
   const hi="안녕하세요! 제가 몇 가지 여쭤보고 꼭 맞는 복지를 찾아드릴게요.";
   addBot(esc(hi),{text:hi});
   speak(hi);
@@ -687,13 +687,40 @@ function pick(nodeId,idx){
   addUser((opt.emoji?opt.emoji+" ":"")+opt.label);
   if(opt.cat)ctx.cat=opt.cat;
   if(opt.tokens)ctx.tokens.push(...opt.tokens);
+  ctx.query=[ctx.query,opt.label].filter(Boolean).join(" ");
   if(opt.search)recommend(opt.danger);
   else if(opt.go)renderNode(opt.go,stepCount+1);
   else recommend();
 }
+async function groundedAnswer(list,analysis,tokens,danger){
+  if(!list||!list.length)return null;
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),5500);
+  try{
+    const response=await fetch("/api/answer",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      signal:controller.signal,
+      body:JSON.stringify({
+        query:ctx.query||tokens.join(" ")||ctx.cat||"",
+        category:ctx.cat||"all",
+        axisLabel:analysis&&analysis.axisLabel,
+        limit:3,
+        results:list
+      })
+    });
+    if(!response.ok)return null;
+    const data=await response.json();
+    return data&&data.answer?String(data.answer).trim():null;
+  }catch(e){
+    return null;
+  }finally{
+    clearTimeout(timeout);
+  }
+}
 function recommend(danger){
   addTyping();
-  setTimeout(()=>{
+  setTimeout(async()=>{
     rmTyping();
     const tokens=ctx.tokens.length?ctx.tokens:[ctx.cat||""];
     const emergency=ctx.cat==="emergency";
@@ -708,6 +735,8 @@ function recommend(danger){
     const intro=danger?"우선 119가 가장 빠릅니다. 함께 도움이 될 안전·응급 정보예요."
       :(analysis&&analysis.lead?analysis.lead:(cm?`말씀해 주셔서 고마워요. '${cm.label}'에서 이런 도움을 받으실 수 있어요.`:"말씀해 주셔서 고마워요. 맞는 정보를 찾아봤어요."));
     addBot(esc(intro),{text:intro});
+    const aiGuide=await groundedAnswer(list,analysis,tokens,danger);
+    if(aiGuide)addBot(esc(aiGuide),{text:aiGuide});
     addCards(list);
     addBot("이 중에 마음에 드는 게 있으세요? 더 찾아보고 싶으시면 아래에서 골라주세요.");
     addChoices([
@@ -721,7 +750,7 @@ function askText(text){
   go("chat");
   if(!document.getElementById("thread").innerHTML){const hi="안녕하세요! 말씀하신 내용을 보고 몇 가지만 더 여쭤볼게요.";addBot(esc(hi),{text:hi});}
   addUser(text);
-  ctx={cat:detectCategory(text),tokens:tokenize(text)};
+  ctx={cat:detectCategory(text),tokens:tokenize(text),query:text};
   const emergency=isEmergency(text);
   if(emergency){ctx.cat="emergency";renderNode("emergency_1",1);return;}
   if(ctx.cat&&CAT_ENTRY[ctx.cat]){renderNode(CAT_ENTRY[ctx.cat],1);}

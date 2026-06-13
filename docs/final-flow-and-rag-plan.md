@@ -39,8 +39,19 @@
 1. 사용자 발화와 후속 질문 선택값을 합쳐 질의 생성
 2. DB 추천 엔진으로 Top-K 근거 자원 검색
 3. 검색된 자원의 `name`, `target`, `description`, `method`, `contact`, `url`만 context로 구성
-4. LLM에는 "context 밖 정보는 생성하지 말 것"을 시스템 지시로 전달
+4. LLM에는 "context 밖 정보는 생성하지 말 것", "추천 순서를 바꾸지 말 것", "새 자원을 추가하지 말 것"을 시스템 지시로 전달
 5. 생성 답변, 검색 자원 ID, context를 저장
 6. 교수님 피드백 기준에 맞춰 ROUGE, METEOR, BERTScore, Faithfulness, 환각 여부 평가
 
 이 구조를 쓰면 사용자 화면은 계속 단순한 대화형 앱으로 유지하고, 모델 품질 평가는 내부 관리자 화면 또는 Colab 평가 노트북에서 분리해 수행할 수 있다.
+
+## CLOVA Studio 역할 제한
+
+CLOVA Studio는 추천 판단자가 아니라 답변 문장 생성 보조로만 사용한다.
+
+- 추천 대상과 순위: `public/js/chajabot-engine.js`의 DB 기반 검색·추천 엔진이 결정
+- CLOVA Studio 역할: 이미 선택된 Top-K 자원을 쉬운 한국어로 설명
+- 사용자 안내 문구: "아래 추천 카드에서 자세한 대상과 신청 방법을 확인해 주세요"처럼 카드 확인을 유도
+- 금지 사항: 일상 대화 장기 상담, DB 밖 자원 생성, 신청 자격·전화번호·URL 추측, 추천 순위 변경
+- API 호출 추적: `/api/answer`가 호출마다 `X-NCP-CLOVASTUDIO-REQUEST-ID`를 자동 생성하고 응답 JSON에 함께 반환
+- 자유 입력 범위: 복지자원 발견으로 이어지는 자연어 입력만 처리하고, 일반 잡담은 장기 대화로 확장하지 않음
