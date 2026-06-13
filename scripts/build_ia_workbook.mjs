@@ -91,7 +91,7 @@ addSheet("대화_트리", [
 
 addSheet("데이터_AI", [
   ["구분", "현재 구현", "확장 계획", "보고서 의미"],
-  ["앱용 DB", "418건 JSON: 정부24, 복지로, 광진구 민간복지, 찾아봄 TOP10", "chunk 단위 RAG context 분리", "근거 기반 추천 산출물"],
+  ["앱용 DB", "418건 JSON: 정부24, 복지로, 광진구 민간복지, 서울 노인복지 TOP10", "chunk 단위 RAG context 분리", "근거 기반 추천 산출물"],
   ["추천 로직", "키워드·카테고리·출처·우선순위 기반 검색", "임베딩 검색과 LLM 설명문 결합", "환각을 줄이기 위해 DB 검색 결과를 우선"],
   ["음성", "브라우저 Web Speech API와 speechSynthesis", "NAVER Cloud CLOVA Speech/Voice 서버리스 연동", "고령층 접근성 강화"],
   ["내부 평가", "admin.html 15문항 예비 평가", "ROUGE, METEOR, BERTScore, Faithfulness, 환각 체크", "지도교수 피드백 반영"],

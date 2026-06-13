@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE = ROOT.parent
 
 SOURCES = {
-    "top10": WORKSPACE / "배경지식/00_원본자료/다운로드_첨부자료/찾아봄_서울노인복지_TOP10_원본형식_정제최종 (1).xlsx",
+    "top10": next((WORKSPACE / "배경지식/00_원본자료/다운로드_첨부자료").glob("*서울노인복지_TOP10_원본형식_정제최종 (1).xlsx")),
     "gov24": WORKSPACE / "배경지식/00_원본자료/다운로드_첨부자료/정부24_복지서비스_API수집_wlsWk 최종라벨링 2.xlsx",
     "bokjiro": WORKSPACE / "배경지식/00_원본자료/다운로드_첨부자료/복지로_API 수집_v3 (1).xlsx",
     "gwangjin": WORKSPACE / "배경지식/00_원본자료/다운로드_첨부자료/광진구_민간복지자원_라벨링_60개.xlsx",
@@ -120,7 +120,7 @@ def normalize(row: dict[str, Any], source: str, source_label: str, priority: int
 def build() -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     for row in rows_from_sheet(SOURCES["top10"], "서울_TOP10_원본형식"):
-        items.append(normalize(row, "top10", "찾아봄 TOP10", 100))
+        items.append(normalize(row, "top10", "서울 노인복지 TOP10", 100))
     for row in rows_from_sheet(SOURCES["gwangjin"], "광진구_민간복지_라벨링"):
         items.append(normalize(row, "gwangjin", "광진구 민간복지", 90))
     for row in rows_from_sheet(SOURCES["bokjiro"], "복지로_정리본"):

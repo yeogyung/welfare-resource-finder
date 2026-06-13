@@ -2,7 +2,7 @@
   {
     "name": "결식우려노인무료급식지원",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "care",
     "categoryLabel": "돌봄·생활",
@@ -23,7 +23,7 @@
   {
     "name": "노인 무릎인공관절 수술 지원",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "emergency",
     "categoryLabel": "응급·안전",
@@ -44,7 +44,7 @@
   {
     "name": "노인 안검진 및 개안수술",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "health",
     "categoryLabel": "건강·의료",
@@ -65,7 +65,7 @@
   {
     "name": "노인맞춤돌봄서비스",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "emergency",
     "categoryLabel": "응급·안전",
@@ -86,7 +86,7 @@
   {
     "name": "노인일자리 및 사회활동 지원",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "money",
     "categoryLabel": "경제·일자리",
@@ -107,7 +107,7 @@
   {
     "name": "노인장기요양 시설급여 지원",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "emergency",
     "categoryLabel": "응급·안전",
@@ -128,7 +128,7 @@
   {
     "name": "노인장기요양 재가급여 지원",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "emergency",
     "categoryLabel": "응급·안전",
@@ -149,7 +149,7 @@
   {
     "name": "노인장기요양보험(장기요양인정)",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "emergency",
     "categoryLabel": "응급·안전",
@@ -170,7 +170,7 @@
   {
     "name": "독거노인·장애인 응급안전안심서비스",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "emergency",
     "categoryLabel": "응급·안전",
@@ -191,7 +191,7 @@
   {
     "name": "장애인·노인 보조기기 맞춤형 서비스 (지역 보조기기센터)",
     "source": "top10",
-    "sourceLabel": "찾아봄 TOP10",
+    "sourceLabel": "서울 노인복지 TOP10",
     "priority": 100,
     "category": "care",
     "categoryLabel": "돌봄·생활",
