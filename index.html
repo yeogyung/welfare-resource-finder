@@ -20,28 +20,29 @@
   --fs:19px;
 }
 body.fs-0{--fs:17px;} body.fs-1{--fs:19px;} body.fs-2{--fs:23px;}
-html,body{height:100%;min-height:100%;}
+html,body{width:100%;height:100%;min-height:100%;overflow-x:hidden;}
 body{
+  min-width:0;
   font-family:"Pretendard Variable",Pretendard,"Noto Sans KR",system-ui,sans-serif;
   background:#DEE1E6;color:var(--ink);font-size:var(--fs);line-height:1.5;
   -webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:16px;
 }
-.phone{width:100%;max-width:430px;height:min(880px,95vh);background:var(--bg);border-radius:32px;
+.phone{width:100%;max-width:430px;min-width:0;height:min(880px,95vh);background:var(--bg);border-radius:32px;
   box-shadow:0 16px 48px rgba(16,24,40,.22);overflow:hidden;position:relative;display:flex;flex-direction:column;}
 
 @media (max-width:640px){
   html,body{width:100%;height:100%;height:100dvh;overflow:hidden;}
   body{padding:0;background:var(--bg);align-items:stretch;justify-content:flex-start;}
-  .phone{width:100vw;max-width:none;height:100vh;height:100dvh;border-radius:0;box-shadow:none;}
+  .phone{width:100%;max-width:100%;min-width:0;height:100vh;height:100dvh;border-radius:0;box-shadow:none;}
 }
 
 /* 상단바 */
-.appbar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;
+.appbar{min-width:0;max-width:100%;flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 12px;
   background:var(--surface);border-bottom:1px solid var(--line-2);z-index:6;}
-.brand{display:flex;align-items:center;gap:9px;}
+.brand{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto;}
 .brand img{width:32px;height:32px;border-radius:9px;display:block;}
 .brand b{font-size:1.14em;font-weight:800;letter-spacing:-.02em;color:var(--ink);}
-.appbar-actions{display:flex;gap:7px;}
+.appbar-actions{display:flex;gap:7px;flex:0 0 auto;min-width:0;}
 .mini-btn{border:1.4px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;
   font-family:inherit;font-size:.78em;font-weight:700;color:var(--ink-3);cursor:pointer;display:flex;align-items:center;gap:5px;transition:.15s;}
 .mini-btn[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff;}
@@ -96,12 +97,12 @@ body{
 .chat-direct .cd-label{font-size:.88em;font-weight:800;color:var(--teal-dark);}
 .chat-direct:active .cd-arrow-btn{transform:scale(.93);}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
-.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.qbtn{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:14px 13px;text-align:left;
+.qgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+.qbtn{min-width:0;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:14px 13px;text-align:left;
   cursor:pointer;font-family:inherit;transition:.15s;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-card);}
 .qbtn:active{transform:scale(.98);background:var(--teal-soft);}
 .qbtn .em{font-size:1.45em;flex:none;}
-.qbtn .lb{font-weight:700;font-size:.92em;line-height:1.32;color:var(--ink-2);}
+.qbtn .lb{min-width:0;font-weight:700;font-size:.92em;line-height:1.32;color:var(--ink-2);word-break:keep-all;overflow-wrap:anywhere;}
 .dbcard{margin-top:22px;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;
   padding:15px 16px;box-shadow:var(--shadow-card);}
 .dbtop{display:flex;align-items:baseline;gap:7px;}
@@ -110,13 +111,13 @@ body{
 .dbchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;}
 .dbchip{font-size:.72em;font-weight:700;color:var(--ink-3);background:var(--bg);border:1px solid var(--line-2);border-radius:999px;padding:4px 10px;}
 .hero{padding:6px 2px 0;}
-.ask-bot{display:flex;gap:11px;align-items:flex-start;}
+.ask-bot{display:flex;gap:11px;align-items:flex-start;min-width:0;}
 .char-s{width:90px;height:96px;flex:none;object-fit:contain;animation:bob 3.6s ease-in-out infinite;}
-.qbubble{position:relative;flex:1;background:#fff;border:1px solid var(--line-2);border-radius:6px 18px 18px 18px;box-shadow:var(--shadow-card);padding:14px 16px;margin-top:10px;}
+.qbubble{position:relative;flex:1 1 0;min-width:0;max-width:100%;background:#fff;border:1px solid var(--line-2);border-radius:6px 18px 18px 18px;box-shadow:var(--shadow-card);padding:14px 16px;margin-top:10px;overflow:hidden;}
 .qbubble::before{content:"";position:absolute;left:-8px;top:18px;width:0;height:0;border:7px solid transparent;border-right-color:#fff;}
 .qbubble::after{content:"";position:absolute;left:-9px;top:18px;width:0;height:0;border:7px solid transparent;border-right-color:var(--line-2);z-index:-1;}
 .qb-name{font-size:.78em;font-weight:800;color:var(--teal);margin-bottom:4px;}
-.qb-q{font-size:1.16em;font-weight:800;line-height:1.45;color:var(--ink);letter-spacing:-.01em;}
+.qb-q{font-size:1.16em;font-weight:800;line-height:1.45;color:var(--ink);letter-spacing:-.01em;word-break:keep-all;overflow-wrap:anywhere;}
 .concept{margin:24px 6px 6px;padding-top:18px;border-top:1px solid var(--line-2);color:var(--ink-4);font-size:.86em;line-height:1.55;text-align:center;}
 .answer{margin-top:22px;}
 .ans-label{font-weight:800;font-size:1em;color:var(--ink-2);margin:0 2px 12px;display:flex;align-items:center;gap:7px;}
@@ -269,6 +270,23 @@ body{
   color:#fff;padding:12px 20px;border-radius:999px;font-size:.9em;font-weight:700;opacity:0;pointer-events:none;
   transition:.25s;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:88%;text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (max-width:640px){
+  .phone{position:fixed;inset:0;width:100dvw!important;max-width:100dvw!important;}
+  .appbar{padding-left:14px;padding-right:14px;}
+  .mini-btn{padding:7px 10px;}
+  #ttsMini{font-size:0;width:44px;height:38px;padding:0;justify-content:center;}
+  #ttsMini::before{content:"🔊";font-size:17px;line-height:1;}
+  .home{padding-left:14px;padding-right:14px;}
+  .char-s{width:78px;height:88px;}
+  .qb-q{font-size:1em;word-break:break-all;}
+  .qgrid{grid-template-columns:1fr;gap:9px;}
+  .qbtn{padding:13px 11px;gap:8px;}
+}
+@media (max-width:374px){
+  .qgrid{grid-template-columns:1fr;}
+  .appbar-actions{gap:5px;}
+  .mini-btn{font-size:.72em;padding:7px 8px;}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
 </head>
