@@ -1,6 +1,6 @@
 # 찾아봇 AI MVP
 
-서울청년기획봉사단 3기 활동과 도전학기제 수행 과정에서 기획한 어르신 복지자원 대화형 탐색 서비스입니다. 이 저장소는 도전학기제 결과보고서 제출을 위한 개발 산출물로, IA/와이어프레임/Figma 디자인을 바탕으로 구현한 배포 가능 MVP입니다.
+도전학기제 수행 과정에서 기획한 어르신 복지자원 대화형 탐색 서비스입니다. 이 저장소는 도전학기제 결과보고서 제출을 위한 개발 산출물로, IA/와이어프레임/Figma 디자인을 바탕으로 구현한 배포 가능 MVP입니다.
 
 기존 RAG Colab 노트북은 저장소에 함께 보존하고, 본 웹앱은 해당 RAG/DB 실험을 실제 사용 가능한 모바일 화면으로 옮긴 산출물입니다.
 
@@ -12,7 +12,8 @@
 - 음성 질문 입력 STT: 브라우저 Web Speech API
 - 음성 안내 TTS: 브라우저 `speechSynthesis`
 - 정부24, 복지로, 광진구 민간복지, 범용 노인복지 TOP10 통합 DB 418건 기반 추천
-- 내장 RAG 추천 엔진: 생활형/여가·문화·배움/긴급 축 판별, 자원 점수화, 추천 근거 생성
+- DB 기반 추천 엔진: 생활형/여가·문화·배움/긴급 축 판별, 자원 점수화, 추천 근거 생성
+- RAG 확장 준비: `/api/recommend`에서 검색 결과, 추천 근거, 근거 URL을 반환하며 이후 LLM 답변 생성 단계의 context로 사용할 수 있음
 - 응급·안전 질문 우선순위 처리
 - 근거 자원 카드: 대상, 지역, 신청방법, 출처, URL 표시
 - 찜 저장 및 보호자·활동가 공유: `localStorage`
@@ -23,7 +24,7 @@
 
 - `index.html`, `styles.css`, `app.js`: 사용자용 모바일 웹앱
 - `admin.html`, `admin.js`: 내부 RAG/검색 평가 화면
-- `public/js/chajabot-engine.js`: 사용자 앱, 관리자 평가, API가 공유하는 내장 RAG 추천 엔진
+- `public/js/chajabot-engine.js`: 사용자 앱, 관리자 평가, API가 공유하는 DB 기반 추천 엔진
 - `api/recommend.js`: Vercel 배포 후 사용할 추천 API 엔드포인트
 - `public/assets/`: 찾아봇 로고 및 캐릭터 상태 이미지
 - `public/data/`: 통합 복지자원 JSON
@@ -81,6 +82,7 @@ git push -u origin main
 ## 문서
 
 - [IA 및 구현 범위](docs/ia.md)
+- [최종 대화 플로우 및 RAG 확장 설계](docs/final-flow-and-rag-plan.md)
 - [RAG 평가 설계](docs/rag-evaluation.md)
 - [음성 대화 설계](docs/voice-architecture.md)
 - [상황 발견형 질문 UX 설계](docs/proactive-care-plan.md)
