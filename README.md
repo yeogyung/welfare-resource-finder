@@ -61,9 +61,10 @@ python3 -m http.server 4173
 Vercel에서 이 폴더를 프로젝트 루트로 연결하면 바로 배포할 수 있습니다.
 
 ```bash
-git remote add origin https://github.com/yeogyung/welfare-resource-finder.git
 git push -u origin main
 ```
+
+로컬 파일이 GitHub에 자동 업로드되지는 않습니다. `git add`, `git commit`, `git push` 이후 GitHub와 연결된 Vercel 프로젝트에서 자동 배포됩니다.
 
 ## 문서
 
@@ -72,6 +73,7 @@ git push -u origin main
 - [음성 대화 설계](docs/voice-architecture.md)
 - [선제 안부 대화 설계](docs/proactive-care-plan.md)
 - [DB 정리본](docs/db-resource-design.md)
+- [배포·서버·결제 준비 계획](docs/deployment-server-payment-plan.md)
 
 ## 보고서용 요약
 
