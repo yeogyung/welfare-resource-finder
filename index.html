@@ -29,11 +29,12 @@ body{
 }
 .phone{width:100%;max-width:430px;min-width:0;height:min(880px,95vh);background:var(--bg);border-radius:32px;
   box-shadow:0 16px 48px rgba(16,24,40,.22);overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.phone,.appbar,.body-scroll,.screen,.home,.ask-bot,.qbubble,.qgrid,.qbtn,.inrow{max-width:100%;min-width:0;}
 
 @media (max-width:640px){
-  html,body{width:100%;height:100%;height:100dvh;overflow:hidden;}
-  body{padding:0;background:var(--bg);align-items:stretch;justify-content:flex-start;}
-  .phone{width:100%;max-width:100%;min-width:0;height:100vh;height:100dvh;border-radius:0;box-shadow:none;}
+  html,body{width:100%;height:100%;height:100svh;height:100dvh;overflow:hidden;}
+  body{padding:0;background:var(--bg);align-items:stretch;justify-content:center;overflow:hidden;}
+  .phone{width:100%;max-width:430px;min-width:0;height:100vh;height:100svh;height:100dvh;margin:0 auto;border-radius:0;box-shadow:none;}
 }
 
 /* 상단바 */
@@ -271,16 +272,18 @@ body{
   transition:.25s;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:88%;text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 @media (max-width:640px){
-  .phone{position:fixed;inset:0;width:100dvw!important;max-width:100dvw!important;}
-  .appbar{padding-left:14px;padding-right:14px;}
-  .mini-btn{padding:7px 10px;}
-  #ttsMini{font-size:0;width:44px;height:38px;padding:0;justify-content:center;}
-  #ttsMini::before{content:"🔊";font-size:17px;line-height:1;}
-  .home{padding-left:14px;padding-right:14px;}
+  .appbar{width:100%;padding-left:14px;padding-right:14px;overflow:hidden;}
+  .appbar-actions{flex:0 0 auto;max-width:calc(100% - 118px);gap:6px;}
+  .mini-btn{padding:7px 9px;font-size:.74em;white-space:nowrap;}
+  .brand b{font-size:1.05em;}
+  .home{width:100%;max-width:100%;overflow-x:hidden;padding-left:14px;padding-right:14px;}
   .char-s{width:78px;height:88px;}
-  .qb-q{font-size:1em;word-break:break-all;}
-  .qgrid{grid-template-columns:1fr;gap:9px;}
-  .qbtn{padding:13px 11px;gap:8px;}
+  .ask-bot{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;width:100%;}
+  .qbubble{width:100%;max-width:100%;margin-top:10px;}
+  .qb-q{font-size:1.03em;word-break:keep-all;overflow-wrap:anywhere;}
+  .qgrid{width:100%;max-width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;}
+  .qbtn{width:100%;padding:12px 10px;gap:8px;}
+  .qbtn .lb{font-size:.86em;line-height:1.34;}
 }
 @media (max-width:374px){
   .qgrid{grid-template-columns:1fr;}
