@@ -85,4 +85,4 @@ git push origin main
 - 앱 기준 DB: `public/data/welfare-resources.json`
 - DB 정리본: `docs/db-resource-design.md`
 - 음성 설계: `docs/voice-architecture.md`
-- IA 갱신본: `docs/찾아봇_IA_갱신본_2026-06-14.xlsx`
+- IA 갱신본: `docs/찾아봇_IA_갱신본.xlsx`

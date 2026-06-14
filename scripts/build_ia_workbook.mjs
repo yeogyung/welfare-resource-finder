@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import { SpreadsheetFile, Workbook } from "@oai/artifact-tool";
 
-const outputPath = new URL("../docs/찾아봇_IA_확정본_2026-06-14.xlsx", import.meta.url);
+const outputPath = new URL("../docs/찾아봇_IA_확정본.xlsx", import.meta.url);
 
 const workbook = Workbook.create();
 
