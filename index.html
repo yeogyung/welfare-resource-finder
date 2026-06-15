@@ -531,12 +531,12 @@ const CAT_ENTRY = {care:"care_life",health:"health_1",money:"money_1",learning:"
 const EMERGENCY_WORDS=["쓰러","긴급","119","위기","응급","위험","갑자기","숨","못 일어","못일어","무서","불안","넘어","낙상","실신"];
 const CAT_KEYWORDS={
   emergency:["쓰러","응급","긴급","119","위기","위험","낙상","넘어","실신","숨","무서","불안"],
-  care:["끼니","식사","밥","급식","외로","말벗","돌봄","청소","가사","이동","거동","반찬","도시락","혼자"],
+  care:["끼니","식사","밥","급식","외로","말벗","돌봄","청소","가사","이동","거동","반찬","도시락","혼자","도움","불편"],
   health:["병원","아파","건강","약","진료","치매","우울","검진","의료","간병","재활","보건"],
-  money:["생활비","돈","빚","일자리","취업","연금","수급","가난","소득","경제","보조금","지원금"],
-  learning:["스마트폰","키오스크","디지털","배우","인터넷","컴퓨터","교육","문해","앱"],
+  money:["생활비","돈","빚","일자리","취업","연금","수급","가난","소득","경제","보조금","지원금","근로"],
+  learning:["스마트폰","키오스크","디지털","배우","인터넷","컴퓨터","교육","문해","앱","AI","ai","인공지능","이미지","그림","사진"],
   housing:["집","주거","월세","보일러","수리","임대","난방","단열"],
-  culture:["여가","취미","문화","공연","나들이","모임","프로그램"]
+  culture:["여가","취미","문화","공연","나들이","모임","프로그램","게이트볼","운동","체육","스포츠","산책","탁구","바둑","친구","또래","심심","할 일","하는 일","만남","활동","무료해"]
 };
 const EVAL_SET=[
   {q:"혼자 살아서 끼니 챙기기가 힘들어요",cat:"care",kw:["급식","식사","도시락","반찬"]},
@@ -563,7 +563,8 @@ let ttsOn=store.get("cb_tts")==="1";
 let fontLevel=parseInt(store.get("cb_font")||"1");
 let region=store.get("cb_region")||"서울 광진구";
 let lastEval=null;
-let ctx={cat:null,tokens:[],query:""}; // 대화 누적 상태
+let ctx={cat:null,tokens:[],query:""}; // 버튼 기반 추천 상태
+let freeCtx={stage:"idle",cat:null,tokens:[],query:""}; // 자유 입력 대화 상태
 let voiceAudio=null;
 let voiceAudioUrl=null;
 
@@ -675,15 +676,16 @@ function addStepTag(txt){const t=document.getElementById("thread");const w=docum
 function sc(){const b=document.getElementById("scroll");requestAnimationFrame(()=>b.scrollTop=b.scrollHeight);}
 
 /* 대화 시작 */
-function startChat(seedNode){
-  go("chat");
-  document.getElementById("thread").innerHTML="";
-  ctx={cat:null,tokens:[],query:""};
-  const hi="안녕하세요! 제가 몇 가지 여쭤보고 꼭 맞는 복지를 찾아드릴게요.";
-  addBot(esc(hi),{text:hi});
-  speak(hi);
-  setTimeout(()=>renderNode(seedNode||"root",1),520);
-}
+    function startChat(seedNode){
+      go("chat");
+      document.getElementById("thread").innerHTML="";
+      ctx={cat:null,tokens:[],query:""};
+      freeCtx={stage:"idle",cat:null,tokens:[],query:""};
+      const hi="안녕하세요! 제가 몇 가지 여쭤보고 꼭 맞는 복지를 찾아드릴게요.";
+      addBot(esc(hi),{text:hi});
+      speak(hi);
+      setTimeout(()=>renderNode(seedNode||"root",1),520);
+    }
 let stepCount=0;
 function renderNode(nodeId,step){
   const node=FLOW[nodeId];if(!node)return;
@@ -741,12 +743,18 @@ async function groundedAnswer(list,analysis,tokens,danger){
 }
 function recommend(danger){
   addTyping();
-  setTimeout(async()=>{
-    rmTyping();
-    const tokens=ctx.tokens.length?ctx.tokens:[ctx.cat||""];
-    const emergency=ctx.cat==="emergency";
-    let list=search(tokens,{cat:ctx.cat,filterCat:ctx.cat,emergency,limit:3});
-    if(list.length===0)list=search(tokens,{cat:ctx.cat,emergency,limit:3});
+      setTimeout(async()=>{
+        rmTyping();
+        const hasMeaning=(ctx.query&&ctx.query.trim())||ctx.cat||(ctx.tokens&&ctx.tokens.some(Boolean));
+        if(!hasMeaning){
+          const t="조금만 더 알려주시면 맞는 복지자원을 찾아볼게요. 예를 들면 '끼니가 걱정돼요'나 '모임을 찾고 싶어요'처럼 말씀해 주세요.";
+          addBot(esc(t),{text:t});
+          return;
+        }
+        const tokens=ctx.tokens.length?ctx.tokens:tokenize(ctx.query||ctx.cat||"");
+        const emergency=ctx.cat==="emergency";
+        let list=search(tokens,{cat:ctx.cat,filterCat:ctx.cat,emergency,limit:3});
+        if(list.length===0)list=search(tokens,{cat:ctx.cat,emergency,limit:3});
     if(list.length===0){
       const t="죄송해요, 딱 맞는 자원을 못 찾았어요. 처음으로 돌아가 다시 골라볼까요?";
       addBot(esc(t),{text:t});addChoices([{label:"처음부터 다시 찾기",action:"renderNode('root',1)"},{label:"처음 화면으로",action:"go('home')"}]);return;
@@ -766,17 +774,143 @@ function recommend(danger){
     ]);
   },650);
 }
-/* 자유 입력 → 꼬리질문 funnel 연결 */
-function askText(text){
-  go("chat");
-  if(!document.getElementById("thread").innerHTML){const hi="안녕하세요! 말씀하신 내용을 보고 몇 가지만 더 여쭤볼게요.";addBot(esc(hi),{text:hi});}
-  addUser(text);
-  ctx={cat:detectCategory(text),tokens:tokenize(text),query:text};
-  const emergency=isEmergency(text);
-  if(emergency){ctx.cat="emergency";renderNode("emergency_1",1);return;}
-  if(ctx.cat&&CAT_ENTRY[ctx.cat]){renderNode(CAT_ENTRY[ctx.cat],1);}
-  else recommend(); // 분류 모호하면 바로 추천 후 재질문 유도
-}
+    /* 자유 입력 → 대화형 탐색 */
+    function cleanText(s){return String(s||"").trim();}
+    function containsAny(text,words){return words.some(w=>text.includes(w));}
+    function isYesText(text){return /^(응|네|예|그래|좋아|괜찮|해줘|찾아|추천|그렇지|맞아|알려줘|부탁|ㅇㅇ|오케이|ok)/i.test(text)||containsAny(text,["좋지","괜찮지","해볼게","그럼","응 좋아"]);}
+    function isNoText(text){return /^(아니|싫|괜찮아|됐어|몰라|글쎄|그냥)$/.test(text)||containsAny(text,["아니요","관심 없어","생각 없어","할 거 없어","하는 일 없어","별로 없어","딱히 없어"]);}
+    function isVagueInactive(text){return containsAny(text,["별로 하는 일 없어","하는 일 없어","할 일 없어","별로 없어","딱히 없어","관심 없어","심심","무료해","그냥 있어","뭐 없어","없어"]);}
+    function isThinText(text){return text.length<2||/^(요|음|아|어|네|예|응|아니|아니요|몰라|글쎄|그냥)$/.test(text);}
+    function detectUnsupported(text){
+      if(/날씨|비 와|눈 와|오늘.*(더워|추워)|밖.*(더워|추워)/.test(text))return "weather";
+      if(/(이미지|그림|사진|로고|포스터).*(만들어줘|생성해줘|그려줘)|(?:만들어줘|그려줘).*(이미지|그림|사진|로고|포스터)/.test(text))return "image";
+      if(/뉴스|주식|계산|번역/.test(text))return "unsupported";
+      return null;
+    }
+    function inferFreeCategory(text){
+      const cat=detectCategory(text);
+      if(cat)return cat;
+      if(containsAny(text,["게이트볼","운동","체육","스포츠","산책","탁구","바둑","친구","또래","심심","무료해","할 일","하는 일","만남","활동"]))return "culture";
+      if(containsAny(text,["AI","ai","인공지능","이미지","그림","사진"]))return "learning";
+      return null;
+    }
+    function sayFree(text){addBot(esc(text),{text:text});speak(text);}
+    function askFree(text,stage,cat=null,tokens=[],query=""){
+      freeCtx={stage,cat,tokens,query:query||""};
+      sayFree(text);
+    }
+    function recommendWith(cat,tokens,query,intro){
+      const pickedTokens=Array.isArray(tokens)?tokens:tokenize(String(tokens||query||""));
+      const safeQuery=(query||pickedTokens.join(" ")||cat||"").trim();
+      if(intro)sayFree(intro);
+      ctx={cat:cat||null,tokens:pickedTokens.length?pickedTokens:tokenize(safeQuery),query:safeQuery};
+      freeCtx={stage:"idle",cat:null,tokens:[],query:""};
+      recommend(false);
+    }
+    function handleFreeFollowup(text){
+      if(!freeCtx.stage||freeCtx.stage==="idle")return false;
+      const cat=inferFreeCategory(text);
+      if(cat&&!isYesText(text)&&!isNoText(text)){
+        const q=[freeCtx.query,text].filter(Boolean).join(" ");
+        recommendWith(cat,[...(freeCtx.tokens||[]),...tokenize(text)],q);
+        return true;
+      }
+      if(freeCtx.stage==="interest_probe"){
+        if(isNoText(text)||isVagueInactive(text)){
+          askFree("그럴 수 있어요. 심심하실 때는 또래 분들과 가볍게 만나는 활동도 괜찮을 수 있어요. 어떠세요?","social_suggestion","culture",["또래","모임","사회참여","경로당","여가","활동"],freeCtx.query);
+          return true;
+        }
+        if(isYesText(text)){
+          askFree("좋아요. 사람 만나는 모임, 가벼운 운동, 배우는 활동 중 어느 쪽이 편하세요? 편하게 한마디로 말씀해 주세요.","broad_probe","culture",["여가","모임","운동","배움"],freeCtx.query);
+          return true;
+        }
+      }
+      if(freeCtx.stage==="social_suggestion"){
+        if(isYesText(text)){
+          askFree("그러면 내 주변에서 할 수 있는 활동을 추천해드릴까요?","confirm_social","culture",freeCtx.tokens,freeCtx.query);
+          return true;
+        }
+        if(isNoText(text)){
+          askFree("괜찮아요. 식사, 건강, 생활비, 배움, 모임 중 편한 말로 말씀해 주세요. 그 말에 맞춰 다시 찾아볼게요.","broad_probe",null,[]);
+          return true;
+        }
+      }
+      if(freeCtx.stage==="confirm_social"){
+        if(isYesText(text)){
+          recommendWith("culture",freeCtx.tokens.length?freeCtx.tokens:["또래","모임","사회참여","경로당","여가","활동"],freeCtx.query||"또래 모임 사회참여 경로당 여가 활동","좋아요. 주변에서 할 수 있는 또래 만남 활동 리스트를 찾아볼게요.");
+          return true;
+        }
+        if(isNoText(text)){
+          askFree("괜찮아요. 식사, 건강, 생활비, 배움, 모임 중 편한 말로 말씀해 주세요. 그 말에 맞춰 다시 찾아볼게요.","broad_probe",null,[]);
+          return true;
+        }
+      }
+      if(freeCtx.stage==="confirm_recommend"){
+        if(isYesText(text)){
+          recommendWith(freeCtx.cat,freeCtx.tokens,freeCtx.query,"좋아요. 말씀하신 내용과 맞는 자원을 찾아볼게요.");
+          return true;
+        }
+        if(isNoText(text)){
+          askFree("알겠습니다. 바로 추천하지 않고 조금 더 여쭤볼게요. 생활 도움, 건강, 돈, 배움, 모임 중 어떤 쪽이 가까우세요?","broad_probe",null,[]);
+          return true;
+        }
+      }
+      if(freeCtx.stage==="broad_probe"){
+        if(isNoText(text)||isVagueInactive(text)){
+          askFree("괜찮아요. 특별한 관심이 없어도 가볍게 시작할 수 있는 또래 모임이나 동네 활동이 있어요. 이런 활동은 어떠세요?","social_suggestion","culture",["또래","모임","사회참여","경로당","여가","활동"],freeCtx.query);
+          return true;
+        }
+      }
+      askFree("조금만 더 알려주시면 맞춰서 찾을게요. 예를 들면 '운동하고 싶어요', '말벗이 필요해요', '생활비가 걱정돼요'처럼 말씀해 주세요.","broad_probe",freeCtx.cat,freeCtx.tokens,freeCtx.query);
+      return true;
+    }
+    function handleUnsupportedText(text,type){
+      if(type==="weather"){
+        askFree("실시간 날씨는 제가 바로 확인하기 어려워요. 대신 비가 오거나 더운 날에도 갈 수 있는 가까운 실내 모임이나 배움 활동을 찾아드릴 수 있어요. 그런 활동을 찾아볼까요?","confirm_social","culture",["실내","모임","여가","배움","복지관"],text);
+        return true;
+      }
+      if(type==="image"){
+        askFree("이미지는 제가 직접 만들어드리기 어렵지만, AI나 스마트폰을 배워보는 프로그램은 찾아드릴 수 있어요. AI·디지털 배움 활동을 찾아볼까요?","confirm_recommend","learning",["AI","디지털","스마트폰","교육","배움"],text);
+        return true;
+      }
+      askFree("그 기능은 제가 직접 하기는 어려워요. 대신 복지, 건강, 배움, 모임 자원은 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,[],text);
+      return true;
+    }
+    function askText(text){
+      go("chat");
+      text=cleanText(text);
+      if(!text)return;
+      if(!document.getElementById("thread").innerHTML){const hi="안녕하세요! 말씀하신 내용을 보고 필요한 자원을 같이 찾아볼게요.";addBot(esc(hi),{text:hi});}
+      addUser(text);
+      if(isEmergency(text)){
+        ctx={cat:"emergency",tokens:tokenize(text),query:text};
+        freeCtx={stage:"idle",cat:null,tokens:[],query:""};
+        renderNode("emergency_1",1);
+        return;
+      }
+      const unsupported=detectUnsupported(text);
+      if(unsupported){handleUnsupportedText(text,unsupported);return;}
+      if(handleFreeFollowup(text))return;
+      const cat=inferFreeCategory(text);
+      const tokens=tokenize(text);
+      if(isThinText(text)){
+        askFree("괜찮아요. 바로 추천하지 않고 조금 더 여쭤볼게요. 요즘 불편한 점이나 해보고 싶은 일이 있으세요?","broad_probe",null,[],text);
+        return;
+      }
+      if(isVagueInactive(text)){
+        askFree("그러면 최근 관심 있는 일이 있으신가요? 사람 만나는 모임, 가벼운 운동, 배우는 활동 중 편한 쪽이 있을까요?","interest_probe","culture",["여가","모임","운동","배움"],text);
+        return;
+      }
+      if(cat){
+        recommendWith(cat,tokens,text);
+        return;
+      }
+      if(isYesText(text)){
+        askFree("좋아요. 바로 찾기 전에 어떤 쪽이 필요하신지 알려주세요. 생활 도움, 건강, 돈, 배움, 모임 중 무엇이 가까우세요?","broad_probe",null,[],text);
+        return;
+      }
+      askFree("말씀해 주셔서 고마워요. 바로 추천하기보다 조금 더 여쭤볼게요. 요즘 불편한 점이나 해보고 싶은 일이 있으세요?","broad_probe",null,tokens,text);
+    }
 function submitChat(){const v=document.getElementById("chatInput").value.trim();if(v){askText(v);document.getElementById("chatInput").value="";}}
 function focusChat(){const i=document.getElementById("chatInput");if(!i)return;i.focus();i.scrollIntoView({block:"nearest"});const c=document.getElementById("composer");if(c){c.style.boxShadow="inset 0 3px 0 #3A8F7A";setTimeout(()=>c.style.boxShadow="",1000);}}
 
