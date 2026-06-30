@@ -782,10 +782,57 @@ function recommend(danger){
     function isVagueInactive(text){return containsAny(text,["별로 하는 일 없어","하는 일 없어","할 일 없어","별로 없어","딱히 없어","관심 없어","심심","무료해","그냥 있어","뭐 없어","없어"]);}
     function isThinText(text){return text.length<2||/^(요|음|아|어|네|예|응|아니|아니요|몰라|글쎄|그냥)$/.test(text);}
     function detectUnsupported(text){
-      if(/날씨|비 와|눈 와|오늘.*(더워|추워)|밖.*(더워|추워)/.test(text))return "weather";
+      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|오늘.*(더워|추워|덥|춥)|밖.*(더워|추워|덥|춥)/.test(text))return "weather";
       if(/(이미지|그림|사진|로고|포스터).*(만들어줘|생성해줘|그려줘)|(?:만들어줘|그려줘).*(이미지|그림|사진|로고|포스터)/.test(text))return "image";
       if(/뉴스|주식|계산|번역/.test(text))return "unsupported";
       return null;
+    }
+    function extractWeatherLocation(text){
+      const districts=["강남구","강동구","강북구","강서구","관악구","광진구","구로구","금천구","노원구","도봉구","동대문구","동작구","마포구","서대문구","서초구","성동구","성북구","송파구","양천구","영등포구","용산구","은평구","종로구","중구","중랑구"];
+      const cities=["서울","부산","대구","인천","광주","대전","울산","세종","제주","수원","성남","고양","용인","부천","안산","안양","남양주","화성","의정부","시흥","김포","파주","광명","군포","하남","오산","이천","구리"];
+      const district=districts.find(name=>text.includes(name));
+      if(district)return `서울 ${district}`;
+      const city=cities.find(name=>text.includes(name));
+      return city||region||"서울 광진구";
+    }
+    function formatDegree(value){
+      if(value===null||value===undefined||Number.isNaN(Number(value)))return "";
+      return `${Math.round(Number(value))}도`;
+    }
+    function weatherText(data){
+      const temp=formatDegree(data.temperature);
+      const feels=formatDegree(data.apparentTemperature);
+      const rain=Number(data.precipitation||data.rain||0);
+      const rainLine=rain>0?` 지금 강수량은 약 ${rain.toFixed(1)}mm예요.`:"";
+      const humidity=data.humidity!==undefined?` 습도는 ${Math.round(Number(data.humidity))}%입니다.`:"";
+      return `${data.locationName||data.location||"현재 위치"} 날씨는 ${data.condition||"확인됨"}이고, 기온은 ${temp}${feels?`, 체감은 ${feels}`:""}예요.${rainLine}${humidity} ${data.advice||""}`.trim();
+    }
+    async function answerWeather(text){
+      freeCtx={stage:"idle",cat:null,tokens:[],query:""};
+      addTyping();
+      let typing=true;
+      function clearTyping(){if(typing){rmTyping();typing=false;}}
+      try{
+        const response=await fetch("/api/weather",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({query:text,location:extractWeatherLocation(text)})
+        });
+        clearTyping();
+        if(!response.ok)throw new Error("weather");
+        const data=await response.json();
+        const msg=weatherText(data);
+        addBot(esc(msg),{text:msg});
+        speak(msg);
+        addChoices([
+          {emoji:"🏠",label:"실내 모임 찾아보기",action:"recommendWith('culture',['실내','복지관','모임','여가','배움'],'실내 복지관 모임 여가 배움','날씨에 맞춰 실내에서 할 수 있는 활동을 찾아볼게요.')"},
+          {emoji:"🔁",label:"다른 것도 물어보기",action:"askFree('좋아요. 날씨 말고도 복지, 건강, 배움, 모임 중 궁금한 점을 편하게 말씀해 주세요.','broad_probe',null,[], '')"}
+        ]);
+      }catch(e){
+        clearTyping();
+        askFree("날씨 확인이 잠시 어렵습니다. 대신 비가 오거나 더운 날에도 갈 수 있는 가까운 실내 모임이나 배움 활동을 찾아드릴 수 있어요. 그런 활동을 찾아볼까요?","confirm_social","culture",["실내","모임","여가","배움","복지관"],text);
+      }
+      return true;
     }
     function inferFreeCategory(text){
       const cat=detectCategory(text);
@@ -864,10 +911,9 @@ function recommend(danger){
       askFree("조금만 더 알려주시면 맞춰서 찾을게요. 예를 들면 '운동하고 싶어요', '말벗이 필요해요', '생활비가 걱정돼요'처럼 말씀해 주세요.","broad_probe",freeCtx.cat,freeCtx.tokens,freeCtx.query);
       return true;
     }
-    function handleUnsupportedText(text,type){
+    async function handleUnsupportedText(text,type){
       if(type==="weather"){
-        askFree("실시간 날씨는 제가 바로 확인하기 어려워요. 대신 비가 오거나 더운 날에도 갈 수 있는 가까운 실내 모임이나 배움 활동을 찾아드릴 수 있어요. 그런 활동을 찾아볼까요?","confirm_social","culture",["실내","모임","여가","배움","복지관"],text);
-        return true;
+        return answerWeather(text);
       }
       if(type==="image"){
         askFree("이미지는 제가 직접 만들어드리기 어렵지만, AI나 스마트폰을 배워보는 프로그램은 찾아드릴 수 있어요. AI·디지털 배움 활동을 찾아볼까요?","confirm_recommend","learning",["AI","디지털","스마트폰","교육","배움"],text);
@@ -876,7 +922,7 @@ function recommend(danger){
       askFree("그 기능은 제가 직접 하기는 어려워요. 대신 복지, 건강, 배움, 모임 자원은 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,[],text);
       return true;
     }
-    function askText(text){
+    async function askText(text){
       go("chat");
       text=cleanText(text);
       if(!text)return;
@@ -889,7 +935,7 @@ function recommend(danger){
         return;
       }
       const unsupported=detectUnsupported(text);
-      if(unsupported){handleUnsupportedText(text,unsupported);return;}
+      if(unsupported){await handleUnsupportedText(text,unsupported);return;}
       if(handleFreeFollowup(text))return;
       const cat=inferFreeCategory(text);
       const tokens=tokenize(text);
