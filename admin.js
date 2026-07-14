@@ -2,6 +2,7 @@ const adminState = {
   resources: [],
   stats: null,
   lastRows: [],
+  logs: null,
 };
 
 const CATEGORY_ORDER = [
@@ -59,6 +60,8 @@ async function initAdmin() {
   renderAdminStats();
   document.getElementById("runEval").addEventListener("click", runEvaluation);
   document.getElementById("downloadEval").addEventListener("click", downloadEvaluation);
+  document.getElementById("loadLogs").addEventListener("click", loadAdminLogs);
+  document.getElementById("downloadLogs").addEventListener("click", downloadAdminLogs);
 }
 
 async function loadData() {
@@ -147,6 +150,117 @@ function downloadEvaluation() {
   link.download = "chajabot-rag-evaluation.json";
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function adminToken() {
+  return document.getElementById("adminToken").value.trim();
+}
+
+function setLogMessage(message, tone = "muted") {
+  const box = document.getElementById("adminLogList");
+  box.innerHTML = `<div class="admin-log-empty ${tone}">${escapeHtml(message)}</div>`;
+}
+
+async function loadAdminLogs() {
+  const token = adminToken();
+  if (!token) {
+    setLogMessage("관리자 토큰을 입력해 주세요.", "warn");
+    return;
+  }
+  document.getElementById("loadLogs").disabled = true;
+  document.getElementById("downloadLogs").disabled = true;
+  setLogMessage("로그를 불러오는 중입니다...");
+  try {
+    const response = await fetch("/api/admin-logs?limit=80", {
+      headers: { "x-admin-token": token },
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "로그 조회 실패");
+    adminState.logs = data;
+    renderAdminLogs(data);
+    document.getElementById("downloadLogs").disabled = false;
+  } catch (error) {
+    adminState.logs = null;
+    setLogMessage(error.message || "로그를 불러오지 못했습니다.", "warn");
+    document.getElementById("adminLogSummary").innerHTML = "";
+  } finally {
+    document.getElementById("loadLogs").disabled = false;
+  }
+}
+
+function renderAdminLogs(data) {
+  const conversations = data.conversations || [];
+  const messages = data.messages || [];
+  const usageEvents = data.usageEvents || [];
+  const users = data.users || [];
+  document.getElementById("adminLogSummary").innerHTML = `
+    <div class="admin-log-metric"><b>${conversations.length}</b><span>대화</span></div>
+    <div class="admin-log-metric"><b>${messages.length}</b><span>메시지</span></div>
+    <div class="admin-log-metric"><b>${usageEvents.length}</b><span>이벤트/사용량</span></div>
+    <div class="admin-log-metric"><b>${users.length}</b><span>사용자</span></div>
+  `;
+  const rows = [
+    ...messages.slice(0, 36).map((row) => ({
+      type: row.role === "assistant" ? "찾아봇 답변" : "사용자 입력",
+      title: clipText(row.content, 120),
+      meta: `${formatDate(row.created_at)} · ${row.mode || "chat"} · ${row.user_id || ""}`,
+      time: Date.parse(row.created_at || "") || 0,
+    })),
+    ...usageEvents.slice(0, 24).map((row) => ({
+      type: row.feature && row.feature.startsWith("event:") ? "클릭 로그" : "사용량",
+      title: row.feature || "usage_event",
+      meta: `${formatDate(row.created_at)} · ${row.provider || "-"} ${row.model || ""} · ${row.user_id || ""}`,
+      time: Date.parse(row.created_at || "") || 0,
+    })),
+  ].sort((a, b) => b.time - a.time).slice(0, 50);
+  if (!rows.length) {
+    setLogMessage(data.dbConfigured === false ? "DB 연결값을 먼저 확인해 주세요." : "표시할 로그가 아직 없습니다.");
+    return;
+  }
+  document.getElementById("adminLogList").innerHTML = rows.map((row) => `
+    <div class="admin-log-item">
+      <strong>${escapeHtml(row.type)}</strong>
+      <p>${escapeHtml(row.title || "-")}</p>
+      <span>${escapeHtml(row.meta || "")}</span>
+    </div>
+  `).join("");
+}
+
+async function downloadAdminLogs() {
+  const token = adminToken();
+  if (!token) {
+    setLogMessage("관리자 토큰을 입력해 주세요.", "warn");
+    return;
+  }
+  try {
+    const response = await fetch("/api/admin-logs?limit=300&format=csv", {
+      headers: { "x-admin-token": token },
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "CSV 다운로드 실패");
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "chajabot-admin-logs.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    setLogMessage(error.message || "CSV를 내려받지 못했습니다.", "warn");
+  }
+}
+
+function formatDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function clipText(value, max) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return text.length > max ? `${text.slice(0, max)}...` : text;
 }
 
 function searchResources(query = "", category = "all", limit = 20) {

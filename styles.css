@@ -910,6 +910,92 @@ button {
   line-height: 1.45;
 }
 
+.admin-token-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 180px 180px;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-token-row label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.admin-token-row input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font: inherit;
+  background: #fff;
+  color: var(--ink);
+}
+
+.admin-log-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.admin-log-metric {
+  border: 1px solid var(--line-soft);
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.admin-log-metric b {
+  display: block;
+  color: var(--brand);
+  font-size: 26px;
+}
+
+.admin-log-metric span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.admin-log-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.admin-log-item,
+.admin-log-empty {
+  border: 1px solid var(--line-soft);
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.admin-log-item strong {
+  color: var(--brand);
+}
+
+.admin-log-item p {
+  margin: 8px 0 5px;
+  color: var(--ink);
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.admin-log-item span,
+.admin-log-empty {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.admin-log-empty.warn {
+  color: #b42318;
+  background: #fff4f2;
+}
+
 @media (max-width: 430px) {
   body {
     display: block;
@@ -931,7 +1017,8 @@ button {
 
   .admin-header,
   .admin-actions,
-  .admin-note-grid {
+  .admin-note-grid,
+  .admin-token-row {
     grid-template-columns: 1fr;
   }
 
@@ -941,5 +1028,9 @@ button {
 
   .admin-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-log-summary {
+    grid-template-columns: 1fr 1fr;
   }
 }

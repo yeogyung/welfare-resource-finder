@@ -293,12 +293,34 @@ body{
 .fchip[aria-pressed="true"]{background:var(--ink-2);border-color:var(--ink-2);color:#fff;}
 .fchip:active{transform:scale(.96);}
 .rcount{font-size:.86em;color:var(--ink-5);font-weight:700;margin:14px 2px 12px;}
-.list{display:flex;flex-direction:column;gap:11px;}
-.list .rcard{box-shadow:var(--shadow-card);}
-.empty{text-align:center;padding:46px 24px;color:var(--ink-5);}
-.empty img{width:96px;height:96px;margin:0 auto 12px;opacity:.9;}
-.empty h3{font-size:1.08em;color:var(--ink-3);font-weight:800;margin-bottom:6px;}
-.empty p{font-size:.92em;line-height:1.6;}
+	.list{display:flex;flex-direction:column;gap:11px;}
+	.list .rcard{box-shadow:var(--shadow-card);}
+	.empty{text-align:center;padding:46px 24px;color:var(--ink-5);}
+	.empty img{width:96px;height:96px;margin:0 auto 12px;opacity:.9;}
+	.empty h3{font-size:1.08em;color:var(--ink-3);font-weight:800;margin-bottom:6px;}
+	.empty p{font-size:.92em;line-height:1.6;}
+	.vault-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;background:var(--line-2);border-radius:14px;padding:4px;}
+	.vault-tab{border:none;border-radius:11px;background:transparent;color:var(--ink-4);font-family:inherit;font-weight:900;font-size:.94em;padding:11px 8px;cursor:pointer;}
+	.vault-tab.on{background:#fff;color:var(--teal-dark);box-shadow:0 1px 4px rgba(16,24,40,.08);}
+	.vault-panel{margin-top:16px;}
+	.vault-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+	.vault-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-3);font-family:inherit;font-weight:900;font-size:.9em;padding:12px 8px;cursor:pointer;}
+	.vault-actions .primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+	.conversation-card{border:1px solid var(--line-2);background:#fff;border-radius:14px;padding:14px 14px;text-align:left;font-family:inherit;box-shadow:var(--shadow-card);cursor:pointer;}
+	.conversation-card .ct{font-size:1em;font-weight:900;color:var(--ink);line-height:1.4;word-break:keep-all;}
+	.conversation-card .cm{margin-top:5px;color:var(--ink-5);font-size:.8em;font-weight:800;}
+	.conversation-card:active{transform:scale(.985);background:var(--teal-soft);}
+	.image-tools{margin-top:18px;background:#fff;border:1px solid var(--line-2);border-radius:16px;padding:15px 14px;box-shadow:var(--shadow-card);}
+	.image-tools .itop{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+	.image-tools h2{font-size:1em;font-weight:900;color:var(--ink);line-height:1.35;}
+	.image-tools p{margin-top:5px;color:var(--ink-4);font-size:.82em;font-weight:700;line-height:1.5;word-break:keep-all;}
+	.image-template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+	.image-template{min-height:54px;border:1.4px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink-2);font-family:inherit;font-size:.88em;font-weight:900;line-height:1.3;padding:10px 8px;cursor:pointer;word-break:keep-all;}
+	.image-template:active{transform:scale(.98);background:var(--teal-soft);border-color:var(--teal-mid);}
+	.image-quota{display:inline-flex;flex:none;background:var(--teal-soft);color:var(--teal-dark);border-radius:999px;padding:5px 9px;font-size:.72em;font-weight:900;white-space:nowrap;}
+	.image-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+	.image-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--teal-dark);font-family:inherit;font-weight:900;font-size:.9em;padding:12px 8px;cursor:pointer;}
+	.image-actions button.primary{background:var(--teal);border-color:var(--teal);color:#fff;}
 
 /* 설정 */
 .set-group{margin-top:18px;background:var(--surface);border:1px solid var(--line-2);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
@@ -446,9 +468,17 @@ body{
           </div>
         </div>
 
-        <div class="qhead">이런 것부터 시작해 볼까요?</div>
-        <div class="qgrid" id="qgrid"></div>
-        <button class="chat-direct" onclick="focusChat()" aria-label="직접 입력해서 답하기">
+	        <div class="qhead">이런 것부터 시작해 볼까요?</div>
+	        <div class="qgrid" id="qgrid"></div>
+	        <div class="image-tools" id="imageTools" hidden>
+	          <div class="itop">
+	            <h2>사진·이미지 연습</h2>
+	            <span class="image-quota">하루 3회</span>
+	          </div>
+	          <p>교육 참가자는 사진 꾸미기와 카드 만들기를 연습할 수 있어요.</p>
+	          <div class="image-template-grid" id="imageTemplateGrid"></div>
+	        </div>
+	        <button class="chat-direct" onclick="focusChat()" aria-label="직접 입력해서 답하기">
           <span class="cd-arrow-btn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M6 13l6 6 6-6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <span class="cd-label">직접 입력</span>
         </button>
@@ -460,14 +490,27 @@ body{
     <!-- 대화 (CHT-01) -->
     <section id="screen-chat" class="screen"><div class="thread" id="thread"></div></section>
 
-    <!-- 찜 (SAV-01) -->
-    <section id="screen-saved" class="screen">
-      <div class="pad">
-        <div class="ptitle">찜한 복지자원</div>
-        <div class="psub">관심 있는 복지를 저장해 두고 다시 볼 수 있어요.</div>
-        <div class="list" id="savedList" style="margin-top:18px;"></div>
-      </div>
-    </section>
+	    <!-- 찜 (SAV-01) -->
+	    <section id="screen-saved" class="screen">
+	      <div class="pad">
+	        <div class="ptitle">보관함</div>
+	        <div class="psub">지난 대화와 찜한 복지자원을 다시 볼 수 있어요.</div>
+	        <div class="vault-tabs">
+	          <button class="vault-tab on" id="conversationTab" onclick="showArchiveTab('conversations')">대화</button>
+	          <button class="vault-tab" id="savedTab" onclick="showArchiveTab('saved')">찜</button>
+	        </div>
+	        <div class="vault-panel" id="conversationPanel">
+	          <div class="vault-actions">
+	            <button class="primary" onclick="startBlankConversation()">새 대화 시작</button>
+	            <button onclick="loadConversationArchive(true)">새로고침</button>
+	          </div>
+	          <div class="list" id="conversationList"></div>
+	        </div>
+	        <div class="vault-panel" id="savedPanel" hidden>
+	          <div class="list" id="savedList"></div>
+	        </div>
+	      </div>
+	    </section>
 
     <!-- 설정 (SET-01) -->
     <section id="screen-settings" class="screen">
@@ -559,17 +602,18 @@ body{
     <button class="cmic" id="chatMic" onclick="startVoice('chat')" aria-label="음성 입력">
       <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
     </button>
-    <input class="tinput" id="chatInput" type="text" placeholder="메시지를 입력하세요" autocomplete="off" onkeydown="if(event.key==='Enter')submitChat()">
-    <button class="csend" onclick="submitChat()" aria-label="보내기"><svg viewBox="0 0 24 24" fill="none"><path d="M4.5 20 21 12 4.5 4 4.5 10.2 14 12 4.5 13.8Z" fill="currentColor"/></svg></button>
-  </div>
+	    <input class="tinput" id="chatInput" type="text" placeholder="메시지를 입력하세요" autocomplete="off" onkeydown="if(event.key==='Enter')submitChat()">
+	    <button class="csend" onclick="submitChat()" aria-label="보내기"><svg viewBox="0 0 24 24" fill="none"><path d="M4.5 20 21 12 4.5 4 4.5 10.2 14 12 4.5 13.8Z" fill="currentColor"/></svg></button>
+	  </div>
+	  <input id="imageUploadInput" type="file" accept="image/*" hidden onchange="handleImageFile(event)">
 
   <!-- 탭바 -->
   <nav class="tabbar" id="tabbar" style="display:none;">
     <button class="tab active" data-screen="home" onclick="go('home')">
       <svg viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tl">홈</span>
     </button>
-    <button class="tab" data-screen="saved" onclick="go('saved')">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21.1 10.6 19.8C5.2 14.9 2 12 2 8.4 2 5.5 4.3 3.2 7.2 3.2c1.6 0 3.2.8 4.2 2 1-1.2 2.6-2 4.2-2 2.9 0 5.2 2.3 5.2 5.2 0 3.6-3.2 6.5-8.6 11.4L12 21.1Z" fill="currentColor"/></svg><span class="tl">찜</span>
+	    <button class="tab" data-screen="saved" onclick="go('saved')">
+	      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21.1 10.6 19.8C5.2 14.9 2 12 2 8.4 2 5.5 4.3 3.2 7.2 3.2c1.6 0 3.2.8 4.2 2 1-1.2 2.6-2 4.2-2 2.9 0 5.2 2.3 5.2 5.2 0 3.6-3.2 6.5-8.6 11.4L12 21.1Z" fill="currentColor"/></svg><span class="tl">보관</span>
       <span class="bc" id="savedBadge" style="display:none;">0</span>
     </button>
     <button class="tab" data-screen="settings" onclick="go('settings')">
@@ -761,6 +805,12 @@ let ctx={cat:null,tokens:[],query:""}; // 버튼 기반 추천 상태
 let freeCtx={stage:"idle",cat:null,tokens:[],query:""}; // 자유 입력 대화 상태
 let chatHistory=[]; // OpenAI 자유대화용 최근 대화
 let currentConversationId=store.get("cb_current_conversation")||"";
+let archiveTab="conversations";
+let conversationArchive=[];
+let conversationArchiveLoaded=false;
+let imageTemplates=[];
+let pendingImageTemplate=null;
+let ga4Ready=false;
 const appVariant=(new URLSearchParams(location.search).get("variant")||(location.hash.includes("beta")?"education_beta":"main"));
 let voiceAudio=null;
 let voiceAudioUrl=null;
@@ -938,6 +988,7 @@ function updateSubjectUi(){
   if(v)v.textContent=currentSubject?currentSubject.shortLabel:"선택 전";
   const pill=document.getElementById("loginSubjectPill");
   if(pill)pill.textContent=currentSubject?currentSubject.label:"이용 주체 선택 전";
+  renderImageTools();
 }
 function makeId(prefix){return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;}
 function ensureConversation(){
@@ -981,6 +1032,7 @@ function logMessage(role,content,metadata={}){
 function logEvent(eventName,metadata={}){
   const name=String(eventName||"").trim();
   if(!name)return;
+  trackGa4Event(name,metadata);
   const profile=currentUser||{};
   const payload={
     event:name,
@@ -1000,6 +1052,230 @@ function logEvent(eventName,metadata={}){
     keepalive:true,
     body:JSON.stringify(payload)
   }).catch(()=>{});
+}
+function ga4Params(eventName,metadata={}){
+  const safe={event_name:eventName,app_variant:appVariant};
+  if(currentSubject&&currentSubject.id)safe.subject=currentSubject.id;
+  if(currentUser&&currentUser.userType)safe.user_type=currentUser.userType;
+  ["category","mode","target","enabled","level","method","index","seed","storage","matched","savedCount","length"].forEach(key=>{
+    if(metadata[key]!==undefined&&metadata[key]!==null)safe[key]=metadata[key];
+  });
+  return safe;
+}
+function trackGa4Event(eventName,metadata={}){
+  if(!ga4Ready||typeof window.gtag!=="function")return;
+  try{window.gtag("event",eventName.replace(/[^a-zA-Z0-9_]/g,"_").slice(0,40),ga4Params(eventName,metadata));}catch(e){}
+}
+function setupGa4(measurementId){
+  const id=String(measurementId||"").trim();
+  if(!/^G-[A-Z0-9]+$/i.test(id)||ga4Ready)return;
+  window.dataLayer=window.dataLayer||[];
+  window.gtag=function(){window.dataLayer.push(arguments);};
+  const s=document.createElement("script");
+  s.async=true;
+  s.src=`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`;
+  document.head.appendChild(s);
+  window.gtag("js",new Date());
+  window.gtag("config",id,{send_page_view:false});
+  ga4Ready=true;
+  trackGa4Event("app_open");
+}
+async function loadPublicConfig(){
+  try{
+    const response=await fetch("/api/config");
+    const data=await response.json().catch(()=>({}));
+    if(data.ga4MeasurementId)setupGa4(data.ga4MeasurementId);
+  }catch(e){}
+}
+function imageTemplateIcon(template){
+  if(template&&template.requiresImage)return "📷";
+  if(template&&/생일|안부|카드/.test(template.label||""))return "💌";
+  return "🎨";
+}
+async function loadImageTemplates(){
+  try{
+    const response=await fetch("./public/data/image-prompt-templates.json");
+    const data=await response.json();
+    imageTemplates=Array.isArray(data)?data:[];
+  }catch(e){
+    imageTemplates=[];
+  }
+  renderImageTools();
+}
+function renderImageTools(){
+  const tools=document.getElementById("imageTools");
+  const box=document.getElementById("imageTemplateGrid");
+  if(!tools||!box)return;
+  const visible=isEducationBeta()&&Boolean(currentSubject);
+  tools.hidden=!visible;
+  if(!visible)return;
+  if(!imageTemplates.length){
+    box.innerHTML=`<button class="image-template" onclick="answerImagePrompt('따뜻한 꽃 인사 이미지 만들어줘')">🎨 이미지 만들기</button>`;
+    return;
+  }
+  box.innerHTML=imageTemplates.map(t=>`<button class="image-template" onclick="startImageTemplate('${esc(t.id)}')">${imageTemplateIcon(t)} ${esc(t.label)}</button>`).join("");
+}
+function prepareImageChat(){
+  if(!currentSubject){go("subject");return false;}
+  if(!currentUser){go("login");return false;}
+  go("chat");
+  if(!document.getElementById("thread").innerHTML){
+    const hi="사진·이미지 연습을 시작할게요. 원하는 버튼을 누르거나 만들고 싶은 모습을 말씀해 주세요.";
+    addBot(esc(hi),{text:hi});
+  }
+  return true;
+}
+function findImageTemplate(text){
+  const q=String(text||"");
+  if(!imageTemplates.length)return null;
+  if(/이모티콘|스티커/.test(q))return imageTemplates.find(t=>t.id==="sticker_from_photo");
+  if(/프로필|보정/.test(q))return imageTemplates.find(t=>t.id==="profile_makeover");
+  if(/생일/.test(q))return imageTemplates.find(t=>t.id==="birthday_card");
+  if(/안부|가족|카드/.test(q))return imageTemplates.find(t=>t.id==="family_greeting")||imageTemplates.find(t=>t.id==="birthday_card");
+  if(/앨범|추억/.test(q))return imageTemplates.find(t=>t.id==="memory_album");
+  if(/내 사진|사진으로|업로드|꾸며/.test(q))return imageTemplates.find(t=>t.requiresImage);
+  return null;
+}
+function startImageTemplate(id){
+  const template=imageTemplates.find(t=>t.id===id);
+  if(!template||!prepareImageChat())return;
+  pendingImageTemplate=template;
+  logEvent("image_template_start",{templateId:template.id,mode:template.mode,requiresImage:Boolean(template.requiresImage)});
+  addUser(`${imageTemplateIcon(template)} ${template.label}`);
+  if(template.requiresImage){
+    const msg=`${template.label}을 해볼게요. 꾸밀 사진을 선택해 주세요.`;
+    addBot(`${esc(msg)}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 선택</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
+    setTimeout(()=>document.getElementById("imageUploadInput")?.click(),250);
+    return;
+  }
+  requestImage({
+    mode:"generate",
+    prompt:template.prompt,
+    label:template.label,
+    templateId:template.id
+  });
+}
+function showImageTemplateChoices(){
+  if(!prepareImageChat())return;
+  if(!imageTemplates.length){
+    answerImagePrompt("따뜻한 꽃 인사 이미지 만들어줘");
+    return;
+  }
+  const msg="어떤 이미지 연습을 해볼까요?";
+  addBot(esc(msg),{text:msg});
+  addChoices(imageTemplates.map(t=>({
+    emoji:imageTemplateIcon(t),
+    label:t.label,
+    action:`startImageTemplate('${esc(t.id)}')`
+  })));
+}
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||""));
+    reader.onerror=()=>reject(new Error("read"));
+    reader.readAsDataURL(file);
+  });
+}
+async function resizeImageDataUrl(file){
+  const raw=await readFileAsDataUrl(file);
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxSide=1280;
+      const scale=Math.min(1,maxSide/Math.max(img.width,img.height));
+      const w=Math.max(1,Math.round(img.width*scale));
+      const h=Math.max(1,Math.round(img.height*scale));
+      const canvas=document.createElement("canvas");
+      canvas.width=w;canvas.height=h;
+      const ctx2=canvas.getContext("2d");
+      ctx2.drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL("image/jpeg",0.88));
+    };
+    img.onerror=()=>resolve(raw);
+    img.src=raw;
+  });
+}
+async function handleImageFile(event){
+  const file=event.target.files&&event.target.files[0];
+  event.target.value="";
+  if(!file||!pendingImageTemplate)return;
+  if(!/^image\//.test(file.type||"")){
+    toast("이미지 파일을 선택해 주세요");
+    return;
+  }
+  if(file.size>8*1024*1024){
+    toast("사진 용량이 커요. 8MB 이하 사진으로 골라주세요");
+    return;
+  }
+  const template=pendingImageTemplate;
+  pendingImageTemplate=null;
+  if(!prepareImageChat())return;
+  addUser("사진을 선택했어요");
+  try{
+    const imageDataUrl=await resizeImageDataUrl(file);
+    await requestImage({
+      mode:"edit",
+      prompt:template.prompt,
+      imageDataUrl,
+      label:template.label,
+      templateId:template.id
+    });
+  }catch(e){
+    const msg="사진을 읽지 못했어요. 다른 사진으로 다시 시도해 주세요.";
+    addBot(esc(msg),{text:msg});
+  }
+}
+async function requestImage({mode="generate",prompt="",imageDataUrl="",label="이미지",templateId=""}={}){
+  if(!prepareImageChat())return true;
+  const cleanPrompt=String(prompt||"").trim();
+  if(!cleanPrompt){
+    const msg="어떤 이미지를 만들지 한 문장으로 말씀해 주세요.";
+    addBot(esc(msg),{text:msg});
+    return true;
+  }
+  logEvent("image_request_submit",{mode,templateId:templateId||"",label});
+  addTyping();
+  let typing=true;
+  function clearTyping(){if(typing){rmTyping();typing=false;}}
+  try{
+    const response=await fetch("/api/image",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        mode,
+        prompt:cleanPrompt,
+        imageDataUrl,
+        size:"1024x1024",
+        templateId,
+        userId:currentUser&&currentUser.userId,
+        userType:currentUser&&currentUser.userType,
+        subject:currentSubject&&currentSubject.id
+      })
+    });
+    const data=await response.json().catch(()=>({}));
+    clearTyping();
+    if(!response.ok){
+      const msg=data.message||"이미지 기능이 잠시 어렵습니다. 잠시 뒤 다시 시도해 주세요.";
+      addBot(esc(msg),{text:msg});
+      speak(msg);
+      logEvent("image_request_fail",{mode,templateId:templateId||"",status:response.status});
+      return true;
+    }
+    const img=String(data.imageUrl||"");
+    const remaining=data.quota&&data.quota.remaining!==null&&data.quota.remaining!==undefined?`오늘 남은 이미지 연습 ${data.quota.remaining}회`:"이미지 연습 결과";
+    const msg=`${label} 결과를 만들었어요.`;
+    addBot(`${esc(msg)}<div class="image-result"><img src="${esc(img)}" alt="생성된 이미지"><div class="caption">${esc(remaining)}</div></div><div class="image-actions"><button class="primary" onclick="showImageTemplateChoices()">다른 이미지 해보기</button><button onclick="focusChat()">문장으로 요청하기</button></div>`,{text:`${msg} ${remaining}`});
+    speak(msg);
+    logEvent("image_request_success",{mode,templateId:templateId||"",quotaRemaining:data.quota&&data.quota.remaining});
+    return true;
+  }catch(e){
+    clearTyping();
+    const msg="이미지 연결이 잠시 어렵습니다. 인터넷 상태를 확인하고 다시 시도해 주세요.";
+    addBot(esc(msg),{text:msg});
+    logEvent("image_request_fail",{mode,templateId:templateId||"",status:"network"});
+    return true;
+  }
 }
 function useManualLogin(){
   selectedParticipant=null;
@@ -1187,6 +1463,7 @@ function updateUserUi(){
   const phone=document.getElementById("loginPhone");
   if(currentUser&&name&&!name.value)name.value=currentUser.displayName||"";
   if(currentUser&&phone&&!phone.value)phone.value=currentUser.phoneLast4?`****${currentUser.phoneLast4}`:"";
+  renderImageTools();
 }
 
 /* 화면 전환 */
@@ -1198,9 +1475,9 @@ function go(screen){
   document.getElementById("tabbar").style.display=(isAdmin||isSubject||isLogin)?"none":"flex";
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===screen||(isChat&&t.dataset.screen==="home")));
   document.getElementById("scroll").scrollTop=0;
-  if(screen==="saved")renderSaved();
-  if(screen==="login")prepareLoginScreen();
-}
+	  if(screen==="saved")renderArchive();
+	  if(screen==="login")prepareLoginScreen();
+	}
 
 /* ===== 대화 렌더 ===== */
 function addUser(text){
@@ -1339,7 +1616,7 @@ function recommend(danger){
     function isThinText(text){return text.length<2||/^(요|음|아|어|네|예|응|아니|아니요|몰라|글쎄|그냥)$/.test(text);}
     function detectUnsupported(text){
       if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|오늘.*(더워|추워|덥|춥)|밖.*(더워|추워|덥|춥)/.test(text))return "weather";
-      if(/(이미지|그림|사진|로고|포스터).*(만들어줘|생성해줘|그려줘)|(?:만들어줘|그려줘).*(이미지|그림|사진|로고|포스터)/.test(text))return "image";
+      if(/(이미지|그림|사진|로고|포스터|카드|이모티콘|스티커).*(만들어줘|생성해줘|그려줘|꾸며줘|바꿔줘)|(?:만들어줘|그려줘|꾸며줘|바꿔줘).*(이미지|그림|사진|로고|포스터|카드|이모티콘|스티커)/.test(text))return "image";
       return null;
     }
     function extractWeatherLocation(text){
@@ -1389,7 +1666,7 @@ function recommend(danger){
       }
       return true;
     }
-    function isEducationBeta(){return appVariant==="education_beta";}
+    function isEducationBeta(){return appVariant==="education_beta"||(currentSubject&&currentSubject.id==="participant");}
     async function answerFreeChat(text){
       freeCtx={stage:"idle",cat:null,tokens:[],query:""};
       addTyping();
@@ -1438,44 +1715,24 @@ function recommend(danger){
         askFree("이미지 생성과 사진 꾸미기는 교육 베타 버전에서 횟수 제한을 걸고 켜둘 기능으로 준비했어요. 지금 화면에서는 자유대화와 복지자원 찾기를 먼저 이용할 수 있어요.","broad_probe",null,[],text);
         return true;
       }
-      if(/내 사진|사진으로|업로드|꾸며|이모티콘|프로필/.test(text)){
-        askFree("사진 업로드 편집은 서버 기능까지 열어두었고, 다음 단계에서 업로드 버튼을 붙이면 바로 사용할 수 있어요. 지금은 글로 설명한 이미지를 먼저 만들어볼 수 있어요.","broad_probe",null,[],text);
-        return true;
-      }
-      addTyping();
-      let typing=true;
-      function clearTyping(){if(typing){rmTyping();typing=false;}}
-      try{
-        const response=await fetch("/api/image",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({
-            mode:"generate",
-            prompt:text,
-            size:"1024x1024",
-            userId:currentUser&&currentUser.userId,
-            userType:currentUser&&currentUser.userType,
-            subject:currentSubject&&currentSubject.id
-          })
-        });
-        const data=await response.json().catch(()=>({}));
-        clearTyping();
-        if(!response.ok){
-          const msg=data.message||"이미지 생성이 잠시 어렵습니다. 문장 쓰기나 복지자원 찾기는 바로 도와드릴 수 있어요.";
-          addBot(esc(msg),{text:msg});
-          speak(msg);
+      if(!imageTemplates.length)await loadImageTemplates();
+      const template=findImageTemplate(text);
+      if(template){
+        if(template.requiresImage){
+          pendingImageTemplate=template;
+          const msg=`${template.label}을 해볼게요. 꾸밀 사진을 선택해 주세요.`;
+          addBot(`${esc(msg)}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 선택</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
+          logEvent("image_template_start",{templateId:template.id,mode:template.mode,requiresImage:true,source:"text"});
+          setTimeout(()=>document.getElementById("imageUploadInput")?.click(),250);
           return true;
         }
-        const img=String(data.imageUrl||"");
-        const msg="요청하신 이미지 초안을 만들었어요.";
-        addBot(`${esc(msg)}<div class="image-result"><img src="${esc(img)}" alt="생성된 이미지"><div class="caption">생성형 AI 이미지 결과</div></div>`,{text:msg});
-        speak(msg);
-        return true;
-      }catch(e){
-        clearTyping();
-        askFree("이미지 생성 연결이 잠시 어렵습니다. 대신 만들고 싶은 문구나 설명을 같이 다듬어드릴 수 있어요.","broad_probe",null,[],text);
+        return requestImage({mode:"generate",prompt:template.prompt,label:template.label,templateId:template.id});
+      }
+      if(/무엇|뭐|종류|메뉴|해볼/.test(text)){
+        showImageTemplateChoices();
         return true;
       }
+      return requestImage({mode:"generate",prompt:text,label:"이미지"});
     }
     function inferFreeCategory(text){
       const cat=detectCategory(text);
@@ -1608,6 +1865,102 @@ function focusChat(){if(!currentSubject){go("subject");return;}if(!currentUser){
 
 
 /* 찜 */
+function formatTime(value){
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return "";
+  return d.toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function showArchiveTab(tab){
+  archiveTab=tab==="saved"?"saved":"conversations";
+  document.getElementById("conversationTab")?.classList.toggle("on",archiveTab==="conversations");
+  document.getElementById("savedTab")?.classList.toggle("on",archiveTab==="saved");
+  const convo=document.getElementById("conversationPanel");
+  const saved=document.getElementById("savedPanel");
+  if(convo)convo.hidden=archiveTab!=="conversations";
+  if(saved)saved.hidden=archiveTab!=="saved";
+  renderArchive();
+}
+function renderArchive(){
+  renderSaved();
+  if(archiveTab==="conversations")loadConversationArchive(false);
+}
+function renderConversationArchive(){
+  const box=document.getElementById("conversationList");
+  if(!box)return;
+  if(!currentUser){
+    box.innerHTML=`<div class="empty"><img src="${FACE_IDLE}" alt=""><h3>먼저 이름을 확인해 주세요</h3><p>로그인 후 대화 보관함을 볼 수 있어요.</p></div>`;
+    return;
+  }
+  if(!conversationArchiveLoaded){
+    box.innerHTML=`<div class="empty"><img src="${FACE_THINK}" alt=""><h3>대화를 불러오는 중이에요</h3><p>잠시만 기다려 주세요.</p></div>`;
+    return;
+  }
+  if(!conversationArchive.length){
+    box.innerHTML=`<div class="empty"><img src="${FACE_IDLE}" alt=""><h3>아직 보관된 대화가 없어요</h3><p>새 대화를 시작하면 여기에 저장돼요.</p></div>`;
+    return;
+  }
+  box.innerHTML=conversationArchive.map(c=>`<button class="conversation-card" onclick="openConversation('${esc(c.id)}')">
+    <div class="ct">${esc(c.title||"새 대화")}</div>
+    <div class="cm">${esc(formatTime(c.updated_at||c.created_at))} · ${esc(c.mode||"chat")}</div>
+  </button>`).join("");
+}
+async function loadConversationArchive(force=false){
+  if(!currentUser){renderConversationArchive();return;}
+  if(conversationArchiveLoaded&&!force){renderConversationArchive();return;}
+  conversationArchiveLoaded=false;
+  renderConversationArchive();
+  try{
+    const response=await fetch(`/api/conversations?userId=${encodeURIComponent(currentUser.userId)}&limit=30`);
+    const data=await response.json().catch(()=>({}));
+    conversationArchive=Array.isArray(data.conversations)?data.conversations:[];
+  }catch(e){
+    conversationArchive=[];
+    toast("대화 보관함을 불러오지 못했어요");
+  }
+  conversationArchiveLoaded=true;
+  renderConversationArchive();
+}
+function renderStoredMessage(message){
+  const t=document.getElementById("thread");
+  const w=document.createElement("div");
+  const role=message.role==="assistant"?"bot":"user";
+  w.className=`msg ${role}`;
+  const text=esc(message.content||"");
+  if(role==="bot")w.innerHTML=`<div class="av"><img src="${FACE_IDLE}" alt="찾아봇"></div><div class="bubble">${text}</div>`;
+  else w.innerHTML=`<div class="bubble">${text}</div>`;
+  t.appendChild(w);
+}
+async function openConversation(id){
+  if(!currentUser)return;
+  logEvent("conversation_open",{conversationId:id});
+  try{
+    const response=await fetch(`/api/conversations?userId=${encodeURIComponent(currentUser.userId)}&conversationId=${encodeURIComponent(id)}`);
+    const data=await response.json().catch(()=>({}));
+    const messages=Array.isArray(data.messages)?data.messages:[];
+    go("chat");
+    currentConversationId=id;
+    store.set("cb_current_conversation",id);
+    document.getElementById("thread").innerHTML="";
+    if(messages.length)messages.forEach(renderStoredMessage);
+    else addBot("이 대화에는 아직 저장된 메시지가 없어요.",{text:"이 대화에는 아직 저장된 메시지가 없어요."});
+    sc();
+  }catch(e){
+    toast("대화를 열지 못했어요");
+  }
+}
+function startBlankConversation(){
+  if(!currentSubject){go("subject");return;}
+  if(!currentUser){go("login");return;}
+  logEvent("conversation_new");
+  go("chat");
+  document.getElementById("thread").innerHTML="";
+  startNewConversation();
+  chatHistory=[];
+  freeCtx={stage:"idle",cat:null,tokens:[],query:""};
+  const hi="새 대화를 시작할게요. 궁금한 것을 편하게 말씀해 주세요.";
+  addBot(esc(hi),{text:hi});
+  focusChat();
+}
 function renderSaved(){
   updateBadge();
   const list=savedIds.map(id=>WELFARE.find(r=>r.id===id)).filter(Boolean);
@@ -1663,13 +2016,28 @@ function toggleTts(){ttsOn=!ttsOn;store.set("cb_tts",ttsOn?"1":"0");applyTts();
   logEvent("tts_toggle",{enabled:ttsOn});
   if(ttsOn){speak("음성 안내를 켰어요. 이제 찾아봇의 말을 자연스럽게 읽어드릴게요.",true);toast("음성 안내를 켰어요 🔊");}else{try{if(voiceAudio)voiceAudio.pause();if(voiceAudioUrl)URL.revokeObjectURL(voiceAudioUrl);voiceAudio=null;voiceAudioUrl=null;window.speechSynthesis.cancel();}catch(e){}toast("음성 안내를 껐어요");}}
 function pickRegion(){const r=prompt("지역을 입력해 주세요 (예: 서울 광진구)",region);if(r){region=r.trim();store.set("cb_region",region);document.getElementById("regionVal").textContent=region;toast("지역을 "+region+"(으)로 설정했어요");}}
-function shareSaved(){
+async function shareSaved(){
   if(savedIds.length===0){toast("먼저 복지를 찜해 주세요");return;}
   const list=savedIds.map(id=>WELFARE.find(r=>r.id===id)).filter(Boolean);
   const text="[찾아봇] 찜한 복지자원\n\n"+list.map((r,i)=>`${i+1}. ${r.name}\n   ${r.contact?'전화 '+r.contact+' / ':''}${r.url||''}`).join("\n\n");
   logEvent("saved_share",{savedCount:list.length,method:navigator.share?"native":"clipboard"});
-  if(navigator.share){navigator.share({title:"찾아봇 찜 목록",text}).catch(()=>{});}
-  else{try{navigator.clipboard.writeText(text);toast("찜 목록을 복사했어요. 보호자에게 붙여넣어 보내세요");}catch(e){toast("공유 텍스트를 준비했어요");}}
+  if(navigator.share){
+    try{
+      await navigator.share({title:"찾아봇 찜 목록",text});
+      logEvent("saved_share_success",{savedCount:list.length,method:"native"});
+    }catch(e){
+      logEvent("saved_share_cancel",{savedCount:list.length,method:"native"});
+    }
+  }else{
+    try{
+      await navigator.clipboard.writeText(text);
+      toast("찜 목록을 복사했어요. 보호자에게 붙여넣어 보내세요");
+      logEvent("saved_share_success",{savedCount:list.length,method:"clipboard"});
+    }catch(e){
+      toast("공유 텍스트를 준비했어요");
+      logEvent("saved_share_fail",{savedCount:list.length,method:"clipboard"});
+    }
+  }
 }
 
 /* 토스트 */
@@ -1713,6 +2081,8 @@ window.addEventListener("hashchange",()=>{if(location.hash==="#admin")go("admin"
 /* 초기화 */
 async function init(){
   await loadResources();
+  await loadImageTemplates();
+  loadPublicConfig();
   document.getElementById("logoImg").src=LOGO_SRC;
   document.getElementById("charImg").src=CHAR_BODY;
   applyFont();applyTts();updateBadge();

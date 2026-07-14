@@ -83,6 +83,7 @@ async function recordUsage(body, mode, model, quota) {
       metadata: {
         subject: body.subject || null,
         userType: body.userType || null,
+        templateId: body.templateId || null,
         quotaRemaining: quota?.remaining ?? null,
       },
     },

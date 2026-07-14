@@ -10,6 +10,8 @@ Vercel Project Settings > Environment Variables에 아래 값을 추가한다.
 | `SUPABASE_SECRET_KEY` | 서버 전용 Secret key. `sb_secret_...` 형태면 이 값을 우선 사용한다. 브라우저 코드에 넣지 않는다. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Legacy `service_role` key를 쓸 때만 사용한다. 새 프로젝트라면 보통 `SUPABASE_SECRET_KEY`가 우선이다. |
 | `APP_SECRET` | 이름+전화번호 해시용 비밀값. 긴 임의 문자열로 설정한다. |
+| `ADMIN_TOKEN` | 관리자 로그 조회/export용 비밀값. `/admin.html`에서 같은 값을 입력해야 운영 로그를 볼 수 있다. |
+| `GA4_MEASUREMENT_ID` | 선택. GA4 웹 데이터 스트림의 `G-...` 측정 ID. 원문 대화는 GA4로 보내지 않는다. |
 
 ## 1차 테이블
 
@@ -34,6 +36,8 @@ Supabase SQL Editor에서 `docs/supabase-schema.sql` 내용을 실행한다.
 - 전화번호 원문
 - GA4로 원문 질문/답변 전송
 
+전체 휴대폰번호는 현재 앱 운영에 필요하지 않다. 동명이인 검증 또는 SMS 인증을 붙일 때만 일시적으로 받아 해시 처리하고, GitHub/public/브라우저 저장소에는 남기지 않는다.
+
 ## 참가자 명단 임포트
 
 참가자 명단은 개인정보가 포함되므로 GitHub/public에 올리지 않는다.
@@ -55,6 +59,8 @@ Supabase Table Editor에서 아래 테이블을 확인한다.
 | `conversations` | 대화 묶음 |
 | `messages` | 사용자 입력/찾아봇 답변 원문 |
 | `usage_events` | OpenAI 사용량과 `event:*` 클릭 로그 |
+
+관리자 화면에서 확인할 때는 `/admin.html`을 열고 Vercel에 등록한 `ADMIN_TOKEN` 값을 입력한다. 로그 CSV 다운로드에는 원문 대화 일부가 포함될 수 있으므로 외부 공유 전 익명화한다.
 
 운영 원칙:
 
