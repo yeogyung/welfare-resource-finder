@@ -49,12 +49,17 @@ function deriveUserType(subject) {
   return "guest";
 }
 
+function supabaseRestBase(url) {
+  const cleanUrl = String(url || "").replace(/\/+$/, "");
+  return cleanUrl.endsWith("/rest/v1") ? cleanUrl : `${cleanUrl}/rest/v1`;
+}
+
 async function upsertSupabaseUser(payload) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
 
-  const endpoint = `${url.replace(/\/$/, "")}/rest/v1/app_users?on_conflict=identity_hash`;
+  const endpoint = `${supabaseRestBase(url)}/app_users?on_conflict=identity_hash`;
   const headers = {
     apikey: key,
     "Content-Type": "application/json",
