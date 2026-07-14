@@ -1035,6 +1035,13 @@ function stripHtml(html){
   d.innerHTML=String(html||"");
   return (d.textContent||d.innerText||"").replace(/\s+/g," ").trim();
 }
+function cleanAssistantText(text){
+  return String(text||"")
+    .replace(/\*\*/g,"")
+    .replace(/^#{1,6}\s*/gm,"")
+    .replace(/\s+\n/g,"\n")
+    .trim();
+}
 function shouldLogMessages(){return Boolean(currentUser&&currentUser.userId&&currentUser.logConsent!==false);}
 function logMessage(role,content,metadata={}){
   const text=String(content||"").replace(/\s+/g," ").trim();
@@ -1774,7 +1781,7 @@ function addTyping(){const t=document.getElementById("thread");const w=document.
 function rmTyping(){const t=document.getElementById("typing");if(t)t.remove();}
 function addCards(list){const t=document.getElementById("thread");const w=document.createElement("div");w.className="cardwrap";w.innerHTML=list.map(rcard).join("");t.appendChild(w);return w;}
 function addChoices(items){const t=document.getElementById("thread");const w=document.createElement("div");w.className="choices";
-  w.innerHTML=items.map(c=>`<button class="choice ${c.skip?'skip':''}" onclick="${c.action}">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${c.label}</button>`).join("");t.appendChild(w);sc();}
+  w.innerHTML=items.map(c=>`<button class="choice ${c.skip?'skip':''}" onclick="${esc(c.action||"")}">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${esc(c.label)}</button>`).join("");t.appendChild(w);sc();}
 function addStepTag(txt){const t=document.getElementById("thread");const w=document.createElement("div");w.className="step-tag";w.textContent=txt;t.appendChild(w);}
 function sc(){const b=document.getElementById("scroll");requestAnimationFrame(()=>b.scrollTop=b.scrollHeight);}
 function scrollToEl(el){const b=document.getElementById("scroll");if(!b||!el)return;requestAnimationFrame(()=>b.scrollTo({top:Math.max(0,el.offsetTop-14),behavior:"smooth"}));}
@@ -1967,13 +1974,14 @@ function recommend(danger){
         clearTyping();
         if(!response.ok){
           if(data.message){
-            addBot(esc(data.message),{text:data.message});
-            speak(data.message);
+            const fallback=cleanAssistantText(data.message);
+            addBot(esc(fallback),{text:fallback});
+            speak(fallback);
             return true;
           }
           return false;
         }
-        const msg=String(data.answer||"").trim();
+        const msg=cleanAssistantText(data.answer);
         if(!msg)return false;
         chatHistory.push({role:"user",content:text},{role:"assistant",content:msg});
         if(chatHistory.length>16)chatHistory=chatHistory.slice(-16);
@@ -1987,6 +1995,24 @@ function recommend(danger){
       }catch(e){
         clearTyping();
         return false;
+      }
+    }
+    async function askDailyText(text){
+      if(!currentSubject){go("subject");return;}
+      if(!currentUser){go("login");return;}
+      go("chat");
+      const clean=cleanText(text);
+      if(!clean)return;
+      addUser(clean);
+      logEvent("daily_talk_prompt_submit",{length:clean.length});
+      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|옷차림|더워|추워|덥|춥/.test(clean)){
+        await answerWeather(clean);
+        return;
+      }
+      const ok=await answerFreeChat(clean);
+      if(!ok){
+        const msg="일상대화 연결이 잠시 어렵습니다. 다시 한 번 눌러보거나 채팅창에 직접 말씀해 주세요.";
+        addBot(esc(msg),{text:msg});
       }
     }
     async function answerImagePrompt(text){
@@ -2401,7 +2427,7 @@ function startDailyTalkTopic(id){
   addUser(`${topic.emoji} ${topic.label}`);
   const msg=`${topic.label}으로 연습해볼게요. 아래 질문을 눌러도 되고, 채팅창에 직접 써도 돼요.`;
   addBot(esc(msg),{text:msg});
-  addChoices(topic.prompts.map(p=>({emoji:topic.emoji,label:p,action:`askText(${jsArg(p)})`})));
+  addChoices(topic.prompts.map(p=>({emoji:topic.emoji,label:p,action:`askDailyText(${jsArg(p)})`})));
 }
 document.addEventListener("DOMContentLoaded",()=>{init();});
 </script>
