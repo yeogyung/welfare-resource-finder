@@ -1,6 +1,6 @@
 -- 찾아봇 1차 DB 스키마
 -- Supabase SQL Editor에서 실행한다.
--- 참가자 명단 매칭, 대화 보관함, 사용량 카운팅은 이후 테이블을 이어서 추가한다.
+-- 참가자 명단 매칭, 대화 보관함, 사용량/클릭 카운팅까지 포함한다.
 
 create table if not exists public.app_users (
   id text primary key,

@@ -384,7 +384,7 @@ body{
     <!-- 첫 주체 선택 (SUB-01) -->
     <section id="screen-subject" class="screen active">
       <div class="subject-screen">
-        <div class="subject-kicker">교육 베타</div>
+        <div class="subject-kicker">찾아봇 시작</div>
         <h1 class="subject-title">교육 참가자는 여기로 시작해 주세요</h1>
         <p class="subject-sub">현장 교육에 참여하시는 어르신은 큰 버튼을 눌러 주세요. 일반 이용자와 운영자는 아래에서 선택할 수 있어요.</p>
         <div class="progress-row" aria-hidden="true"><span class="progress-dot on"></span><span class="progress-dot"></span></div>
@@ -398,7 +398,7 @@ body{
       <div class="login-screen">
         <div class="subject-kicker">간편 확인</div>
         <h1 class="subject-title">이름과 전화번호를 확인해 주세요</h1>
-        <p class="subject-sub">현장 대화 보관함과 사용량 제한을 같은 사람 기준으로 묶기 위한 절차예요.</p>
+        <p class="subject-sub">대화 보관과 교육 운영 확인을 위해 한 번만 확인할게요.</p>
         <div class="progress-row" aria-hidden="true"><span class="progress-dot on"></span><span class="progress-dot on"></span></div>
         <div class="login-card">
           <span class="profile-pill" id="loginSubjectPill">일반 이용자</span>
@@ -422,13 +422,13 @@ body{
             </div>
             <label class="check-row">
               <input id="loginConsent" type="checkbox">
-              <span>찾아봇 교육 운영을 위해 로그인 정보와 대화 내용을 서버 DB에 저장하는 것에 동의합니다. 전화번호 원문은 브라우저에 저장하지 않아요.</span>
+              <span>찾아봇 교육 운영과 대화 보관을 위해 로그인 정보와 대화 내용을 저장하는 것에 동의합니다. 전화번호 원문은 브라우저에 저장하지 않아요.</span>
             </label>
             <div class="form-error" id="loginError"></div>
             <button class="login-submit" type="submit">계속하기</button>
           </form>
           <button class="login-secondary" onclick="resetSubject()">이용 주체 다시 고르기</button>
-          <p class="login-note">DB 연결 전에는 이 기기에서만 로그인 상태가 유지돼요. 다른 기기에서도 이어 보려면 다음 단계에서 서버 DB를 연결해야 합니다.</p>
+          <p class="login-note">저장된 대화는 교육 운영과 서비스 개선 목적으로만 확인합니다. 민감한 개인정보는 대화창에 입력하지 않는 것이 좋아요.</p>
         </div>
       </div>
     </section>
@@ -636,15 +636,15 @@ const SUBJECT_OPTIONS = [
     id:"participant",
     label:"교육 참가자",
     shortLabel:"교육 참가자",
-    desc:"현장 교육 회차와 대화 보관을 연결할 예정입니다.",
-    confirm:"교육 참가자로 시작합니다. 다음 단계에서 이름과 전화번호 인증, 교육 회차 선택을 연결할 수 있어요."
+    desc:"광진노인종합복지관 교육 참가자용 시작입니다.",
+    confirm:"교육 참가자로 시작합니다. 다음 단계에서 성함을 확인하고 대화를 보관할게요."
   },
   {
     id:"staff",
     label:"활동가·운영자",
     shortLabel:"운영자",
-    desc:"현장 진행, 테스트, 안내 목적으로 이용합니다.",
-    confirm:"활동가·운영자로 시작합니다. 이 선택만으로 관리자 권한이 열리지는 않고, 추후 별도 인증을 붙입니다."
+    desc:"현장 안내와 운영 확인에 사용합니다.",
+    confirm:"활동가·운영자로 시작합니다. 관리자 화면은 별도 인증이 필요합니다."
   }
 ];
 const ROOT_QUESTIONS = [
@@ -816,8 +816,8 @@ function rcard(r){
   if(r.period)metas.push(["기간",clip(r.period,10)]);
   const metaHtml=metas.map(([k,v],i)=>`${i>0?'<span class="sep"></span>':''}<span class="mi"><span class="mk">${k}</span><span class="mv">${esc(v)}</span></span>`).join("");
   const reasonHtml=(r._reasons&&r._reasons.length)?`<div class="rwhy">추천 근거: ${esc(r._reasons.slice(0,2).join(" · "))}</div>`:"";
-  const call=r.contact?`<a class="call" href="tel:${esc(r.contact)}"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5V20a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>전화</a>`:"";
-  const detail=r.url?`<a class="detail" href="${esc(r.url)}" target="_blank" rel="noopener">자세히</a>`:`<span class="detail" style="opacity:.5">준비중</span>`;
+  const call=r.contact?`<a class="call" href="tel:${esc(r.contact)}" onclick="logResourceEvent('resource_call_click','${esc(r.id)}')"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5V20a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>전화</a>`:"";
+  const detail=r.url?`<a class="detail" href="${esc(r.url)}" target="_blank" rel="noopener" onclick="logResourceEvent('resource_detail_click','${esc(r.id)}')">자세히</a>`:`<span class="detail" style="opacity:.5">준비중</span>`;
   return `<article class="rcard" data-id="${r.id}">
     <span class="tag" style="background:${cm.color}">${cm.emoji} ${cm.label}</span>
     <button class="rbody" onclick="toggleDesc('${r.id}',this)">
@@ -833,13 +833,24 @@ function rcard(r){
     </div>
   </article>`;
 }
-function toggleDesc(id,b){const e=document.getElementById("d-"+id);if(!e)return;e.classList.toggle("open");const m=b.querySelector&&b.querySelector(".moretxt");if(m)m.textContent=e.classList.contains("open")?"접기 ▴":"자세한 설명 ▾";}
+function logResourceEvent(eventName,id,extra={}){
+  const r=WELFARE.find(x=>x.id===id);
+  logEvent(eventName,Object.assign({
+    resourceId:id,
+    category:r&&r.category,
+    hasUrl:Boolean(r&&r.url),
+    hasContact:Boolean(r&&r.contact)
+  },extra));
+}
+function toggleDesc(id,b){const e=document.getElementById("d-"+id);if(!e)return;e.classList.toggle("open");const open=e.classList.contains("open");const m=b.querySelector&&b.querySelector(".moretxt");if(m)m.textContent=open?"접기 ▴":"자세한 설명 ▾";logResourceEvent(open?"resource_expand":"resource_collapse",id);}
 function toggleFav(id,b){
   const i=savedIds.indexOf(id);
-  if(i>=0){savedIds.splice(i,1);toast("찜을 해제했어요");}else{savedIds.push(id);toast("찜 목록에 저장했어요");}
+  let action="add";
+  if(i>=0){savedIds.splice(i,1);action="remove";toast("찜을 해제했어요");}else{savedIds.push(id);toast("찜 목록에 저장했어요");}
   store.set("cb_saved",JSON.stringify(savedIds));
   document.querySelectorAll(`.rcard[data-id="${id}"] .fav`).forEach(x=>{const on=savedIds.includes(id);x.classList.toggle("on",on);x.querySelector("svg").setAttribute("fill",on?"currentColor":"none");const s=x.querySelector("span");if(s)s.textContent=on?"찜함":"찜";});
   updateBadge();
+  logResourceEvent(action==="add"?"saved_add":"saved_remove",id,{savedCount:savedIds.length});
   if(document.getElementById("screen-saved").classList.contains("active"))renderSaved();
 }
 function updateBadge(){const b=document.getElementById("savedBadge");if(savedIds.length){b.style.display="flex";b.textContent=savedIds.length;}else b.style.display="none";}
@@ -881,6 +892,7 @@ function chooseSubject(id){
   const item=getSubject(id);
   if(!item)return;
   pendingSubject=item;
+  logEvent("subject_choose",{subject:id});
   const icon=document.getElementById("subjectModalIcon");
   const title=document.getElementById("subjectModalTitle");
   const desc=document.getElementById("subjectModalDesc");
@@ -899,6 +911,7 @@ function confirmSubject(){
   if(!pendingSubject)return closeSubjectModal();
   currentSubject=Object.assign({},pendingSubject,{confirmedAt:new Date().toISOString()});
   store.set("cb_subject",JSON.stringify({id:currentSubject.id,confirmedAt:currentSubject.confirmedAt}));
+  logEvent("subject_confirm",{subject:currentSubject.id});
   pendingSubject=null;
   closeSubjectModal();
   updateSubjectUi();
@@ -965,9 +978,33 @@ function logMessage(role,content,metadata={}){
     })
   }).catch(()=>{});
 }
+function logEvent(eventName,metadata={}){
+  const name=String(eventName||"").trim();
+  if(!name)return;
+  const profile=currentUser||{};
+  const payload={
+    event:name,
+    userId:profile.userId||"anonymous",
+    userType:profile.userType||"unknown",
+    subject:(currentSubject&&currentSubject.id)||profile.subject||"unknown",
+    conversationId:currentConversationId||"",
+    metadata:Object.assign({
+      appVariant,
+      path:location.pathname,
+      hash:location.hash||""
+    },metadata||{})
+  };
+  fetch("/api/event",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    keepalive:true,
+    body:JSON.stringify(payload)
+  }).catch(()=>{});
+}
 function useManualLogin(){
   selectedParticipant=null;
   manualParticipantLogin=true;
+  logEvent("participant_manual_login_open");
   const manual=document.getElementById("manualLoginFields");
   if(manual)manual.hidden=false;
   document.querySelectorAll(".participant-btn").forEach(btn=>btn.classList.remove("on"));
@@ -986,6 +1023,7 @@ function selectParticipant(id){
   if(phone)phone.value="";
   document.querySelectorAll(".participant-btn").forEach(btn=>btn.classList.toggle("on",btn.dataset.id===id));
   setLoginError("");
+  logEvent("participant_select",{participantId:id});
 }
 function renderParticipantOptions(){
   const box=document.getElementById("participantList");
@@ -1121,6 +1159,7 @@ async function confirmLogin(){
   if(btn)btn.disabled=false;
   closeLoginModal();
   updateUserUi();
+  logEvent("login_confirm",{matched:Boolean(currentUser.matched),storage:currentUser.storage||"unknown"});
   go("home");
   toast(`${currentUser.displayName}님, 시작할게요`);
 }
@@ -1222,6 +1261,7 @@ function renderNode(nodeId,step){
 }
 function pick(nodeId,idx){
   const node=FLOW[nodeId],opt=node.opts[idx];
+  logEvent("flow_choice",{nodeId,choiceIndex:idx,choiceLabel:opt.label,category:opt.cat||node.cat||""});
   addUser((opt.emoji?opt.emoji+" ":"")+opt.label);
   if(opt.cat)ctx.cat=opt.cat;
   if(opt.tokens)ctx.tokens.push(...opt.tokens);
@@ -1563,8 +1603,8 @@ function recommend(danger){
       if(answered)return;
       askFree("자유대화 연결이 잠시 어렵습니다. 대신 복지, 건강, 배움, 모임 자원은 바로 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,tokens,text);
     }
-function submitChat(){const v=document.getElementById("chatInput").value.trim();if(v){askText(v);document.getElementById("chatInput").value="";}}
-function focusChat(){if(!currentSubject){go("subject");return;}if(!currentUser){go("login");return;}const i=document.getElementById("chatInput");if(!i)return;i.focus();i.scrollIntoView({block:"nearest"});const c=document.getElementById("composer");if(c){c.style.boxShadow="inset 0 3px 0 #3A8F7A";setTimeout(()=>c.style.boxShadow="",1000);}}
+function submitChat(){const input=document.getElementById("chatInput");const v=input.value.trim();if(v){logEvent("chat_submit",{length:v.length});askText(v);input.value="";}}
+function focusChat(){if(!currentSubject){go("subject");return;}if(!currentUser){go("login");return;}logEvent("direct_input_focus");const i=document.getElementById("chatInput");if(!i)return;i.focus();i.scrollIntoView({block:"nearest"});const c=document.getElementById("composer");if(c){c.style.boxShadow="inset 0 3px 0 #3A8F7A";setTimeout(()=>c.style.boxShadow="",1000);}}
 
 
 /* 찜 */
@@ -1583,6 +1623,7 @@ function initSTT(){const SR=window.SpeechRecognition||window.webkitSpeechRecogni
   recog.onerror=ev=>{recogActive=false;setMic(false);if(ev.error!=="aborted")toast("잘 못 들었어요. 다시 한 번 말씀해 주세요");};return true;}
 function setMic(on){const cm=document.getElementById("chatMic");if(cm)cm.classList.toggle("listening",on);}
 function startVoice(target){sttTarget=target;
+  logEvent("voice_input_start",{target});
   if(!recog&&!initSTT()){const cm=document.getElementById("chatMic");if(cm)cm.classList.add("off");toast("음성 입력이 안 되는 기기예요. 아래에 입력해 주세요");return;}
   if(recogActive){recog.stop();return;}
   try{recog.start();recogActive=true;setMic(true);}catch(e){recogActive=false;setMic(false);}}
@@ -1615,16 +1656,18 @@ async function speak(text,force){
 function applyFont(){document.body.className="fs-"+fontLevel;
   document.querySelectorAll("#fontSizes .fsb").forEach((b,i)=>b.setAttribute("aria-pressed",i===fontLevel));
   document.getElementById("fontMini").setAttribute("aria-pressed",fontLevel===2);}
-function setFont(l){fontLevel=l;store.set("cb_font",String(l));applyFont();toast(["글자를 보통보다 작게 했어요","글자를 보통으로 했어요","글자를 크게 했어요"][l]);}
+function setFont(l){fontLevel=l;store.set("cb_font",String(l));applyFont();logEvent("font_size_change",{level:l});toast(["글자를 보통보다 작게 했어요","글자를 보통으로 했어요","글자를 크게 했어요"][l]);}
 function cycleFont(){setFont((fontLevel+1)%3);}
 function applyTts(){["ttsToggle"].forEach(id=>document.getElementById(id).setAttribute("aria-pressed",ttsOn));document.getElementById("ttsMini").setAttribute("aria-pressed",ttsOn);}
 function toggleTts(){ttsOn=!ttsOn;store.set("cb_tts",ttsOn?"1":"0");applyTts();
+  logEvent("tts_toggle",{enabled:ttsOn});
   if(ttsOn){speak("음성 안내를 켰어요. 이제 찾아봇의 말을 자연스럽게 읽어드릴게요.",true);toast("음성 안내를 켰어요 🔊");}else{try{if(voiceAudio)voiceAudio.pause();if(voiceAudioUrl)URL.revokeObjectURL(voiceAudioUrl);voiceAudio=null;voiceAudioUrl=null;window.speechSynthesis.cancel();}catch(e){}toast("음성 안내를 껐어요");}}
 function pickRegion(){const r=prompt("지역을 입력해 주세요 (예: 서울 광진구)",region);if(r){region=r.trim();store.set("cb_region",region);document.getElementById("regionVal").textContent=region;toast("지역을 "+region+"(으)로 설정했어요");}}
 function shareSaved(){
   if(savedIds.length===0){toast("먼저 복지를 찜해 주세요");return;}
   const list=savedIds.map(id=>WELFARE.find(r=>r.id===id)).filter(Boolean);
   const text="[찾아봇] 찜한 복지자원\n\n"+list.map((r,i)=>`${i+1}. ${r.name}\n   ${r.contact?'전화 '+r.contact+' / ':''}${r.url||''}`).join("\n\n");
+  logEvent("saved_share",{savedCount:list.length,method:navigator.share?"native":"clipboard"});
   if(navigator.share){navigator.share({title:"찾아봇 찜 목록",text}).catch(()=>{});}
   else{try{navigator.clipboard.writeText(text);toast("찜 목록을 복사했어요. 보호자에게 붙여넣어 보내세요");}catch(e){toast("공유 텍스트를 준비했어요");}}
 }
@@ -1687,7 +1730,7 @@ async function init(){
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSubjectModal();closeLoginModal();}});
   if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else if(!currentUser)go("login");else go("home");
 }
-function quickStart(i){startChat(QUICK_QUESTIONS[i].seed);}
+function quickStart(i){const q=QUICK_QUESTIONS[i];logEvent("quick_start",{index:i,label:q&&q.label,seed:q&&q.seed});startChat(q.seed);}
 document.addEventListener("DOMContentLoaded",()=>{init();});
 </script>
 </body>
