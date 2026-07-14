@@ -24,6 +24,25 @@ function compact(value, max = MAX_MESSAGE_CHARS) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
+function dedupeRepeatedText(value) {
+  const text = compact(value, 2200);
+  const half = Math.floor(text.length / 2);
+  const left = text.slice(0, half).trim();
+  const right = text.slice(half).trim();
+  if (left.length > 30 && left === right) return left;
+
+  const sentences = text.match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/g) || [text];
+  const seen = new Set();
+  const out = [];
+  for (const sentence of sentences) {
+    const key = sentence.replace(/\s+/g, " ").trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(sentence.trim());
+  }
+  return out.join(" ").trim();
+}
+
 function clientKey(req, body) {
   const userKey = compact(body.userId || body.loginId || body.phoneHash, 120);
   if (userKey) return userKey;
@@ -60,7 +79,7 @@ function transcriptFrom(history, message) {
 }
 
 function extractOutputText(data) {
-  if (data?.output_text) return compact(data.output_text, 2200);
+  if (data?.output_text) return dedupeRepeatedText(data.output_text);
   const chunks = [];
   for (const output of data?.output || []) {
     for (const content of output?.content || []) {
@@ -68,7 +87,7 @@ function extractOutputText(data) {
       if (content?.type === "output_text" && content?.text) chunks.push(content.text);
     }
   }
-  return compact(chunks.join("\n"), 2200);
+  return dedupeRepeatedText(chunks.join("\n"));
 }
 
 const instructions = [
@@ -76,7 +95,7 @@ const instructions = [
   "사용자는 AI 교육 실습 중일 수 있다. 일상대화, 생일 문자, 삼행시, 간단한 글쓰기, 스마트폰/AI 사용 질문에 자연스럽게 답한다.",
   "복지자원 추천, 기관 정보, 신청 방법을 묻는 경우에는 앱의 추천 카드나 복지자원 찾기 흐름을 이용하라고 안내한다. DB에 없는 기관/전화/링크는 지어내지 않는다.",
   "의료·법률·금융 판단은 단정하지 말고 전문가 상담을 권한다. 위급 상황, 자해, 폭력, 호흡곤란, 화재 등은 즉시 119 또는 주변 사람에게 도움을 요청하라고 말한다.",
-  "답변은 기본 3~6문장으로 한다. 필요한 경우 번호 목록을 쓰되 길게 늘리지 않는다.",
+  "답변은 기본 3~6문장으로 한다. 필요한 경우 번호 목록을 쓰되 길게 늘리지 않는다. 같은 문장이나 같은 예시는 반복하지 않는다.",
 ].join("\n");
 
 module.exports = async function chatHandler(req, res) {
