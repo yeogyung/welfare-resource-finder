@@ -51,18 +51,20 @@ function deriveUserType(subject) {
 
 async function upsertSupabaseUser(payload) {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
 
   const endpoint = `${url.replace(/\/$/, "")}/rest/v1/app_users?on_conflict=identity_hash`;
+  const headers = {
+    apikey: key,
+    "Content-Type": "application/json",
+    Prefer: "resolution=merge-duplicates,return=representation",
+  };
+  if (!key.startsWith("sb_secret_")) headers.Authorization = `Bearer ${key}`;
+
   const response = await fetch(endpoint, {
     method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-      Prefer: "resolution=merge-duplicates,return=representation",
-    },
+    headers,
     body: JSON.stringify(payload),
   });
   const text = await response.text();
@@ -153,7 +155,7 @@ module.exports = async function loginHandler(req, res) {
   } catch (error) {
     return sendJson(res, 200, {
       ...baseUser,
-      dbConfigured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
+      dbConfigured: Boolean(process.env.SUPABASE_URL && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)),
       storage: "local-fallback",
       warning: { error: "Login DB request failed" },
     });

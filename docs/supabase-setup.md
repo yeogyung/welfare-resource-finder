@@ -7,7 +7,8 @@ Vercel Project Settings > Environment Variables에 아래 값을 추가한다.
 | 환경변수 | 설명 |
 |---|---|
 | `SUPABASE_URL` | Supabase 프로젝트 URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | 서버 전용 service role key. 브라우저 코드에 넣지 않는다. |
+| `SUPABASE_SECRET_KEY` | 서버 전용 Secret key. `sb_secret_...` 형태면 이 값을 우선 사용한다. 브라우저 코드에 넣지 않는다. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Legacy `service_role` key를 쓸 때만 사용한다. 새 프로젝트라면 보통 `SUPABASE_SECRET_KEY`가 우선이다. |
 | `APP_SECRET` | 이름+전화번호 해시용 비밀값. 긴 임의 문자열로 설정한다. |
 
 ## 1차 테이블
