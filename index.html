@@ -246,10 +246,12 @@ body{
 .composer .cmic svg{width:22px;height:22px;}
 .composer .cmic.listening{background:var(--teal);color:#fff;border-color:var(--teal);animation:pulse 1.3s infinite;}
 .composer .cmic.off{background:var(--line-2);color:var(--ink-5);border-color:var(--line);}
+.composer .cadd{width:44px;height:44px;border-radius:50%;border:1.6px solid var(--line);background:#fff;color:var(--teal-dark);flex:0 0 44px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;}
+.composer .cadd svg{width:23px;height:23px;}
 .composer .tinput{flex:1 1 auto;min-width:0;border-radius:22px;background:var(--bg);border:1px solid var(--line);padding:12px 18px;min-height:44px;font-size:1em;}
 .composer .csend{width:44px;height:44px;border-radius:50%;border:none;background:var(--teal);color:#fff;flex:0 0 44px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;}
 .composer .csend svg{width:21px;height:21px;}
-.composer .csend:active,.composer .cmic:active{transform:scale(.93);}
+.composer .csend:active,.composer .cmic:active,.composer .cadd:active{transform:scale(.93);}
 
 /* ===== 자원 카드 ===== */
 .cardwrap{align-self:stretch;padding-left:60px;display:flex;flex-direction:column;gap:10px;}
@@ -474,7 +476,7 @@ body{
 	            <h2>사진·이미지 연습</h2>
 	            <span class="image-quota">하루 3회</span>
 	          </div>
-	          <p>교육 참가자는 사진 꾸미기와 카드 만들기를 연습할 수 있어요.</p>
+		          <p>사진을 꾸미거나 가족에게 보낼 카드 이미지를 만들 수 있어요.</p>
 	          <div class="image-template-grid" id="imageTemplateGrid"></div>
 	        </div>
 	        <button class="chat-direct" onclick="focusChat()" aria-label="직접 입력해서 답하기">
@@ -579,6 +581,9 @@ body{
   <div class="composer" id="composer" style="display:none;">
     <button class="cmic" id="chatMic" onclick="startVoice('chat')" aria-label="음성 입력">
       <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="cadd" id="chatAdd" onclick="openImageUploadFromComposer()" aria-label="사진 추가">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
     </button>
 	    <input class="tinput" id="chatInput" type="text" placeholder="메시지를 입력하세요" autocomplete="off" onkeydown="if(event.key==='Enter')submitChat()">
 	    <button class="csend" onclick="submitChat()" aria-label="보내기"><svg viewBox="0 0 24 24" fill="none"><path d="M4.5 20 21 12 4.5 4 4.5 10.2 14 12 4.5 13.8Z" fill="currentColor"/></svg></button>
@@ -1136,7 +1141,7 @@ function renderImageTools(){
   const tools=document.getElementById("imageTools");
   const box=document.getElementById("imageTemplateGrid");
   if(!tools||!box)return;
-  const visible=isEducationBeta()&&Boolean(currentSubject);
+  const visible=Boolean(currentSubject);
   tools.hidden=!visible;
   if(!visible)return;
   if(!imageTemplates.length){
@@ -1199,6 +1204,18 @@ function showImageTemplateChoices(){
     action:`startImageTemplate('${esc(t.id)}')`
   })));
 }
+async function openImageUploadFromComposer(){
+  logEvent("composer_plus_click",{target:"image_upload"});
+  if(!currentSubject){go("subject");return;}
+  if(!currentUser){go("login");return;}
+  if(!imageTemplates.length)await loadImageTemplates();
+  const template=imageTemplates.find(t=>t.id==="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage);
+  if(!template){
+    showImageTemplateChoices();
+    return;
+  }
+  startImageTemplate(template.id);
+}
 function readFileAsDataUrl(file){
   return new Promise((resolve,reject)=>{
     const reader=new FileReader();
@@ -1229,7 +1246,15 @@ async function resizeImageDataUrl(file){
 async function handleImageFile(event){
   const file=event.target.files&&event.target.files[0];
   event.target.value="";
-  if(!file||!pendingImageTemplate)return;
+  if(!file)return;
+  if(!pendingImageTemplate){
+    if(!imageTemplates.length)await loadImageTemplates();
+    pendingImageTemplate=imageTemplates.find(t=>t.id==="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage)||null;
+  }
+  if(!pendingImageTemplate){
+    toast("이미지 메뉴를 먼저 선택해 주세요");
+    return;
+  }
   if(!/^image\//.test(file.type||"")){
     toast("이미지 파일을 선택해 주세요");
     return;
@@ -1701,7 +1726,7 @@ function recommend(danger){
       }
       return true;
     }
-    function isEducationBeta(){return appVariant==="education_beta"||(currentSubject&&currentSubject.id==="participant");}
+    function isImageEnabled(){return Boolean(currentSubject);}
     async function answerFreeChat(text){
       freeCtx={stage:"idle",cat:null,tokens:[],query:""};
       addTyping();
@@ -1746,8 +1771,8 @@ function recommend(danger){
       }
     }
     async function answerImagePrompt(text){
-      if(!isEducationBeta()){
-        askFree("이미지 생성과 사진 꾸미기는 교육 베타 버전에서 횟수 제한을 걸고 켜둘 기능으로 준비했어요. 지금 화면에서는 자유대화와 복지자원 찾기를 먼저 이용할 수 있어요.","broad_probe",null,[],text);
+      if(!isImageEnabled()){
+        go("subject");
         return true;
       }
       if(!imageTemplates.length)await loadImageTemplates();
