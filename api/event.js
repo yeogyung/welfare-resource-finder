@@ -2,6 +2,7 @@ const { supabaseRequest } = require("./_supabase");
 
 const MAX_EVENT_CHARS = 80;
 const MAX_META_CHARS = 1200;
+const DEFAULT_GA4_MEASUREMENT_ID = "G-N4GEGDPSRJ";
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -49,7 +50,7 @@ module.exports = async function eventHandler(req, res) {
     return res.end();
   }
   if (req.method === "GET") {
-    const ga4MeasurementId = String(process.env.GA4_MEASUREMENT_ID || "").trim();
+    const ga4MeasurementId = String(process.env.GA4_MEASUREMENT_ID || DEFAULT_GA4_MEASUREMENT_ID).trim();
     return sendJson(res, 200, {
       ga4MeasurementId: /^G-[A-Z0-9]+$/i.test(ga4MeasurementId) ? ga4MeasurementId : "",
     });

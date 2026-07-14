@@ -47,6 +47,8 @@ body{
 /* 상단바 */
 .appbar{min-width:0;max-width:100%;flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 12px;
   background:var(--surface);border-bottom:1px solid var(--line-2);z-index:6;}
+.back-btn{width:36px;height:36px;border:none;border-radius:50%;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-size:1.35em;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;}
+.back-btn:active{transform:scale(.94);}
 .brand{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto;}
 .brand img{width:32px;height:32px;border-radius:9px;display:block;}
 .brand b{font-size:1.14em;font-weight:800;letter-spacing:-.02em;color:var(--ink);}
@@ -92,16 +94,6 @@ body{
 .subject-card.compact .sd{font-size:.72em;line-height:1.34;margin-top:3px;color:var(--ink-4);}
 .subject-card.compact .arr{display:none;}
 .subject-note{margin-top:15px;color:var(--ink-5);font-size:.8em;font-weight:650;line-height:1.55;word-break:keep-all;}
-.modal-backdrop{position:absolute;inset:0;background:rgba(16,24,40,.48);z-index:50;display:flex;align-items:center;justify-content:center;padding:18px;}
-.confirm-modal{width:100%;max-width:360px;background:#fff;border-radius:18px;padding:20px 18px 16px;box-shadow:0 18px 52px rgba(16,24,40,.32);}
-.modal-icon{width:64px;height:64px;border-radius:18px;background:var(--teal-soft);color:var(--teal-dark);display:flex;align-items:center;justify-content:center;margin-bottom:13px;}
-.modal-icon svg{width:36px;height:36px;display:block;overflow:visible;}
-.modal-title{font-size:1.2em;font-weight:900;color:var(--ink);line-height:1.35;word-break:keep-all;}
-.modal-desc{margin-top:8px;color:var(--ink-4);font-size:.92em;font-weight:650;line-height:1.55;word-break:keep-all;}
-.modal-actions{display:grid;grid-template-columns:1fr 1.2fr;gap:9px;margin-top:18px;}
-.modal-actions button{border:none;border-radius:12px;padding:13px 10px;font-family:inherit;font-size:.96em;font-weight:900;cursor:pointer;}
-.modal-cancel{background:var(--bg);color:var(--ink-3);}
-.modal-confirm{background:var(--teal);color:#fff;}
 [hidden]{display:none!important;}
 
 /* ===== 간편 로그인 ===== */
@@ -123,13 +115,12 @@ body{
 .field-label{display:block;font-size:.86em;font-weight:900;color:var(--ink-3);margin-bottom:6px;}
 .login-input{width:100%;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:14px 14px;font-family:inherit;font-size:1em;font-weight:700;color:var(--ink);outline:none;}
 .login-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
-.check-row{display:grid;grid-template-columns:24px minmax(0,1fr);gap:9px;align-items:flex-start;margin-top:2px;color:var(--ink-3);font-size:.86em;font-weight:700;line-height:1.5;}
-.check-row input{width:21px;height:21px;margin-top:1px;accent-color:var(--teal);}
+.consent-note{margin-top:2px;border-radius:12px;background:var(--teal-soft);color:var(--teal-dark);padding:11px 12px;font-size:.84em;font-weight:800;line-height:1.52;word-break:keep-all;}
 .form-error{min-height:20px;color:var(--emergency);font-size:.82em;font-weight:800;line-height:1.45;}
-.login-submit,.login-secondary{width:100%;border:none;border-radius:13px;padding:15px 12px;font-family:inherit;font-size:1em;font-weight:900;cursor:pointer;}
+.login-submit{width:100%;border:none;border-radius:13px;padding:16px 12px;font-family:inherit;font-size:1.04em;font-weight:900;cursor:pointer;}
 .login-submit{background:var(--teal);color:#fff;box-shadow:0 8px 20px rgba(58,143,122,.22);}
-.login-secondary{margin-top:9px;background:var(--bg);color:var(--ink-3);}
-.login-submit:active,.login-secondary:active{transform:scale(.985);}
+.login-submit:active{transform:scale(.985);}
+.login-submit:disabled{opacity:.7;cursor:wait;}
 .login-note{margin-top:13px;color:var(--ink-5);font-size:.8em;font-weight:650;line-height:1.55;word-break:keep-all;}
 .status-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;background:var(--bg);color:var(--ink-4);font-size:.76em;font-weight:900;}
 
@@ -406,6 +397,7 @@ body{
 <body class="fs-1">
 <div class="phone">
   <header class="appbar">
+    <button class="back-btn" id="backBtn" onclick="handleBack()" aria-label="뒤로가기" hidden>←</button>
     <div class="brand"><img id="logoImg" alt="찾아봇 로고"><b>찾아봇</b></div>
     <div class="appbar-actions">
       <button class="mini-btn" id="fontMini" onclick="cycleFont()"><span class="a">가</span> 글자</button>
@@ -453,14 +445,10 @@ body{
                 <input class="login-input" id="loginPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="예: 01012345678">
               </label>
             </div>
-            <label class="check-row">
-              <input id="loginConsent" type="checkbox">
-              <span>찾아봇 교육 운영과 대화 보관을 위해 로그인 정보와 대화 내용을 저장하는 것에 동의합니다. 전화번호 원문은 브라우저에 저장하지 않아요.</span>
-            </label>
+            <p class="consent-note">계속하기를 누르면 찾아봇 교육 운영과 대화 보관을 위한 정보 저장에 동의한 것으로 간주합니다. 전화번호 원문은 브라우저에 저장하지 않아요.</p>
             <div class="form-error" id="loginError"></div>
-            <button class="login-submit" type="submit">계속하기</button>
+            <button class="login-submit" id="loginSubmitBtn" type="submit">계속하기</button>
           </form>
-          <button class="login-secondary" onclick="resetSubject()">이용 주체 다시 고르기</button>
           <p class="login-note">저장된 대화는 교육 운영과 서비스 개선 목적으로만 확인합니다. 민감한 개인정보는 대화창에 입력하지 않는 것이 좋아요.</p>
         </div>
       </div>
@@ -585,32 +573,6 @@ body{
         <button class="adl" id="adl" style="display:none;" onclick="downloadEval()">평가 결과 JSON 내려받기</button>
       </div>
     </section>
-  </div>
-
-  <!-- 주체 확인 모달 -->
-  <div class="modal-backdrop" id="subjectModal" hidden role="dialog" aria-modal="true" aria-labelledby="subjectModalTitle">
-    <div class="confirm-modal">
-      <div class="modal-icon" id="subjectModalIcon"></div>
-      <div class="modal-title" id="subjectModalTitle">이 선택으로 시작할까요?</div>
-      <div class="modal-desc" id="subjectModalDesc"></div>
-      <div class="modal-actions">
-        <button class="modal-cancel" onclick="closeSubjectModal()">다시 고르기</button>
-        <button class="modal-confirm" id="subjectConfirmBtn" onclick="confirmSubject()">맞아요</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 로그인 확인 모달 -->
-  <div class="modal-backdrop" id="loginModal" hidden role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
-    <div class="confirm-modal">
-      <div class="modal-icon" id="loginModalIcon"></div>
-      <div class="modal-title" id="loginModalTitle">이 정보가 맞나요?</div>
-      <div class="modal-desc" id="loginModalDesc"></div>
-      <div class="modal-actions">
-        <button class="modal-cancel" onclick="closeLoginModal()">다시 입력</button>
-        <button class="modal-confirm" id="loginConfirmBtn" onclick="confirmLogin()">맞아요</button>
-      </div>
-    </div>
   </div>
 
   <!-- 대화 입력바 -->
@@ -829,6 +791,7 @@ let pendingImageTemplate=null;
 let ga4Ready=false;
 let deferredInstallPrompt=null;
 let pwaInstalled=false;
+let activeScreen="subject";
 const appVariant=(new URLSearchParams(location.search).get("variant")||(location.hash.includes("beta")?"education_beta":"main"));
 let voiceAudio=null;
 let voiceAudioUrl=null;
@@ -959,29 +922,11 @@ function renderSubjectCards(){
 function chooseSubject(id){
   const item=getSubject(id);
   if(!item)return;
-  pendingSubject=item;
   logEvent("subject_choose",{subject:id});
-  const icon=document.getElementById("subjectModalIcon");
-  const title=document.getElementById("subjectModalTitle");
-  const desc=document.getElementById("subjectModalDesc");
-  const modal=document.getElementById("subjectModal");
-  if(icon)icon.innerHTML=subjectIcon(item.id);
-  if(title)title.textContent=`${item.label}로 시작할까요?`;
-  if(desc)desc.textContent=item.confirm;
-  if(modal){modal.hidden=false;document.getElementById("subjectConfirmBtn")?.focus();}
-}
-function closeSubjectModal(){
   pendingSubject=null;
-  const modal=document.getElementById("subjectModal");
-  if(modal)modal.hidden=true;
-}
-function confirmSubject(){
-  if(!pendingSubject)return closeSubjectModal();
-  currentSubject=Object.assign({},pendingSubject,{confirmedAt:new Date().toISOString()});
+  currentSubject=Object.assign({},item,{confirmedAt:new Date().toISOString()});
   store.set("cb_subject",JSON.stringify({id:currentSubject.id,confirmedAt:currentSubject.confirmedAt}));
-  logEvent("subject_confirm",{subject:currentSubject.id});
-  pendingSubject=null;
-  closeSubjectModal();
+  logEvent("subject_confirm",{subject:currentSubject.id,method:"direct"});
   updateSubjectUi();
   if(currentUser){go("home");toast(`${currentSubject.label}로 시작합니다`);}else go("login");
 }
@@ -997,7 +942,6 @@ function resetSubject(){
   updateSubjectUi();
   updateUserUi();
   renderSubjectCards();
-  closeSubjectModal();
   closeLoginModal();
   go("subject");
 }
@@ -1453,31 +1397,21 @@ function submitLogin(event){
   const participant=selectedParticipant;
   const name=participant?normalizeLoginName(participant.displayName):normalizeLoginName(document.getElementById("loginName")?.value);
   const phone=participant?"":normalizePhone(document.getElementById("loginPhone")?.value);
-  const consent=Boolean(document.getElementById("loginConsent")?.checked);
   if(currentSubject.id==="participant"&&participantOptions.length&&!participant&&!manualParticipantLogin){setLoginError("명단에서 성함을 선택하거나 직접 입력을 눌러 주세요.");return;}
   if(name.length<2){setLoginError("성함을 2글자 이상 입력해 주세요.");return;}
   if(!participant&&phone.length<8){setLoginError("전화번호를 숫자로 입력해 주세요.");return;}
-  if(!consent){setLoginError("확인 절차에 동의해 주세요.");return;}
   setLoginError("");
   pendingLogin={participantId:participant&&participant.id,name,phone,phoneMasked:participant?"명단 등록":maskPhone(phone),phoneLast4:participant?"":phone.slice(-4),subject:currentSubject.id,logConsent:true};
-  const icon=document.getElementById("loginModalIcon");
-  const desc=document.getElementById("loginModalDesc");
-  const modal=document.getElementById("loginModal");
-  if(icon)icon.innerHTML=subjectIcon(currentSubject.id);
-  if(desc)desc.innerHTML=participant
-    ?`<b>${esc(name)}</b> 님으로 시작할까요?<br>대화 내용은 교육 운영과 보관함 확인을 위해 서버 DB에 저장됩니다.`
-    :`<b>${esc(name)}</b> 님, 전화번호 <b>${esc(maskPhone(phone))}</b>로 시작할까요?<br>이 정보와 대화 내용은 교육 운영과 사용량 제한 기준으로 쓰입니다.`;
-  if(modal){modal.hidden=false;document.getElementById("loginConfirmBtn")?.focus();}
+  confirmLogin();
 }
 function closeLoginModal(){
   pendingLogin=null;
-  const modal=document.getElementById("loginModal");
-  if(modal)modal.hidden=true;
 }
 async function confirmLogin(){
   if(!pendingLogin)return closeLoginModal();
-  const btn=document.getElementById("loginConfirmBtn");
-  if(btn)btn.disabled=true;
+  const btn=document.getElementById("loginSubmitBtn");
+  const originalText=btn&&btn.textContent;
+  if(btn){btn.disabled=true;btn.textContent="시작 중...";}
   const fallback={
     userId:pendingLogin.participantId?`local_${pendingLogin.participantId}`:localId(pendingLogin.name,pendingLogin.phone),
     displayName:pendingLogin.name,
@@ -1518,7 +1452,7 @@ async function confirmLogin(){
     confirmedAt:currentUser.confirmedAt
   }));
   pendingLogin=null;
-  if(btn)btn.disabled=false;
+  if(btn){btn.disabled=false;btn.textContent=originalText||"계속하기";}
   closeLoginModal();
   updateUserUi();
   logEvent("login_confirm",{matched:Boolean(currentUser.matched),storage:currentUser.storage||"unknown"});
@@ -1533,10 +1467,8 @@ function resetLogin(){
   manualParticipantLogin=false;
   const name=document.getElementById("loginName");
   const phone=document.getElementById("loginPhone");
-  const consent=document.getElementById("loginConsent");
   if(name)name.value="";
   if(phone)phone.value="";
-  if(consent)consent.checked=false;
   setLoginError("");
   updateUserUi();
   closeLoginModal();
@@ -1553,7 +1485,23 @@ function updateUserUi(){
 }
 
 /* 화면 전환 */
+function handleBack(){
+  if(activeScreen==="login"){
+    closeLoginModal();
+    go("subject");
+    return;
+  }
+  if(activeScreen==="subject"&&currentUser){
+    go("home");
+  }
+}
+function updateBackUi(screen){
+  const btn=document.getElementById("backBtn");
+  if(!btn)return;
+  btn.hidden=!(screen==="login"||(screen==="subject"&&currentUser));
+}
 function go(screen){
+  activeScreen=screen;
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById("screen-"+screen).classList.add("active");
   const isChat=screen==="chat",isAdmin=screen==="admin",isSubject=screen==="subject",isLogin=screen==="login";
@@ -1563,6 +1511,7 @@ function go(screen){
   document.getElementById("scroll").scrollTop=0;
 	  if(screen==="saved")renderArchive();
 	  if(screen==="login")prepareLoginScreen();
+  updateBackUi(screen);
 	}
 
 /* ===== 대화 렌더 ===== */
@@ -2180,11 +2129,7 @@ async function init(){
   document.getElementById("greetQ").textContent=rand(HOME_GREETINGS);
   document.getElementById("chatInput").placeholder=rand(HOME_PLACEHOLDERS);
   document.getElementById("qgrid").innerHTML=QUICK_QUESTIONS.map((q,i)=>`<button class="qbtn" onclick="quickStart(${i})"><span class="em">${q.emoji}</span><span class="lb">${q.label}</span></button>`).join("");
-  const modal=document.getElementById("subjectModal");
-  if(modal)modal.addEventListener("click",e=>{if(e.target===modal)closeSubjectModal();});
-  const loginModal=document.getElementById("loginModal");
-  if(loginModal)loginModal.addEventListener("click",e=>{if(e.target===loginModal)closeLoginModal();});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSubjectModal();closeLoginModal();}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLoginModal();});
   if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else if(!currentUser)go("login");else go("home");
 }
 function quickStart(i){const q=QUICK_QUESTIONS[i];logEvent("quick_start",{index:i,label:q&&q.label,seed:q&&q.seed});startChat(q.seed);}

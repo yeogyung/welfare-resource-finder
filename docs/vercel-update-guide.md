@@ -55,7 +55,7 @@ AI 답변과 CLOVA 음성 API까지 실제 운영하려면 Vercel Project Settin
 - `GA4_MEASUREMENT_ID`
 - `ADMIN_TOKEN`
 
-환경변수가 없어도 기본 DB 추천 화면은 동작합니다. 다만 `/api/answer`, `/api/tts`의 외부 AI/음성 기능은 제한됩니다.
+환경변수가 없어도 기본 DB 추천 화면은 동작합니다. GA4는 코드 기본값 `G-N4GEGDPSRJ`로 동작하며, Vercel 환경변수 `GA4_MEASUREMENT_ID`를 넣으면 그 값이 우선 적용됩니다. 다만 `/api/answer`, `/api/tts`의 외부 AI/음성 기능은 제한됩니다.
 
 ## 배포 후 확인
 
