@@ -1244,6 +1244,12 @@ function imageChoice(label,emoji=""){
 }
 function imagePurposeChoices(template){
   const id=template&&template.id;
+  if(id==="sticker_from_photo")return [
+    imageChoice("내 셀카 이모티콘","😊"),
+    imageChoice("손주 사진 귀엽게","🫶"),
+    imageChoice("좋아하는 사진 스티커","✨"),
+    imageChoice("가족에게 보내기","💌")
+  ];
   if(id==="birthday_card")return [
     imageChoice("가족 생일 축하","🎂"),
     imageChoice("친구 생일 축하","🎉"),
@@ -1279,7 +1285,7 @@ function imageDetailChoices(template){
   ];
   if(id==="sticker_from_photo")return [
     imageChoice("얼굴 특징 살려 귀엽게","😊"),
-    imageChoice("하트와 반짝이만 살짝","💖"),
+    imageChoice("원본 그대로 소품 추가 안 함","🖼️"),
     imageChoice("문구 없이 깔끔하게","✨"),
     imageChoice("작은 말풍선만 넣기","💬")
   ];
@@ -1293,7 +1299,7 @@ function imageDetailChoices(template){
 function askImagePurpose(flow){
   flow.step="purpose";
   const msg=flow.template.requiresImage
-    ?"사진을 어떤 용도로 꾸밀까요? 채팅창에 직접 써도 되고, 아래에서 골라도 돼요."
+    ?"올린 사진을 어떤 느낌으로 꾸밀까요? 셀카, 손주 사진, 좋아하는 사진 모두 가능해요. 채팅창에 직접 써도 되고, 아래에서 골라도 돼요."
     :"누구에게 보내거나 어떤 용도로 만들까요? 예: 김영희님 생신 축하, 가족 안부, 복지관 행사처럼 알려주세요.";
   addBot(esc(msg),{text:msg});
   addChoices(imagePurposeChoices(flow.template));
@@ -1310,7 +1316,7 @@ function buildImagePrompt(flow){
   const answers=(flow.answers||[]).map(a=>`${a.key}: ${a.value}`).join(" / ");
   const first=flow.initialText?`처음 요청: ${flow.initialText}`:"";
   const editGuard=template.requiresImage
-    ?"업로드한 사진을 참고 이미지로 삼아 편집하세요. 사진 속 인물의 얼굴형, 머리 모양, 표정, 옷 색 등 알아볼 수 있는 특징을 유지하고, 새 인물이나 무관한 일반 캐릭터로 대체하지 마세요."
+    ?"업로드한 사진을 참고 이미지로 삼아 편집하세요. 사진 속 인물의 얼굴형, 머리 모양, 표정, 옷 색 등 알아볼 수 있는 특징을 유지하고, 새 인물이나 무관한 일반 캐릭터로 대체하지 마세요. 사진에 없는 안경, 모자, 수염, 장신구, 컵 같은 소품을 새로 추가하지 마세요."
     :"";
   const stickerGuard=template.id==="sticker_from_photo"
     ?"이모티콘 결과는 얼굴과 상반신 중심의 스티커 1장으로 만드세요. 큰 글자나 제목형 문구가 화면을 차지하지 않게 하고, 사용자가 문구를 직접 요청한 경우에만 작은 말풍선으로 짧게 넣으세요."
