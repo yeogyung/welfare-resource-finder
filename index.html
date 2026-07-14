@@ -81,6 +81,27 @@ body{
 .modal-confirm{background:var(--teal);color:#fff;}
 [hidden]{display:none!important;}
 
+/* ===== 간편 로그인 ===== */
+.login-screen{padding:24px 18px 28px;min-height:100%;}
+.progress-row{display:flex;gap:8px;margin-top:18px;}
+.progress-dot{height:6px;flex:1;border-radius:999px;background:var(--line);}
+.progress-dot.on{background:var(--teal);}
+.login-card{margin-top:20px;background:#fff;border:1px solid var(--line-2);border-radius:18px;padding:18px 16px;box-shadow:var(--shadow-card);}
+.profile-pill{display:inline-flex;align-items:center;gap:7px;background:var(--teal-soft);color:var(--teal-dark);border-radius:999px;padding:6px 11px;font-size:.78em;font-weight:900;}
+.login-form{display:flex;flex-direction:column;gap:13px;margin-top:16px;}
+.field-label{display:block;font-size:.86em;font-weight:900;color:var(--ink-3);margin-bottom:6px;}
+.login-input{width:100%;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:14px 14px;font-family:inherit;font-size:1em;font-weight:700;color:var(--ink);outline:none;}
+.login-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
+.check-row{display:grid;grid-template-columns:24px minmax(0,1fr);gap:9px;align-items:flex-start;margin-top:2px;color:var(--ink-3);font-size:.86em;font-weight:700;line-height:1.5;}
+.check-row input{width:21px;height:21px;margin-top:1px;accent-color:var(--teal);}
+.form-error{min-height:20px;color:var(--emergency);font-size:.82em;font-weight:800;line-height:1.45;}
+.login-submit,.login-secondary{width:100%;border:none;border-radius:13px;padding:15px 12px;font-family:inherit;font-size:1em;font-weight:900;cursor:pointer;}
+.login-submit{background:var(--teal);color:#fff;box-shadow:0 8px 20px rgba(58,143,122,.22);}
+.login-secondary{margin-top:9px;background:var(--bg);color:var(--ink-3);}
+.login-submit:active,.login-secondary:active{transform:scale(.985);}
+.login-note{margin-top:13px;color:var(--ink-5);font-size:.8em;font-weight:650;line-height:1.55;word-break:keep-all;}
+.status-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;background:var(--bg);color:var(--ink-4);font-size:.76em;font-weight:900;}
+
 /* ===== 홈 ===== */
 .home{padding:20px 18px 26px;}
 .hero{padding:8px 2px 0;}
@@ -342,8 +363,40 @@ body{
         <div class="subject-kicker">시작 설정</div>
         <h1 class="subject-title">먼저 어떻게 이용하실지 골라주세요</h1>
         <p class="subject-sub">선택한 주체에 맞춰 대화 보관, 교육 회차, 사용량 제한을 나중에 정확히 연결할 수 있어요.</p>
+        <div class="progress-row" aria-hidden="true"><span class="progress-dot on"></span><span class="progress-dot"></span></div>
         <div class="subject-list" id="subjectCards"></div>
         <p class="subject-note">지금은 기기 안에만 저장돼요. 이름과 전화번호 인증, 서버 DB 저장은 다음 단계에서 붙입니다.</p>
+      </div>
+    </section>
+
+    <!-- 간편 로그인 (LOG-01) -->
+    <section id="screen-login" class="screen">
+      <div class="login-screen">
+        <div class="subject-kicker">간편 확인</div>
+        <h1 class="subject-title">이름과 전화번호를 확인해 주세요</h1>
+        <p class="subject-sub">현장 대화 보관함과 사용량 제한을 같은 사람 기준으로 묶기 위한 절차예요.</p>
+        <div class="progress-row" aria-hidden="true"><span class="progress-dot on"></span><span class="progress-dot on"></span></div>
+        <div class="login-card">
+          <span class="profile-pill" id="loginSubjectPill">일반 이용자</span>
+          <form class="login-form" onsubmit="submitLogin(event)">
+            <label>
+              <span class="field-label">성함</span>
+              <input class="login-input" id="loginName" autocomplete="name" placeholder="예: 김영희">
+            </label>
+            <label>
+              <span class="field-label">전화번호</span>
+              <input class="login-input" id="loginPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="예: 01012345678">
+            </label>
+            <label class="check-row">
+              <input id="loginConsent" type="checkbox">
+              <span>찾아봇 이용을 위해 이름과 전화번호를 확인하는 것에 동의합니다. 지금은 원문 전화번호를 브라우저에 저장하지 않아요.</span>
+            </label>
+            <div class="form-error" id="loginError"></div>
+            <button class="login-submit" type="submit">계속하기</button>
+          </form>
+          <button class="login-secondary" onclick="resetSubject()">이용 주체 다시 고르기</button>
+          <p class="login-note">DB 연결 전에는 이 기기에서만 로그인 상태가 유지돼요. 다른 기기에서도 이어 보려면 다음 단계에서 서버 DB를 연결해야 합니다.</p>
+        </div>
       </div>
     </section>
 
@@ -410,6 +463,10 @@ body{
             <button class="region-val" onclick="resetSubject()">👤 <span id="subjectVal">선택 전</span> ›</button>
           </div>
           <div class="set-row">
+            <div class="lw"><div class="sl">로그인 정보</div><div class="sd" id="loginVal">아직 확인 전이에요</div></div>
+            <button class="region-val" onclick="resetLogin()">✎ 다시 입력 ›</button>
+          </div>
+          <div class="set-row">
             <div class="lw"><div class="sl">지역 설정</div><div class="sd">추천 결과에 사용돼요</div></div>
             <button class="region-val" onclick="pickRegion()">📍 <span id="regionVal">서울 광진구</span> ›</button>
           </div>
@@ -447,6 +504,19 @@ body{
       <div class="modal-actions">
         <button class="modal-cancel" onclick="closeSubjectModal()">다시 고르기</button>
         <button class="modal-confirm" id="subjectConfirmBtn" onclick="confirmSubject()">맞아요</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 로그인 확인 모달 -->
+  <div class="modal-backdrop" id="loginModal" hidden role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+    <div class="confirm-modal">
+      <div class="modal-icon" id="loginModalIcon"></div>
+      <div class="modal-title" id="loginModalTitle">이 정보가 맞나요?</div>
+      <div class="modal-desc" id="loginModalDesc"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeLoginModal()">다시 입력</button>
+        <button class="modal-confirm" id="loginConfirmBtn" onclick="confirmLogin()">맞아요</button>
       </div>
     </div>
   </div>
@@ -647,6 +717,8 @@ let fontLevel=parseInt(store.get("cb_font")||"1");
 let region=store.get("cb_region")||"서울 광진구";
 let currentSubject=parseSubject();
 let pendingSubject=null;
+let currentUser=parseUser();
+let pendingLogin=null;
 let lastEval=null;
 let ctx={cat:null,tokens:[],query:""}; // 버튼 기반 추천 상태
 let freeCtx={stage:"idle",cat:null,tokens:[],query:""}; // 자유 입력 대화 상태
@@ -780,30 +852,152 @@ function confirmSubject(){
   pendingSubject=null;
   closeSubjectModal();
   updateSubjectUi();
-  go("home");
-  toast(`${currentSubject.label}로 시작합니다`);
+  if(currentUser){go("home");toast(`${currentSubject.label}로 시작합니다`);}else go("login");
 }
 function resetSubject(){
   store.set("cb_subject","");
+  store.set("cb_user_profile","");
   currentSubject=null;
+  currentUser=null;
   pendingSubject=null;
+  pendingLogin=null;
   updateSubjectUi();
+  updateUserUi();
   renderSubjectCards();
   closeSubjectModal();
+  closeLoginModal();
   go("subject");
 }
 function updateSubjectUi(){
   const v=document.getElementById("subjectVal");
   if(v)v.textContent=currentSubject?currentSubject.shortLabel:"선택 전";
+  const pill=document.getElementById("loginSubjectPill");
+  if(pill)pill.textContent=currentSubject?currentSubject.label:"이용 주체 선택 전";
+}
+function parseUser(){
+  try{
+    const raw=store.get("cb_user_profile");
+    if(!raw)return null;
+    const data=JSON.parse(raw);
+    if(!data||!data.userId||!data.displayName)return null;
+    return data;
+  }catch(e){return null;}
+}
+function normalizeLoginName(v){return String(v||"").replace(/\s+/g," ").trim().replace(/[^\p{L}\p{N}\s._-]/gu,"").slice(0,40);}
+function normalizePhone(v){return String(v||"").replace(/\D/g,"").slice(0,13);}
+function maskPhone(phone){
+  if(!phone)return "";
+  if(phone.length<=4)return phone;
+  if(phone.length<=8)return `${phone.slice(0,2)}****${phone.slice(-2)}`;
+  return `${phone.slice(0,3)}-****-${phone.slice(-4)}`;
+}
+function localId(name,phone){
+  let h=2166136261;
+  const s=`${name.toLowerCase()}:${phone}`;
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
+  return `local_${(h>>>0).toString(36)}_${phone.slice(-4)}`;
+}
+function setLoginError(msg){const e=document.getElementById("loginError");if(e)e.textContent=msg||"";}
+function submitLogin(event){
+  if(event)event.preventDefault();
+  if(!currentSubject){go("subject");return;}
+  const name=normalizeLoginName(document.getElementById("loginName")?.value);
+  const phone=normalizePhone(document.getElementById("loginPhone")?.value);
+  const consent=Boolean(document.getElementById("loginConsent")?.checked);
+  if(name.length<2){setLoginError("성함을 2글자 이상 입력해 주세요.");return;}
+  if(phone.length<8){setLoginError("전화번호를 숫자로 입력해 주세요.");return;}
+  if(!consent){setLoginError("확인 절차에 동의해 주세요.");return;}
+  setLoginError("");
+  pendingLogin={name,phone,phoneMasked:maskPhone(phone),phoneLast4:phone.slice(-4),subject:currentSubject.id};
+  const icon=document.getElementById("loginModalIcon");
+  const desc=document.getElementById("loginModalDesc");
+  const modal=document.getElementById("loginModal");
+  if(icon)icon.innerHTML=subjectIcon(currentSubject.id);
+  if(desc)desc.innerHTML=`<b>${esc(name)}</b> 님, 전화번호 <b>${esc(maskPhone(phone))}</b>로 시작할까요?<br>이 정보는 대화 보관과 사용량 제한 기준으로 쓰입니다.`;
+  if(modal){modal.hidden=false;document.getElementById("loginConfirmBtn")?.focus();}
+}
+function closeLoginModal(){
+  pendingLogin=null;
+  const modal=document.getElementById("loginModal");
+  if(modal)modal.hidden=true;
+}
+async function confirmLogin(){
+  if(!pendingLogin)return closeLoginModal();
+  const btn=document.getElementById("loginConfirmBtn");
+  if(btn)btn.disabled=true;
+  const fallback={
+    userId:localId(pendingLogin.name,pendingLogin.phone),
+    displayName:pendingLogin.name,
+    phoneMasked:pendingLogin.phoneMasked,
+    phoneLast4:pendingLogin.phoneLast4,
+    subject:pendingLogin.subject,
+    userType:pendingLogin.subject==="staff"?"staff":(pendingLogin.subject==="participant"?"participant_pending":"guest"),
+    matched:false,
+    dbConfigured:false,
+    storage:"browser-local",
+    confirmedAt:new Date().toISOString()
+  };
+  try{
+    const response=await fetch("/api/login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:pendingLogin.name,phone:pendingLogin.phone,subject:pendingLogin.subject})
+    });
+    const data=await response.json().catch(()=>({}));
+    currentUser=Object.assign({},fallback,data,{confirmedAt:new Date().toISOString()});
+  }catch(e){
+    currentUser=fallback;
+  }
+  store.set("cb_user_profile",JSON.stringify({
+    userId:currentUser.userId,
+    displayName:currentUser.displayName,
+    phoneMasked:currentUser.phoneMasked,
+    phoneLast4:currentUser.phoneLast4,
+    subject:currentUser.subject,
+    userType:currentUser.userType,
+    matched:Boolean(currentUser.matched),
+    dbConfigured:Boolean(currentUser.dbConfigured),
+    storage:currentUser.storage||"browser-local",
+    confirmedAt:currentUser.confirmedAt
+  }));
+  pendingLogin=null;
+  if(btn)btn.disabled=false;
+  closeLoginModal();
+  updateUserUi();
+  go("home");
+  toast(`${currentUser.displayName}님, 시작할게요`);
+}
+function resetLogin(){
+  store.set("cb_user_profile","");
+  currentUser=null;
+  pendingLogin=null;
+  const name=document.getElementById("loginName");
+  const phone=document.getElementById("loginPhone");
+  const consent=document.getElementById("loginConsent");
+  if(name)name.value="";
+  if(phone)phone.value="";
+  if(consent)consent.checked=false;
+  setLoginError("");
+  updateUserUi();
+  closeLoginModal();
+  if(!currentSubject)go("subject");else go("login");
+}
+function updateUserUi(){
+  const val=document.getElementById("loginVal");
+  if(val)val.textContent=currentUser?`${currentUser.displayName} · ${currentUser.phoneMasked}`:"아직 확인 전이에요";
+  const name=document.getElementById("loginName");
+  const phone=document.getElementById("loginPhone");
+  if(currentUser&&name&&!name.value)name.value=currentUser.displayName||"";
+  if(currentUser&&phone&&!phone.value)phone.value=currentUser.phoneLast4?`****${currentUser.phoneLast4}`:"";
 }
 
 /* 화면 전환 */
 function go(screen){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById("screen-"+screen).classList.add("active");
-  const isChat=screen==="chat",isAdmin=screen==="admin",isSubject=screen==="subject";
-  document.getElementById("composer").style.display=(isChat||screen==="home")&&!isSubject?"flex":"none";
-  document.getElementById("tabbar").style.display=(isAdmin||isSubject)?"none":"flex";
+  const isChat=screen==="chat",isAdmin=screen==="admin",isSubject=screen==="subject",isLogin=screen==="login";
+  document.getElementById("composer").style.display=(isChat||screen==="home")&&!isSubject&&!isLogin?"flex":"none";
+  document.getElementById("tabbar").style.display=(isAdmin||isSubject||isLogin)?"none":"flex";
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===screen||(isChat&&t.dataset.screen==="home")));
   document.getElementById("scroll").scrollTop=0;
   if(screen==="saved")renderSaved();
@@ -828,6 +1022,8 @@ function scrollToEl(el){const b=document.getElementById("scroll");if(!b||!el)ret
 
 /* 대화 시작 */
     function startChat(seedNode){
+      if(!currentSubject){go("subject");return;}
+      if(!currentUser){go("login");return;}
       go("chat");
       document.getElementById("thread").innerHTML="";
       ctx={cat:null,tokens:[],query:""};
@@ -996,7 +1192,13 @@ function recommend(danger){
         const response=await fetch("/api/chat",{
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({message:text,history:chatHistory.slice(-8)})
+          body:JSON.stringify({
+            message:text,
+            history:chatHistory.slice(-8),
+            userId:currentUser&&currentUser.userId,
+            userType:currentUser&&currentUser.userType,
+            subject:currentSubject&&currentSubject.id
+          })
         });
         const data=await response.json().catch(()=>({}));
         clearTyping();
@@ -1040,7 +1242,14 @@ function recommend(danger){
         const response=await fetch("/api/image",{
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({mode:"generate",prompt:text,size:"1024x1024"})
+          body:JSON.stringify({
+            mode:"generate",
+            prompt:text,
+            size:"1024x1024",
+            userId:currentUser&&currentUser.userId,
+            userType:currentUser&&currentUser.userType,
+            subject:currentSubject&&currentSubject.id
+          })
         });
         const data=await response.json().catch(()=>({}));
         clearTyping();
@@ -1149,6 +1358,8 @@ function recommend(danger){
       return true;
     }
     async function askText(text){
+      if(!currentSubject){go("subject");return;}
+      if(!currentUser){go("login");return;}
       go("chat");
       text=cleanText(text);
       if(!text)return;
@@ -1186,7 +1397,7 @@ function recommend(danger){
       askFree("자유대화 연결이 잠시 어렵습니다. 대신 복지, 건강, 배움, 모임 자원은 바로 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,tokens,text);
     }
 function submitChat(){const v=document.getElementById("chatInput").value.trim();if(v){askText(v);document.getElementById("chatInput").value="";}}
-function focusChat(){const i=document.getElementById("chatInput");if(!i)return;i.focus();i.scrollIntoView({block:"nearest"});const c=document.getElementById("composer");if(c){c.style.boxShadow="inset 0 3px 0 #3A8F7A";setTimeout(()=>c.style.boxShadow="",1000);}}
+function focusChat(){if(!currentSubject){go("subject");return;}if(!currentUser){go("login");return;}const i=document.getElementById("chatInput");if(!i)return;i.focus();i.scrollIntoView({block:"nearest"});const c=document.getElementById("composer");if(c){c.style.boxShadow="inset 0 3px 0 #3A8F7A";setTimeout(()=>c.style.boxShadow="",1000);}}
 
 
 /* 찜 */
@@ -1297,14 +1508,17 @@ async function init(){
   applyFont();applyTts();updateBadge();
   renderSubjectCards();
   updateSubjectUi();
+  updateUserUi();
   document.getElementById("regionVal").textContent=region;
   document.getElementById("greetQ").textContent=rand(HOME_GREETINGS);
   document.getElementById("chatInput").placeholder=rand(HOME_PLACEHOLDERS);
   document.getElementById("qgrid").innerHTML=QUICK_QUESTIONS.map((q,i)=>`<button class="qbtn" onclick="quickStart(${i})"><span class="em">${q.emoji}</span><span class="lb">${q.label}</span></button>`).join("");
   const modal=document.getElementById("subjectModal");
   if(modal)modal.addEventListener("click",e=>{if(e.target===modal)closeSubjectModal();});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSubjectModal();});
-  if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else go("home");
+  const loginModal=document.getElementById("loginModal");
+  if(loginModal)loginModal.addEventListener("click",e=>{if(e.target===loginModal)closeLoginModal();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSubjectModal();closeLoginModal();}});
+  if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else if(!currentUser)go("login");else go("home");
 }
 function quickStart(i){startChat(QUICK_QUESTIONS[i].seed);}
 document.addEventListener("DOMContentLoaded",()=>{init();});
