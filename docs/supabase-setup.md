@@ -15,7 +15,7 @@ Vercel Project Settings > Environment Variables에 아래 값을 추가한다.
 
 Supabase SQL Editor에서 `docs/supabase-schema.sql` 내용을 실행한다.
 
-현재 1차 범위는 `app_users` 테이블이다.
+현재 1차 범위는 사용자, 참가자, 대화 기록, 사용량 기록 테이블이다.
 
 저장되는 정보:
 
@@ -31,14 +31,22 @@ Supabase SQL Editor에서 `docs/supabase-schema.sql` 내용을 실행한다.
 
 - 전화번호 원문
 
+## 참가자 명단 임포트
+
+참가자 명단은 개인정보가 포함되므로 GitHub/public에 올리지 않는다.
+
+1. `docs/supabase-schema.sql`을 먼저 실행한다.
+2. 로컬에서 생성한 `private/participants-import.sql`을 Supabase SQL Editor에서 실행한다.
+3. `Table Editor > participants`에서 참가자 행이 보이는지 확인한다.
+
+`private/` 폴더는 `.gitignore`에 포함되어 있어 커밋되지 않는다.
+
 ## 이후 확장
 
 다음 단계에서 추가할 테이블:
 
 | 테이블 | 목적 |
 |---|---|
-| `participants` | 교육 참가자 명단 매칭 |
 | `education_sessions` | 교육 그룹/회차/날짜 |
-| `conversations` | 대화 보관함 |
-| `messages` | 대화별 메시지 |
-| `usage_events` | OpenAI 호출/비용 카운팅 |
+| `image_jobs` | 이미지 생성/편집 요청 |
+| `resource_clicks` | 자원 카드/전화/공유 클릭 |

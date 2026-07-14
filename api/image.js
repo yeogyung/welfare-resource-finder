@@ -2,6 +2,7 @@ const DEFAULT_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1-mini";
 const DAILY_LIMIT = Number(process.env.OPENAI_IMAGE_DAILY_LIMIT || 3);
 const MAX_PROMPT_CHARS = 1200;
 const MAX_IMAGE_BYTES = 7 * 1024 * 1024;
+const { supabaseRequest } = require("./_supabase");
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -64,6 +65,28 @@ function extractImage(data) {
     imageUrl: b64 ? `data:image/png;base64,${b64}` : url || null,
     revisedPrompt: first.revised_prompt || data?.revised_prompt || null,
   };
+}
+
+async function recordUsage(body, mode, model, quota) {
+  const userId = compact(body.userId || "anonymous", 140);
+  const eventId = `usage_image_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  await supabaseRequest("/usage_events", {
+    method: "POST",
+    prefer: "return=minimal",
+    body: {
+      id: eventId,
+      user_id: userId,
+      feature: mode === "edit" ? "image_edit" : "image_generate",
+      provider: "openai",
+      model,
+      request_count: 1,
+      metadata: {
+        subject: body.subject || null,
+        userType: body.userType || null,
+        quotaRemaining: quota?.remaining ?? null,
+      },
+    },
+  });
 }
 
 module.exports = async function imageHandler(req, res) {
@@ -141,6 +164,7 @@ module.exports = async function imageHandler(req, res) {
 
     const image = extractImage(data);
     if (!image.imageUrl) return sendJson(res, 502, { error: "Empty OpenAI image result" });
+    await recordUsage(body, mode, model, quota).catch(() => {});
 
     return sendJson(res, 200, {
       ...image,

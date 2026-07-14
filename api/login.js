@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { supabaseRequest, encodeEq } = require("./_supabase");
 
 const SUBJECTS = new Set(["general", "participant", "staff"]);
 
@@ -49,41 +50,25 @@ function deriveUserType(subject) {
   return "guest";
 }
 
-function supabaseRestBase(url) {
-  const cleanUrl = String(url || "").replace(/\/+$/, "");
-  return cleanUrl.endsWith("/rest/v1") ? cleanUrl : `${cleanUrl}/rest/v1`;
+async function upsertSupabaseUser(payload) {
+  const result = await supabaseRequest("/app_users?on_conflict=identity_hash", {
+    method: "POST",
+    body: payload,
+    prefer: "resolution=merge-duplicates,return=representation",
+  });
+  if (!result.configured) return null;
+  if (!result.ok) return { error: "Supabase upsert failed", status: result.status, detail: result.detail };
+  const row = Array.isArray(result.data) ? result.data[0] : result.data;
+  return { row };
 }
 
-async function upsertSupabaseUser(payload) {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-
-  const endpoint = `${supabaseRestBase(url)}/app_users?on_conflict=identity_hash`;
-  const headers = {
-    apikey: key,
-    "Content-Type": "application/json",
-    Prefer: "resolution=merge-duplicates,return=representation",
-  };
-  if (!key.startsWith("sb_secret_")) headers.Authorization = `Bearer ${key}`;
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(payload),
-  });
-  const text = await response.text();
-  let data = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = { raw: text };
-  }
-  if (!response.ok) {
-    return { error: "Supabase upsert failed", status: response.status, detail: text.slice(0, 700) };
-  }
-  const row = Array.isArray(data) ? data[0] : data;
-  return { row };
+async function getParticipant(participantId) {
+  if (!participantId) return null;
+  const result = await supabaseRequest(
+    `/participants?id=eq.${encodeEq(participantId)}&active=eq.true&select=id,display_name,phone_last4,phone_masked,group_id,session_id`
+  );
+  if (!result.configured || !result.ok) return null;
+  return Array.isArray(result.data) ? result.data[0] || null : null;
 }
 
 module.exports = async function loginHandler(req, res) {
@@ -96,40 +81,49 @@ module.exports = async function loginHandler(req, res) {
   }
 
   const body = readBody(req);
-  const displayName = normalizeName(body.name || body.displayName);
-  const phone = normalizePhone(body.phone);
+  const participant = await getParticipant(clean(body.participantId, 80));
+  const displayName = normalizeName(participant?.display_name || body.name || body.displayName);
+  const phone = participant ? "" : normalizePhone(body.phone);
   const subject = SUBJECTS.has(body.subject) ? body.subject : "general";
 
   if (displayName.length < 2) return sendJson(res, 400, { error: "Name is required" });
-  if (phone.length < 8) return sendJson(res, 400, { error: "Valid phone number is required" });
+  if (!participant && phone.length < 8) return sendJson(res, 400, { error: "Valid phone number is required" });
 
-  const identityHash = hash(`${displayName.toLowerCase()}:${phone}`);
-  const phoneHash = hash(phone);
+  const phoneLast4 = participant?.phone_last4 || phone.slice(-4);
+  const phoneMasked = participant?.phone_masked || maskPhone(phone);
+  const identityHash = participant ? hash(`participant:${participant.id}`) : hash(`${displayName.toLowerCase()}:${phone}`);
+  const phoneHash = participant ? hash(`participant-phone:${participant.id}:${phoneLast4}`) : hash(phone);
   const userId = `user_${identityHash.slice(0, 18)}`;
-  const userType = deriveUserType(subject);
+  const userType = participant ? "participant" : deriveUserType(subject);
   const now = new Date().toISOString();
   const baseUser = {
     userId,
     displayName,
-    phoneMasked: maskPhone(phone),
-    phoneLast4: phone.slice(-4),
+    phoneMasked,
+    phoneLast4,
     subject,
     userType,
-    matched: false,
+    participantId: participant?.id || null,
+    matched: Boolean(participant),
   };
 
   const dbPayload = {
     id: userId,
     identity_hash: identityHash,
     phone_hash: phoneHash,
-    phone_last4: phone.slice(-4),
-    phone_masked: maskPhone(phone),
+    phone_last4: phoneLast4,
+    phone_masked: phoneMasked,
     display_name: displayName,
     subject,
     user_type: userType,
-    matched: false,
+    matched: Boolean(participant),
     last_seen_at: now,
   };
+  if (participant) {
+    dbPayload.participant_id = participant.id;
+    dbPayload.group_id = participant.group_id || null;
+    dbPayload.session_id = participant.session_id || null;
+  }
 
   try {
     const result = await upsertSupabaseUser(dbPayload);
@@ -154,6 +148,7 @@ module.exports = async function loginHandler(req, res) {
       userId: result.row?.id || userId,
       userType: result.row?.user_type || userType,
       matched: Boolean(result.row?.matched),
+      participantId: result.row?.participant_id || participant?.id || null,
       dbConfigured: true,
       storage: "supabase",
     });

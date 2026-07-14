@@ -2,6 +2,7 @@ const DEFAULT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 const DAILY_LIMIT = Number(process.env.OPENAI_CHAT_DAILY_LIMIT || 80);
 const MAX_MESSAGE_CHARS = 1400;
 const MAX_HISTORY_ITEMS = 8;
+const { supabaseRequest } = require("./_supabase");
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -90,6 +91,32 @@ function extractOutputText(data) {
   return dedupeRepeatedText(chunks.join("\n"));
 }
 
+async function recordUsage(body, model, usage, quota) {
+  const userId = compact(body.userId || "anonymous", 140);
+  const eventId = `usage_chat_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  const inputTokens = Number(usage?.input_tokens || usage?.prompt_tokens || 0) || null;
+  const outputTokens = Number(usage?.output_tokens || usage?.completion_tokens || 0) || null;
+  await supabaseRequest("/usage_events", {
+    method: "POST",
+    prefer: "return=minimal",
+    body: {
+      id: eventId,
+      user_id: userId,
+      feature: "chat",
+      provider: "openai",
+      model,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      request_count: 1,
+      metadata: {
+        subject: body.subject || null,
+        userType: body.userType || null,
+        quotaRemaining: quota?.remaining ?? null,
+      },
+    },
+  });
+}
+
 const instructions = [
   "너는 '찾아봇'의 자유대화 AI다. 한국어 존댓말을 쓰고, 고령자도 이해하기 쉬운 말로 짧고 따뜻하게 답한다.",
   "사용자는 AI 교육 실습 중일 수 있다. 일상대화, 생일 문자, 삼행시, 간단한 글쓰기, 스마트폰/AI 사용 질문에 자연스럽게 답한다.",
@@ -161,6 +188,7 @@ module.exports = async function chatHandler(req, res) {
 
     const answer = extractOutputText(data);
     if (!answer) return sendJson(res, 502, { error: "Empty OpenAI answer" });
+    await recordUsage(body, model, data.usage || null, quota).catch(() => {});
 
     return sendJson(res, 200, {
       answer,

@@ -5,3 +5,4 @@ dist/
 *.log
 *.zip
 outputs/
+private/

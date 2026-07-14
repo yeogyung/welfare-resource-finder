@@ -104,6 +104,14 @@ body{
 .progress-dot.on{background:var(--teal);}
 .login-card{margin-top:20px;background:#fff;border:1px solid var(--line-2);border-radius:18px;padding:18px 16px;box-shadow:var(--shadow-card);}
 .profile-pill{display:inline-flex;align-items:center;gap:7px;background:var(--teal-soft);color:var(--teal-dark);border-radius:999px;padding:6px 11px;font-size:.78em;font-weight:900;}
+.participant-picker{margin-top:15px;border:1px solid var(--line-2);border-radius:15px;background:#FAFBFC;padding:12px;}
+.participant-picker h2{font-size:1em;font-weight:900;color:var(--ink);line-height:1.35;}
+.participant-picker p{margin-top:4px;font-size:.8em;font-weight:650;color:var(--ink-4);line-height:1.45;word-break:keep-all;}
+.participant-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.participant-btn{border:1.5px solid var(--line);border-radius:12px;background:#fff;min-height:48px;padding:10px 8px;font-family:inherit;font-size:.92em;font-weight:900;color:var(--ink);cursor:pointer;word-break:keep-all;}
+.participant-btn.on{border-color:var(--teal);background:var(--teal-soft);color:var(--teal-dark);box-shadow:0 0 0 2px rgba(58,143,122,.12);}
+.participant-loading{margin-top:10px;color:var(--ink-5);font-size:.82em;font-weight:700;}
+.manual-toggle{margin-top:10px;border:none;background:transparent;color:var(--teal-dark);font-family:inherit;font-size:.82em;font-weight:900;text-decoration:underline;cursor:pointer;}
 .login-form{display:flex;flex-direction:column;gap:13px;margin-top:16px;}
 .field-label{display:block;font-size:.86em;font-weight:900;color:var(--ink-3);margin-bottom:6px;}
 .login-input{width:100%;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:14px 14px;font-family:inherit;font-size:1em;font-weight:700;color:var(--ink);outline:none;}
@@ -394,18 +402,27 @@ body{
         <div class="progress-row" aria-hidden="true"><span class="progress-dot on"></span><span class="progress-dot on"></span></div>
         <div class="login-card">
           <span class="profile-pill" id="loginSubjectPill">일반 이용자</span>
+          <div class="participant-picker" id="participantPicker" hidden>
+            <h2>명단에서 성함을 골라주세요</h2>
+            <p>교육 참가자는 전화번호 입력 없이 성함 선택으로 시작할 수 있어요.</p>
+            <div class="participant-loading" id="participantLoading">명단을 불러오는 중이에요...</div>
+            <div class="participant-list" id="participantList"></div>
+            <button class="manual-toggle" type="button" onclick="useManualLogin()">명단에 없어요. 직접 입력할게요</button>
+          </div>
           <form class="login-form" onsubmit="submitLogin(event)">
-            <label>
-              <span class="field-label">성함</span>
-              <input class="login-input" id="loginName" autocomplete="name" placeholder="예: 김영희">
-            </label>
-            <label>
-              <span class="field-label">전화번호</span>
-              <input class="login-input" id="loginPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="예: 01012345678">
-            </label>
+            <div id="manualLoginFields">
+              <label>
+                <span class="field-label">성함</span>
+                <input class="login-input" id="loginName" autocomplete="name" placeholder="예: 김영희">
+              </label>
+              <label style="display:block;margin-top:13px;">
+                <span class="field-label">전화번호</span>
+                <input class="login-input" id="loginPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="예: 01012345678">
+              </label>
+            </div>
             <label class="check-row">
               <input id="loginConsent" type="checkbox">
-              <span>찾아봇 이용을 위해 이름과 전화번호를 확인하는 것에 동의합니다. 지금은 원문 전화번호를 브라우저에 저장하지 않아요.</span>
+              <span>찾아봇 교육 운영을 위해 로그인 정보와 대화 내용을 서버 DB에 저장하는 것에 동의합니다. 전화번호 원문은 브라우저에 저장하지 않아요.</span>
             </label>
             <div class="form-error" id="loginError"></div>
             <button class="login-submit" type="submit">계속하기</button>
@@ -735,10 +752,15 @@ let currentSubject=parseSubject();
 let pendingSubject=null;
 let currentUser=parseUser();
 let pendingLogin=null;
+let participantOptions=[];
+let participantListLoaded=false;
+let selectedParticipant=null;
+let manualParticipantLogin=false;
 let lastEval=null;
 let ctx={cat:null,tokens:[],query:""}; // 버튼 기반 추천 상태
 let freeCtx={stage:"idle",cat:null,tokens:[],query:""}; // 자유 입력 대화 상태
 let chatHistory=[]; // OpenAI 자유대화용 최근 대화
+let currentConversationId=store.get("cb_current_conversation")||"";
 const appVariant=(new URLSearchParams(location.search).get("variant")||(location.hash.includes("beta")?"education_beta":"main"));
 let voiceAudio=null;
 let voiceAudioUrl=null;
@@ -889,6 +911,8 @@ function resetSubject(){
   currentUser=null;
   pendingSubject=null;
   pendingLogin=null;
+  selectedParticipant=null;
+  manualParticipantLogin=false;
   updateSubjectUi();
   updateUserUi();
   renderSubjectCards();
@@ -901,6 +925,103 @@ function updateSubjectUi(){
   if(v)v.textContent=currentSubject?currentSubject.shortLabel:"선택 전";
   const pill=document.getElementById("loginSubjectPill");
   if(pill)pill.textContent=currentSubject?currentSubject.label:"이용 주체 선택 전";
+}
+function makeId(prefix){return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;}
+function ensureConversation(){
+  if(!currentConversationId){
+    currentConversationId=makeId("conv");
+    store.set("cb_current_conversation",currentConversationId);
+  }
+  return currentConversationId;
+}
+function startNewConversation(){
+  currentConversationId=makeId("conv");
+  store.set("cb_current_conversation",currentConversationId);
+}
+function stripHtml(html){
+  const d=document.createElement("div");
+  d.innerHTML=String(html||"");
+  return (d.textContent||d.innerText||"").replace(/\s+/g," ").trim();
+}
+function shouldLogMessages(){return Boolean(currentUser&&currentUser.userId&&currentUser.logConsent!==false);}
+function logMessage(role,content,metadata={}){
+  const text=String(content||"").replace(/\s+/g," ").trim();
+  if(!text||!shouldLogMessages())return;
+  fetch("/api/log",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      conversationId:ensureConversation(),
+      messageId:makeId(role==="assistant"?"bot":"msg"),
+      role,
+      content:text,
+      mode:metadata.mode||"chat",
+      contentKind:metadata.contentKind||"text",
+      metadata,
+      userId:currentUser.userId,
+      userType:currentUser.userType,
+      subject:currentSubject&&currentSubject.id,
+      source:"web"
+    })
+  }).catch(()=>{});
+}
+function useManualLogin(){
+  selectedParticipant=null;
+  manualParticipantLogin=true;
+  const manual=document.getElementById("manualLoginFields");
+  if(manual)manual.hidden=false;
+  document.querySelectorAll(".participant-btn").forEach(btn=>btn.classList.remove("on"));
+  setLoginError("");
+}
+function selectParticipant(id){
+  const item=participantOptions.find(p=>p.id===id);
+  if(!item)return;
+  selectedParticipant=item;
+  manualParticipantLogin=false;
+  const manual=document.getElementById("manualLoginFields");
+  const name=document.getElementById("loginName");
+  const phone=document.getElementById("loginPhone");
+  if(manual)manual.hidden=true;
+  if(name)name.value=item.displayName||"";
+  if(phone)phone.value="";
+  document.querySelectorAll(".participant-btn").forEach(btn=>btn.classList.toggle("on",btn.dataset.id===id));
+  setLoginError("");
+}
+function renderParticipantOptions(){
+  const box=document.getElementById("participantList");
+  const loading=document.getElementById("participantLoading");
+  const picker=document.getElementById("participantPicker");
+  const manual=document.getElementById("manualLoginFields");
+  if(!box||!picker)return;
+  const isParticipant=currentSubject&&currentSubject.id==="participant";
+  picker.hidden=!isParticipant||participantOptions.length===0;
+  if(loading)loading.hidden=participantListLoaded;
+  if(manual&&isParticipant&&participantOptions.length)manual.hidden=true;
+  box.innerHTML=participantOptions.map(p=>`<button class="participant-btn ${selectedParticipant&&selectedParticipant.id===p.id?'on':''}" type="button" data-id="${esc(p.id)}" onclick="selectParticipant('${esc(p.id)}')">${esc(p.displayName)}</button>`).join("");
+}
+async function loadParticipants(){
+  if(participantListLoaded)return renderParticipantOptions();
+  participantListLoaded=true;
+  try{
+    const response=await fetch("/api/participants");
+    const data=await response.json().catch(()=>({}));
+    participantOptions=Array.isArray(data.participants)?data.participants:[];
+  }catch(e){
+    participantOptions=[];
+  }
+  renderParticipantOptions();
+}
+function prepareLoginScreen(){
+  selectedParticipant=null;
+  manualParticipantLogin=false;
+  updateSubjectUi();
+  const manual=document.getElementById("manualLoginFields");
+  const picker=document.getElementById("participantPicker");
+  const loading=document.getElementById("participantLoading");
+  if(manual)manual.hidden=false;
+  if(picker)picker.hidden=true;
+  if(loading)loading.hidden=false;
+  if(currentSubject&&currentSubject.id==="participant")loadParticipants();
 }
 function parseUser(){
   try{
@@ -929,19 +1050,23 @@ function setLoginError(msg){const e=document.getElementById("loginError");if(e)e
 function submitLogin(event){
   if(event)event.preventDefault();
   if(!currentSubject){go("subject");return;}
-  const name=normalizeLoginName(document.getElementById("loginName")?.value);
-  const phone=normalizePhone(document.getElementById("loginPhone")?.value);
+  const participant=selectedParticipant;
+  const name=participant?normalizeLoginName(participant.displayName):normalizeLoginName(document.getElementById("loginName")?.value);
+  const phone=participant?"":normalizePhone(document.getElementById("loginPhone")?.value);
   const consent=Boolean(document.getElementById("loginConsent")?.checked);
+  if(currentSubject.id==="participant"&&participantOptions.length&&!participant&&!manualParticipantLogin){setLoginError("명단에서 성함을 선택하거나 직접 입력을 눌러 주세요.");return;}
   if(name.length<2){setLoginError("성함을 2글자 이상 입력해 주세요.");return;}
-  if(phone.length<8){setLoginError("전화번호를 숫자로 입력해 주세요.");return;}
+  if(!participant&&phone.length<8){setLoginError("전화번호를 숫자로 입력해 주세요.");return;}
   if(!consent){setLoginError("확인 절차에 동의해 주세요.");return;}
   setLoginError("");
-  pendingLogin={name,phone,phoneMasked:maskPhone(phone),phoneLast4:phone.slice(-4),subject:currentSubject.id};
+  pendingLogin={participantId:participant&&participant.id,name,phone,phoneMasked:participant?"명단 등록":maskPhone(phone),phoneLast4:participant?"":phone.slice(-4),subject:currentSubject.id,logConsent:true};
   const icon=document.getElementById("loginModalIcon");
   const desc=document.getElementById("loginModalDesc");
   const modal=document.getElementById("loginModal");
   if(icon)icon.innerHTML=subjectIcon(currentSubject.id);
-  if(desc)desc.innerHTML=`<b>${esc(name)}</b> 님, 전화번호 <b>${esc(maskPhone(phone))}</b>로 시작할까요?<br>이 정보는 대화 보관과 사용량 제한 기준으로 쓰입니다.`;
+  if(desc)desc.innerHTML=participant
+    ?`<b>${esc(name)}</b> 님으로 시작할까요?<br>대화 내용은 교육 운영과 보관함 확인을 위해 서버 DB에 저장됩니다.`
+    :`<b>${esc(name)}</b> 님, 전화번호 <b>${esc(maskPhone(phone))}</b>로 시작할까요?<br>이 정보와 대화 내용은 교육 운영과 사용량 제한 기준으로 쓰입니다.`;
   if(modal){modal.hidden=false;document.getElementById("loginConfirmBtn")?.focus();}
 }
 function closeLoginModal(){
@@ -954,22 +1079,24 @@ async function confirmLogin(){
   const btn=document.getElementById("loginConfirmBtn");
   if(btn)btn.disabled=true;
   const fallback={
-    userId:localId(pendingLogin.name,pendingLogin.phone),
+    userId:pendingLogin.participantId?`local_${pendingLogin.participantId}`:localId(pendingLogin.name,pendingLogin.phone),
     displayName:pendingLogin.name,
     phoneMasked:pendingLogin.phoneMasked,
     phoneLast4:pendingLogin.phoneLast4,
     subject:pendingLogin.subject,
-    userType:pendingLogin.subject==="staff"?"staff":(pendingLogin.subject==="participant"?"participant_pending":"guest"),
-    matched:false,
+    userType:pendingLogin.participantId?"participant":(pendingLogin.subject==="staff"?"staff":(pendingLogin.subject==="participant"?"participant_pending":"guest")),
+    participantId:pendingLogin.participantId||null,
+    matched:Boolean(pendingLogin.participantId),
     dbConfigured:false,
     storage:"browser-local",
+    logConsent:Boolean(pendingLogin.logConsent),
     confirmedAt:new Date().toISOString()
   };
   try{
     const response=await fetch("/api/login",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({name:pendingLogin.name,phone:pendingLogin.phone,subject:pendingLogin.subject})
+      body:JSON.stringify({name:pendingLogin.name,phone:pendingLogin.phone,participantId:pendingLogin.participantId,subject:pendingLogin.subject})
     });
     const data=await response.json().catch(()=>({}));
     currentUser=Object.assign({},fallback,data,{confirmedAt:new Date().toISOString()});
@@ -983,9 +1110,11 @@ async function confirmLogin(){
     phoneLast4:currentUser.phoneLast4,
     subject:currentUser.subject,
     userType:currentUser.userType,
+    participantId:currentUser.participantId||null,
     matched:Boolean(currentUser.matched),
     dbConfigured:Boolean(currentUser.dbConfigured),
     storage:currentUser.storage||"browser-local",
+    logConsent:currentUser.logConsent!==false,
     confirmedAt:currentUser.confirmedAt
   }));
   pendingLogin=null;
@@ -999,6 +1128,8 @@ function resetLogin(){
   store.set("cb_user_profile","");
   currentUser=null;
   pendingLogin=null;
+  selectedParticipant=null;
+  manualParticipantLogin=false;
   const name=document.getElementById("loginName");
   const phone=document.getElementById("loginPhone");
   const consent=document.getElementById("loginConsent");
@@ -1029,15 +1160,22 @@ function go(screen){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===screen||(isChat&&t.dataset.screen==="home")));
   document.getElementById("scroll").scrollTop=0;
   if(screen==="saved")renderSaved();
+  if(screen==="login")prepareLoginScreen();
 }
 
 /* ===== 대화 렌더 ===== */
-function addUser(text){const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg user";w.innerHTML=`<div class="bubble">${esc(text)}</div>`;t.appendChild(w);sc();}
+function addUser(text){
+  const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg user";
+  w.innerHTML=`<div class="bubble">${esc(text)}</div>`;t.appendChild(w);sc();
+  logMessage("user",text,{mode:"chat"});
+}
 function addBot(html,opts={}){
   const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg bot";
   const replay=opts.text?`<button class="speak-ic" title="읽어주기" aria-label="읽어주기" onclick="speak(this.dataset.t,true)" data-t="${esc(opts.text)}"><svg viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="M15.5 8.5a4.5 4.5 0 0 1 0 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`:"";
   w.innerHTML=`<div class="av"><img src="${FACE_IDLE}" alt="찾아봇"></div><div class="bubble ${opts.safety?'safety':''}">${html}${opts.call119?'<a class="call119" href="tel:119"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5V20a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" stroke="#fff" stroke-width="1.8"/></svg> 119에 전화하기</a>':''}${replay}</div>`;
-  t.appendChild(w);sc();return w;
+  t.appendChild(w);sc();
+  logMessage("assistant",opts.text||stripHtml(html),{mode:opts.safety?"safety":"chat",safety:Boolean(opts.safety),call119:Boolean(opts.call119)});
+  return w;
 }
 function addTyping(){const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg bot";w.id="typing";w.innerHTML=`<div class="av"><img src="${FACE_THINK}" alt=""></div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;t.appendChild(w);sc();}
 function rmTyping(){const t=document.getElementById("typing");if(t)t.remove();}
@@ -1054,6 +1192,7 @@ function scrollToEl(el){const b=document.getElementById("scroll");if(!b||!el)ret
       if(!currentUser){go("login");return;}
       go("chat");
       document.getElementById("thread").innerHTML="";
+      startNewConversation();
       ctx={cat:null,tokens:[],query:""};
       freeCtx={stage:"idle",cat:null,tokens:[],query:""};
       chatHistory=[];
