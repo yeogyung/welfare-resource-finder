@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#3A8F7A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="찾아봇">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>찾아봇 — 어르신 복지자원 대화형 탐색</title>
+<link rel="manifest" href="/public/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/public/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/public/icons/apple-touch-icon.png">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -338,6 +345,10 @@ body{
 .fsb[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff;}
 .region-val{display:flex;align-items:center;gap:6px;font-weight:800;color:var(--teal-dark);font-size:.96em;}
 .share-btn{display:flex;align-items:center;gap:8px;color:var(--teal-dark);font-weight:800;background:none;border:none;font-family:inherit;font-size:1em;cursor:pointer;}
+.install-btn{border:1.4px solid var(--teal);background:var(--teal);color:#fff;border-radius:12px;padding:11px 13px;font-family:inherit;font-weight:900;font-size:.92em;cursor:pointer;white-space:nowrap;}
+.install-btn.installed{background:var(--teal-soft);border-color:var(--teal-mid);color:var(--teal-dark);}
+.install-help{display:none;margin:10px 16px 0;padding:11px 12px;border-radius:12px;background:var(--teal-soft);color:var(--teal-dark);font-size:.82em;font-weight:800;line-height:1.48;word-break:keep-all;}
+.install-help.show{display:block;}
 
 /* 탭바 */
 .tabbar{flex:none;display:flex;background:var(--surface);border-top:1px solid var(--line-2);padding-bottom:env(safe-area-inset-bottom);}
@@ -531,6 +542,11 @@ body{
             <div class="lw"><div class="sl">음성 안내 (TTS)</div><div class="sd">찾아봇 말풍선을 소리로 읽어 드려요</div></div>
             <button class="toggle" id="ttsToggle" aria-pressed="false" onclick="toggleTts()"></button>
           </div>
+          <div class="set-row">
+            <div class="lw"><div class="sl">홈 화면 설치</div><div class="sd" id="installStatus">찾아봇을 앱처럼 열 수 있어요</div></div>
+            <button class="install-btn" id="installBtn" onclick="installPwa()">설치</button>
+          </div>
+          <div class="install-help" id="installHelp"></div>
         </div>
 
         <div class="set-group">
@@ -811,6 +827,8 @@ let conversationArchiveLoaded=false;
 let imageTemplates=[];
 let pendingImageTemplate=null;
 let ga4Ready=false;
+let deferredInstallPrompt=null;
+let pwaInstalled=false;
 const appVariant=(new URLSearchParams(location.search).get("variant")||(location.hash.includes("beta")?"education_beta":"main"));
 let voiceAudio=null;
 let voiceAudioUrl=null;
@@ -1078,7 +1096,7 @@ function setupGa4(measurementId){
   window.gtag("js",new Date());
   window.gtag("config",id,{send_page_view:false});
   ga4Ready=true;
-  trackGa4Event("app_open");
+  trackGa4Event("app_open",{mode:getDisplayMode()});
 }
 async function loadPublicConfig(){
   try{
@@ -1086,6 +1104,74 @@ async function loadPublicConfig(){
     const data=await response.json().catch(()=>({}));
     if(data.ga4MeasurementId)setupGa4(data.ga4MeasurementId);
   }catch(e){}
+}
+function getDisplayMode(){
+  if(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)return "standalone";
+  if(window.navigator&&window.navigator.standalone)return "standalone_ios";
+  return "browser";
+}
+function isIosDevice(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent||"")||(/macintosh/i.test(navigator.userAgent||"")&&navigator.maxTouchPoints>1);
+}
+function updateInstallUi(){
+  const btn=document.getElementById("installBtn");
+  const status=document.getElementById("installStatus");
+  const help=document.getElementById("installHelp");
+  if(!btn||!status||!help)return;
+  pwaInstalled=getDisplayMode().startsWith("standalone")||pwaInstalled;
+  btn.classList.toggle("installed",pwaInstalled);
+  btn.textContent=pwaInstalled?"설치됨":"설치";
+  status.textContent=pwaInstalled?"홈 화면에서 앱처럼 실행 중이에요":(deferredInstallPrompt?"바탕화면/홈 화면에 설치할 수 있어요":"브라우저 메뉴에서 홈 화면에 추가해 주세요");
+  help.classList.toggle("show",false);
+}
+function showInstallHelp(){
+  const help=document.getElementById("installHelp");
+  if(!help)return;
+  const ios=isIosDevice();
+  help.textContent=ios
+    ?"iPhone/iPad는 Safari 아래쪽 공유 버튼을 누른 뒤 '홈 화면에 추가'를 선택해 주세요."
+    :"Chrome 주소창 또는 메뉴의 '앱 설치' / '홈 화면에 추가'를 눌러 주세요.";
+  help.classList.add("show");
+}
+async function installPwa(){
+  logEvent("pwa_install_click",{mode:getDisplayMode(),promptAvailable:Boolean(deferredInstallPrompt)});
+  if(pwaInstalled||getDisplayMode().startsWith("standalone")){
+    toast("이미 찾아봇 앱으로 실행 중이에요");
+    updateInstallUi();
+    return;
+  }
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice.catch(()=>({outcome:"error"}));
+    logEvent("pwa_install_result",{outcome:choice&&choice.outcome});
+    deferredInstallPrompt=null;
+    updateInstallUi();
+    return;
+  }
+  showInstallHelp();
+  toast("브라우저 메뉴에서 홈 화면에 추가해 주세요");
+}
+function initPwa(){
+  updateInstallUi();
+  if("serviceWorker"in navigator){
+    navigator.serviceWorker.register("/service-worker.js").then(()=>logEvent("pwa_sw_ready")).catch(()=>logEvent("pwa_sw_fail"));
+  }
+  window.addEventListener("beforeinstallprompt",e=>{
+    e.preventDefault();
+    deferredInstallPrompt=e;
+    logEvent("pwa_install_available",{mode:getDisplayMode()});
+    updateInstallUi();
+  });
+  window.addEventListener("appinstalled",()=>{
+    pwaInstalled=true;
+    deferredInstallPrompt=null;
+    logEvent("pwa_installed",{mode:getDisplayMode()});
+    updateInstallUi();
+    toast("찾아봇이 설치됐어요");
+  });
+  if(window.matchMedia){
+    window.matchMedia("(display-mode: standalone)").addEventListener?.("change",updateInstallUi);
+  }
 }
 function imageTemplateIcon(template){
   if(template&&template.requiresImage)return "📷";
@@ -2083,6 +2169,7 @@ async function init(){
   await loadResources();
   await loadImageTemplates();
   loadPublicConfig();
+  initPwa();
   document.getElementById("logoImg").src=LOGO_SRC;
   document.getElementById("charImg").src=CHAR_BODY;
   applyFont();applyTts();updateBadge();

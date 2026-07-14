@@ -9,6 +9,8 @@
 - `styles.css`: 공통 스타일
 - `api/`: Vercel Serverless Function
 - `public/`: 이미지와 복지자원 DB
+- `public/manifest.webmanifest`: PWA 설치 정보
+- `service-worker.js`: 홈 화면 설치 앱의 오프라인/캐시 처리
 - `vercel.json`: Vercel 배포 설정
 - `dist/`: Vercel이 실제로 배포할 정적 결과물
 
@@ -50,6 +52,8 @@ AI 답변과 CLOVA 음성 API까지 실제 운영하려면 Vercel Project Settin
 - `NCP_CLOVA_VOICE_KEY`
 - `NCP_CLOVA_VOICE_ENDPOINT`
 - `NCP_CLOVA_VOICE_SPEAKER`
+- `GA4_MEASUREMENT_ID`
+- `ADMIN_TOKEN`
 
 환경변수가 없어도 기본 DB 추천 화면은 동작합니다. 다만 `/api/answer`, `/api/tts`의 외부 AI/음성 기능은 제한됩니다.
 
@@ -58,7 +62,9 @@ AI 답변과 CLOVA 음성 API까지 실제 운영하려면 Vercel Project Settin
 1. 홈 화면에서 추천 카드 6개가 보이는지 확인합니다.
 2. 직접 입력으로 “병원 가기가 힘들어요”처럼 입력해 추천 결과가 나오는지 확인합니다.
 3. 찜 탭과 설정 탭 아이콘이 깨지지 않는지 확인합니다.
-4. 음성 버튼은 브라우저 권한 또는 CLOVA 환경변수 설정 상태에 따라 동작이 달라질 수 있습니다.
+4. 설정 > 홈 화면 설치 버튼이 보이는지 확인합니다.
+5. `/public/manifest.webmanifest`와 `/service-worker.js`가 열리는지 확인합니다.
+6. 음성 버튼은 브라우저 권한 또는 CLOVA 환경변수 설정 상태에 따라 동작이 달라질 수 있습니다.
 
 ## 참고 링크
 
