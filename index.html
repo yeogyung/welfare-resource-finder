@@ -1082,7 +1082,7 @@ function setupGa4(measurementId){
 }
 async function loadPublicConfig(){
   try{
-    const response=await fetch("/api/config");
+    const response=await fetch("/api/event");
     const data=await response.json().catch(()=>({}));
     if(data.ga4MeasurementId)setupGa4(data.ga4MeasurementId);
   }catch(e){}
@@ -1910,7 +1910,7 @@ async function loadConversationArchive(force=false){
   conversationArchiveLoaded=false;
   renderConversationArchive();
   try{
-    const response=await fetch(`/api/conversations?userId=${encodeURIComponent(currentUser.userId)}&limit=30`);
+    const response=await fetch(`/api/log?userId=${encodeURIComponent(currentUser.userId)}&limit=30`);
     const data=await response.json().catch(()=>({}));
     conversationArchive=Array.isArray(data.conversations)?data.conversations:[];
   }catch(e){
@@ -1934,7 +1934,7 @@ async function openConversation(id){
   if(!currentUser)return;
   logEvent("conversation_open",{conversationId:id});
   try{
-    const response=await fetch(`/api/conversations?userId=${encodeURIComponent(currentUser.userId)}&conversationId=${encodeURIComponent(id)}`);
+    const response=await fetch(`/api/log?userId=${encodeURIComponent(currentUser.userId)}&conversationId=${encodeURIComponent(id)}`);
     const data=await response.json().catch(()=>({}));
     const messages=Array.isArray(data.messages)?data.messages:[];
     go("chat");

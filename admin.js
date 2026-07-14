@@ -171,7 +171,7 @@ async function loadAdminLogs() {
   document.getElementById("downloadLogs").disabled = true;
   setLogMessage("로그를 불러오는 중입니다...");
   try {
-    const response = await fetch("/api/admin-logs?limit=80", {
+    const response = await fetch("/api/log?admin=1&limit=80", {
       headers: { "x-admin-token": token },
     });
     const data = await response.json().catch(() => ({}));
@@ -233,7 +233,7 @@ async function downloadAdminLogs() {
     return;
   }
   try {
-    const response = await fetch("/api/admin-logs?limit=300&format=csv", {
+    const response = await fetch("/api/log?admin=1&limit=300&format=csv", {
       headers: { "x-admin-token": token },
     });
     if (!response.ok) {

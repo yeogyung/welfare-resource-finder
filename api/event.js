@@ -41,12 +41,18 @@ function safeMetadata(value) {
 }
 
 module.exports = async function eventHandler(req, res) {
-  if (req.method && !["POST", "OPTIONS"].includes(req.method)) {
+  if (req.method && !["GET", "POST", "OPTIONS"].includes(req.method)) {
     return sendJson(res, 405, { error: "Method not allowed" });
   }
   if (req.method === "OPTIONS") {
     res.statusCode = 204;
     return res.end();
+  }
+  if (req.method === "GET") {
+    const ga4MeasurementId = String(process.env.GA4_MEASUREMENT_ID || "").trim();
+    return sendJson(res, 200, {
+      ga4MeasurementId: /^G-[A-Z0-9]+$/i.test(ga4MeasurementId) ? ga4MeasurementId : "",
+    });
   }
 
   const body = readBody(req);
