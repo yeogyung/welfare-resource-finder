@@ -56,7 +56,9 @@ body{
 @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 
 /* ===== 첫 주체 선택 ===== */
-.subject-screen{padding:24px 18px 28px;min-height:100%;}
+.subject-screen{padding:22px 18px 28px;min-height:100%;}
+.subject-org-logo{background:#fff;border:1px solid var(--line-2);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow-card);margin-bottom:18px;}
+.subject-org-logo img{display:block;width:100%;height:auto;max-height:94px;object-fit:contain;}
 .subject-kicker{display:inline-flex;align-items:center;gap:7px;background:var(--teal-soft);color:var(--teal-dark);border-radius:999px;padding:6px 12px;font-size:.78em;font-weight:900;}
 .subject-title{margin-top:14px;font-size:1.42em;line-height:1.34;font-weight:900;color:var(--ink);letter-spacing:-.02em;word-break:keep-all;}
 .subject-sub{margin-top:9px;color:var(--ink-4);font-size:.94em;font-weight:650;line-height:1.55;word-break:keep-all;}
@@ -68,6 +70,20 @@ body{
 .subject-card .st{display:block;font-size:1.08em;font-weight:900;color:var(--ink);line-height:1.28;word-break:keep-all;}
 .subject-card .sd{display:block;margin-top:4px;font-size:.86em;font-weight:650;color:var(--ink-4);line-height:1.45;word-break:keep-all;}
 .subject-card .arr{color:var(--ink-5);font-size:1.4em;font-weight:800;text-align:right;}
+.subject-card.primary{border-color:rgba(58,143,122,.62);background:linear-gradient(180deg,#fff 0%,#F1FAF7 100%);grid-template-columns:74px minmax(0,1fr) 28px;gap:15px;min-height:148px;padding:20px 17px;}
+.subject-card.primary .si{width:74px;height:74px;border-radius:20px;background:#DDF2EB;}
+.subject-card.primary .si svg{width:43px;height:43px;}
+.subject-card.primary .st{font-size:1.32em;line-height:1.25;}
+.subject-card.primary .sd{font-size:.94em;line-height:1.42;color:var(--ink-3);}
+.subject-card.primary .arr{color:var(--teal-dark);font-size:1.8em;}
+.subject-badge{display:inline-flex;width:max-content;max-width:100%;margin-bottom:7px;border-radius:999px;background:var(--teal);color:#fff;padding:4px 9px;font-size:.72em;font-weight:900;line-height:1.2;}
+.subject-secondary-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.subject-card.compact{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:112px;padding:12px 10px;border-radius:14px;}
+.subject-card.compact .si{width:39px;height:39px;border-radius:12px;}
+.subject-card.compact .si svg{width:24px;height:24px;}
+.subject-card.compact .st{font-size:.91em;line-height:1.25;}
+.subject-card.compact .sd{font-size:.72em;line-height:1.34;margin-top:3px;color:var(--ink-4);}
+.subject-card.compact .arr{display:none;}
 .subject-note{margin-top:15px;color:var(--ink-5);font-size:.8em;font-weight:650;line-height:1.55;word-break:keep-all;}
 .modal-backdrop{position:absolute;inset:0;background:rgba(16,24,40,.48);z-index:50;display:flex;align-items:center;justify-content:center;padding:18px;}
 .confirm-modal{width:100%;max-width:360px;background:#fff;border-radius:18px;padding:20px 18px 16px;box-shadow:0 18px 52px rgba(16,24,40,.32);}
@@ -360,12 +376,15 @@ body{
     <!-- 첫 주체 선택 (SUB-01) -->
     <section id="screen-subject" class="screen active">
       <div class="subject-screen">
-        <div class="subject-kicker">시작 설정</div>
-        <h1 class="subject-title">먼저 어떻게 이용하실지 골라주세요</h1>
-        <p class="subject-sub">선택한 주체에 맞춰 대화 보관, 교육 회차, 사용량 제한을 나중에 정확히 연결할 수 있어요.</p>
+        <div class="subject-org-logo">
+          <img src="public/assets/gwangjin-senior-welfare-logo.png" alt="서울특별시 광진노인종합복지관">
+        </div>
+        <div class="subject-kicker">교육 베타</div>
+        <h1 class="subject-title">교육 참가자는 여기로 시작해 주세요</h1>
+        <p class="subject-sub">현장 교육에 참여하시는 어르신은 큰 버튼을 눌러 주세요. 일반 이용자와 운영자는 아래에서 선택할 수 있어요.</p>
         <div class="progress-row" aria-hidden="true"><span class="progress-dot on"></span><span class="progress-dot"></span></div>
         <div class="subject-list" id="subjectCards"></div>
-        <p class="subject-note">지금은 기기 안에만 저장돼요. 이름과 전화번호 인증, 서버 DB 저장은 다음 단계에서 붙입니다.</p>
+        <p class="subject-note">선택 후 이름과 전화번호 확인을 거쳐 찾아봇을 시작합니다.</p>
       </div>
     </section>
 
@@ -825,7 +844,18 @@ function subjectIcon(id){
 function renderSubjectCards(){
   const box=document.getElementById("subjectCards");
   if(!box)return;
-  box.innerHTML=SUBJECT_OPTIONS.map(s=>`<button class="subject-card" onclick="chooseSubject('${s.id}')"><span class="si">${subjectIcon(s.id)}</span><span><span class="st">${esc(s.label)}</span><span class="sd">${esc(s.desc)}</span></span><span class="arr">›</span></button>`).join("");
+  const participant=getSubject("participant");
+  const others=SUBJECT_OPTIONS.filter(s=>s.id!=="participant");
+  const card=(s,kind="")=>`<button class="subject-card ${kind}" onclick="chooseSubject('${s.id}')">
+    <span class="si">${subjectIcon(s.id)}</span>
+    <span>
+      ${s.id==="participant"?'<span class="subject-badge">교육 참가자 추천</span>':""}
+      <span class="st">${esc(s.label)}</span>
+      <span class="sd">${esc(s.desc)}</span>
+    </span>
+    <span class="arr">›</span>
+  </button>`;
+  box.innerHTML=`${participant?card(participant,"primary"):""}<div class="subject-secondary-row">${others.map(s=>card(s,"compact")).join("")}</div>`;
 }
 function chooseSubject(id){
   const item=getSubject(id);
