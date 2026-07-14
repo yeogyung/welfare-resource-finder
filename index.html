@@ -1278,10 +1278,10 @@ function imageDetailChoices(template){
     imageChoice("문구 없이 예쁘게","✨")
   ];
   if(id==="sticker_from_photo")return [
-    imageChoice("귀엽고 밝게","😊"),
-    imageChoice("하트와 반짝이 느낌","💖"),
-    imageChoice("고마워요 문구 넣기","🙏"),
-    imageChoice("문구 없이 캐릭터처럼","✨")
+    imageChoice("얼굴 특징 살려 귀엽게","😊"),
+    imageChoice("하트와 반짝이만 살짝","💖"),
+    imageChoice("문구 없이 깔끔하게","✨"),
+    imageChoice("작은 말풍선만 넣기","💬")
   ];
   return [
     imageChoice("따뜻하고 밝게","🌷"),
@@ -1309,8 +1309,16 @@ function buildImagePrompt(flow){
   const template=flow.template||{};
   const answers=(flow.answers||[]).map(a=>`${a.key}: ${a.value}`).join(" / ");
   const first=flow.initialText?`처음 요청: ${flow.initialText}`:"";
+  const editGuard=template.requiresImage
+    ?"업로드한 사진을 참고 이미지로 삼아 편집하세요. 사진 속 인물의 얼굴형, 머리 모양, 표정, 옷 색 등 알아볼 수 있는 특징을 유지하고, 새 인물이나 무관한 일반 캐릭터로 대체하지 마세요."
+    :"";
+  const stickerGuard=template.id==="sticker_from_photo"
+    ?"이모티콘 결과는 얼굴과 상반신 중심의 스티커 1장으로 만드세요. 큰 글자나 제목형 문구가 화면을 차지하지 않게 하고, 사용자가 문구를 직접 요청한 경우에만 작은 말풍선으로 짧게 넣으세요."
+    :"";
   return [
     template.prompt||"어르신이 모바일에서 보기 좋은 따뜻한 이미지를 만들어 주세요.",
+    editGuard,
+    stickerGuard,
     first,
     answers?`사용자 맞춤 정보: ${answers}`:"",
     "모바일에서 보기 쉽게 단순한 구성, 밝고 따뜻한 분위기, 큰 한글 글씨가 들어갈 여백을 우선해 주세요.",
