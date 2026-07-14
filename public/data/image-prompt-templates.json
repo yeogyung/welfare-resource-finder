@@ -1,0 +1,37 @@
+[
+  {
+    "id": "sticker_from_photo",
+    "label": "내 사진으로 이모티콘",
+    "mode": "edit",
+    "requiresImage": true,
+    "prompt": "업로드한 사진의 인물을 귀엽고 밝은 카카오톡 이모티콘 느낌의 스티커로 바꿔 주세요. 얼굴 특징은 자연스럽게 유지하고, 배경은 투명하거나 단순한 밝은색으로 정리해 주세요."
+  },
+  {
+    "id": "profile_makeover",
+    "label": "프로필 사진 꾸미기",
+    "mode": "edit",
+    "requiresImage": true,
+    "prompt": "업로드한 사진을 따뜻하고 선명한 프로필 사진으로 보정해 주세요. 인물은 자연스럽게 유지하고, 배경은 부드러운 색감으로 정돈해 주세요."
+  },
+  {
+    "id": "birthday_card",
+    "label": "생일 축하 카드",
+    "mode": "generate",
+    "requiresImage": false,
+    "prompt": "어르신이 가족에게 보낼 수 있는 따뜻한 생일 축하 카드 이미지를 만들어 주세요. 큰 한글 글씨가 들어갈 여백을 남기고, 밝고 정겨운 분위기로 구성해 주세요."
+  },
+  {
+    "id": "family_greeting",
+    "label": "가족 안부 카드",
+    "mode": "generate",
+    "requiresImage": false,
+    "prompt": "가족에게 안부 인사를 전하는 따뜻한 모바일 카드 이미지를 만들어 주세요. 부드러운 색감, 읽기 쉬운 여백, 정겨운 일상 분위기를 살려 주세요."
+  },
+  {
+    "id": "memory_album",
+    "label": "추억 앨범 느낌",
+    "mode": "edit",
+    "requiresImage": true,
+    "prompt": "업로드한 사진을 따뜻한 추억 앨범 스타일로 꾸며 주세요. 과하게 바꾸지 말고 원본 분위기를 살리면서 밝고 선명하게 보정해 주세요."
+  }
+]

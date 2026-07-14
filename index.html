@@ -152,6 +152,9 @@ body{
 .bubble .speak-ic svg{width:19px;height:19px;}
 .bubble.safety{background:#FCEDEC!important;border:1px solid #F3C2BE!important;color:#8E2A22!important;}
 .bubble.safety .speak-ic{background:#F6D6D3;color:#8E2A22;}
+.image-result{margin-top:12px;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--bg);}
+.image-result img{display:block;width:100%;height:auto;}
+.image-result .caption{padding:9px 11px;color:var(--ink-4);font-size:.86em;font-weight:700;}
 .call119{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:11px;background:var(--emergency);
   color:#fff;text-decoration:none;font-weight:800;padding:13px;border-radius:12px;font-size:1.02em;}
 .typing{display:flex;gap:5px;padding:14px 17px;}
@@ -182,18 +185,18 @@ body{
 /* ===== 자원 카드 ===== */
 .cardwrap{align-self:stretch;padding-left:60px;display:flex;flex-direction:column;gap:10px;}
 .rcard{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-card);padding:15px 16px;box-shadow:var(--shadow-card);}
-.rcard .tag{display:inline-block;font-size:.72em;font-weight:800;padding:4px 11px;border-radius:999px;color:#fff;letter-spacing:-.01em;}
-.rcard .rname{font-weight:800;font-size:1.04em;line-height:1.4;letter-spacing:-.01em;margin:10px 0 3px;color:var(--ink);}
-.rcard .rsub{font-size:.86em;color:var(--ink-4);line-height:1.5;}
+.rcard .tag{display:inline-block;font-size:.78em;font-weight:800;padding:4px 11px;border-radius:999px;color:#fff;letter-spacing:-.01em;}
+.rcard .rname{font-weight:800;font-size:1.1em;line-height:1.42;letter-spacing:-.01em;margin:10px 0 3px;color:var(--ink);}
+.rcard .rsub{font-size:.92em;color:var(--ink-4);line-height:1.55;}
 .rmeta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-2);}
-.rmeta .mi{display:flex;align-items:center;gap:6px;font-size:.85em;}
+.rmeta .mi{display:flex;align-items:center;gap:6px;font-size:.9em;}
 .rmeta .mk{color:var(--ink-5);font-weight:700;}.rmeta .mv{color:var(--ink-3);font-weight:600;}
 .rmeta .sep{width:1px;height:13px;background:var(--line);}
-.rwhy{margin-top:10px;background:var(--teal-soft);border-radius:10px;padding:9px 11px;color:var(--teal-dark);font-size:.78em;font-weight:800;line-height:1.45;}
-.rdesc{display:none;margin-top:11px;background:var(--bg);border-radius:10px;padding:12px 13px;font-size:.9em;color:var(--ink-3);line-height:1.6;}
+.rwhy{margin-top:10px;background:var(--teal-soft);border-radius:10px;padding:9px 11px;color:var(--teal-dark);font-size:.84em;font-weight:800;line-height:1.48;}
+.rdesc{display:none;margin-top:11px;background:var(--bg);border-radius:10px;padding:12px 13px;font-size:.96em;color:var(--ink-3);line-height:1.62;}
 .rdesc.open{display:block;}
 .ract{display:flex;gap:8px;margin-top:13px;}
-.ract a,.ract button{flex:1;border:none;border-radius:11px;padding:12px;font-family:inherit;font-weight:800;font-size:.9em;
+.ract a,.ract button{flex:1;border:none;border-radius:11px;padding:12px;font-family:inherit;font-weight:800;font-size:.96em;
   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;transition:.14s;}
 .ract .fav{flex:none;width:auto;padding:12px 16px;gap:6px;background:#fff;border:1.4px solid var(--line);color:var(--ink-4);font-weight:800;}
 .ract .fav.on{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-dark);}
@@ -568,6 +571,8 @@ let region=store.get("cb_region")||"서울 광진구";
 let lastEval=null;
 let ctx={cat:null,tokens:[],query:""}; // 버튼 기반 추천 상태
 let freeCtx={stage:"idle",cat:null,tokens:[],query:""}; // 자유 입력 대화 상태
+let chatHistory=[]; // OpenAI 자유대화용 최근 대화
+const appVariant=(new URLSearchParams(location.search).get("variant")||(location.hash.includes("beta")?"education_beta":"main"));
 let voiceAudio=null;
 let voiceAudioUrl=null;
 
@@ -672,11 +677,12 @@ function addBot(html,opts={}){
 }
 function addTyping(){const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg bot";w.id="typing";w.innerHTML=`<div class="av"><img src="${FACE_THINK}" alt=""></div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;t.appendChild(w);sc();}
 function rmTyping(){const t=document.getElementById("typing");if(t)t.remove();}
-function addCards(list){const t=document.getElementById("thread");const w=document.createElement("div");w.className="cardwrap";w.innerHTML=list.map(rcard).join("");t.appendChild(w);sc();}
+function addCards(list){const t=document.getElementById("thread");const w=document.createElement("div");w.className="cardwrap";w.innerHTML=list.map(rcard).join("");t.appendChild(w);return w;}
 function addChoices(items){const t=document.getElementById("thread");const w=document.createElement("div");w.className="choices";
   w.innerHTML=items.map(c=>`<button class="choice ${c.skip?'skip':''}" onclick="${c.action}">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${c.label}</button>`).join("");t.appendChild(w);sc();}
 function addStepTag(txt){const t=document.getElementById("thread");const w=document.createElement("div");w.className="step-tag";w.textContent=txt;t.appendChild(w);}
 function sc(){const b=document.getElementById("scroll");requestAnimationFrame(()=>b.scrollTop=b.scrollHeight);}
+function scrollToEl(el){const b=document.getElementById("scroll");if(!b||!el)return;requestAnimationFrame(()=>b.scrollTo({top:Math.max(0,el.offsetTop-14),behavior:"smooth"}));}
 
 /* 대화 시작 */
     function startChat(seedNode){
@@ -684,6 +690,7 @@ function sc(){const b=document.getElementById("scroll");requestAnimationFrame(()
       document.getElementById("thread").innerHTML="";
       ctx={cat:null,tokens:[],query:""};
       freeCtx={stage:"idle",cat:null,tokens:[],query:""};
+      chatHistory=[];
       const hi="안녕하세요! 제가 몇 가지 여쭤보고 꼭 맞는 복지를 찾아드릴게요.";
       addBot(esc(hi),{text:hi});
       speak(hi);
@@ -769,12 +776,13 @@ function recommend(danger){
     addBot(esc(intro),{text:intro});
     const aiGuide=await groundedAnswer(list,analysis,tokens,danger);
     if(aiGuide)addBot(esc(aiGuide),{text:aiGuide});
-    addCards(list);
+    const cardsEl=addCards(list);
     addBot("이 중에 마음에 드는 게 있으세요? 더 찾아보고 싶으시면 아래에서 골라주세요.");
     addChoices([
       {emoji:"🔁",label:"다른 걱정도 말해볼게요",action:"renderNode('root',1)"},
       {emoji:"🏠",label:"처음 화면으로",action:"go('home')"}
     ]);
+    scrollToEl(cardsEl);
   },650);
 }
     /* 자유 입력 → 대화형 탐색 */
@@ -787,7 +795,6 @@ function recommend(danger){
     function detectUnsupported(text){
       if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|오늘.*(더워|추워|덥|춥)|밖.*(더워|추워|덥|춥)/.test(text))return "weather";
       if(/(이미지|그림|사진|로고|포스터).*(만들어줘|생성해줘|그려줘)|(?:만들어줘|그려줘).*(이미지|그림|사진|로고|포스터)/.test(text))return "image";
-      if(/뉴스|주식|계산|번역/.test(text))return "unsupported";
       return null;
     }
     function extractWeatherLocation(text){
@@ -837,11 +844,86 @@ function recommend(danger){
       }
       return true;
     }
+    function isEducationBeta(){return appVariant==="education_beta";}
+    async function answerFreeChat(text){
+      freeCtx={stage:"idle",cat:null,tokens:[],query:""};
+      addTyping();
+      let typing=true;
+      function clearTyping(){if(typing){rmTyping();typing=false;}}
+      try{
+        const response=await fetch("/api/chat",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({message:text,history:chatHistory.slice(-8)})
+        });
+        const data=await response.json().catch(()=>({}));
+        clearTyping();
+        if(!response.ok){
+          if(data.message){
+            addBot(esc(data.message),{text:data.message});
+            speak(data.message);
+            return true;
+          }
+          return false;
+        }
+        const msg=String(data.answer||"").trim();
+        if(!msg)return false;
+        chatHistory.push({role:"user",content:text},{role:"assistant",content:msg});
+        if(chatHistory.length>16)chatHistory=chatHistory.slice(-16);
+        addBot(esc(msg),{text:msg});
+        speak(msg);
+        addChoices([
+          {emoji:"🧭",label:"복지자원도 찾아보기",action:"askFree('좋아요. 생활 도움, 건강, 돈, 배움, 모임 중 어떤 쪽 복지자원이 필요하세요?','broad_probe',null,[], '')"},
+          {emoji:"💬",label:"다른 질문하기",action:"focusChat()"}
+        ]);
+        return true;
+      }catch(e){
+        clearTyping();
+        return false;
+      }
+    }
+    async function answerImagePrompt(text){
+      if(!isEducationBeta()){
+        askFree("이미지 생성과 사진 꾸미기는 교육 베타 버전에서 횟수 제한을 걸고 켜둘 기능으로 준비했어요. 지금 화면에서는 자유대화와 복지자원 찾기를 먼저 이용할 수 있어요.","broad_probe",null,[],text);
+        return true;
+      }
+      if(/내 사진|사진으로|업로드|꾸며|이모티콘|프로필/.test(text)){
+        askFree("사진 업로드 편집은 서버 기능까지 열어두었고, 다음 단계에서 업로드 버튼을 붙이면 바로 사용할 수 있어요. 지금은 글로 설명한 이미지를 먼저 만들어볼 수 있어요.","broad_probe",null,[],text);
+        return true;
+      }
+      addTyping();
+      let typing=true;
+      function clearTyping(){if(typing){rmTyping();typing=false;}}
+      try{
+        const response=await fetch("/api/image",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({mode:"generate",prompt:text,size:"1024x1024"})
+        });
+        const data=await response.json().catch(()=>({}));
+        clearTyping();
+        if(!response.ok){
+          const msg=data.message||"이미지 생성이 잠시 어렵습니다. 문장 쓰기나 복지자원 찾기는 바로 도와드릴 수 있어요.";
+          addBot(esc(msg),{text:msg});
+          speak(msg);
+          return true;
+        }
+        const img=String(data.imageUrl||"");
+        const msg="요청하신 이미지 초안을 만들었어요.";
+        addBot(`${esc(msg)}<div class="image-result"><img src="${esc(img)}" alt="생성된 이미지"><div class="caption">생성형 AI 이미지 결과</div></div>`,{text:msg});
+        speak(msg);
+        return true;
+      }catch(e){
+        clearTyping();
+        askFree("이미지 생성 연결이 잠시 어렵습니다. 대신 만들고 싶은 문구나 설명을 같이 다듬어드릴 수 있어요.","broad_probe",null,[],text);
+        return true;
+      }
+    }
     function inferFreeCategory(text){
       const cat=detectCategory(text);
       if(cat)return cat;
       if(containsAny(text,["게이트볼","운동","체육","스포츠","산책","탁구","바둑","친구","또래","심심","무료해","할 일","하는 일","만남","활동"]))return "culture";
-      if(containsAny(text,["AI","ai","인공지능","이미지","그림","사진"]))return "learning";
+      if(containsAny(text,["AI 배우","ai 배우","인공지능 배우","스마트폰","키오스크","디지털","컴퓨터","교육","배움"]))return "learning";
       return null;
     }
     function sayFree(text){addBot(esc(text),{text:text});speak(text);}
@@ -919,8 +1001,7 @@ function recommend(danger){
         return answerWeather(text);
       }
       if(type==="image"){
-        askFree("이미지는 제가 직접 만들어드리기 어렵지만, AI나 스마트폰을 배워보는 프로그램은 찾아드릴 수 있어요. AI·디지털 배움 활동을 찾아볼까요?","confirm_recommend","learning",["AI","디지털","스마트폰","교육","배움"],text);
-        return true;
+        return answerImagePrompt(text);
       }
       askFree("그 기능은 제가 직접 하기는 어려워요. 대신 복지, 건강, 배움, 모임 자원은 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,[],text);
       return true;
@@ -958,7 +1039,9 @@ function recommend(danger){
         askFree("좋아요. 바로 찾기 전에 어떤 쪽이 필요하신지 알려주세요. 생활 도움, 건강, 돈, 배움, 모임 중 무엇이 가까우세요?","broad_probe",null,[],text);
         return;
       }
-      askFree("말씀해 주셔서 고마워요. 바로 추천하기보다 조금 더 여쭤볼게요. 요즘 불편한 점이나 해보고 싶은 일이 있으세요?","broad_probe",null,tokens,text);
+      const answered=await answerFreeChat(text);
+      if(answered)return;
+      askFree("자유대화 연결이 잠시 어렵습니다. 대신 복지, 건강, 배움, 모임 자원은 바로 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,tokens,text);
     }
 function submitChat(){const v=document.getElementById("chatInput").value.trim();if(v){askText(v);document.getElementById("chatInput").value="";}}
 function focusChat(){const i=document.getElementById("chatInput");if(!i)return;i.focus();i.scrollIntoView({block:"nearest"});const c=document.getElementById("composer");if(c){c.style.boxShadow="inset 0 3px 0 #3A8F7A";setTimeout(()=>c.style.boxShadow="",1000);}}
