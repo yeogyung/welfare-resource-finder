@@ -328,7 +328,9 @@ body{
 	.image-tools h2{font-size:1em;font-weight:900;color:var(--ink);line-height:1.35;}
 	.image-tools p{margin-top:5px;color:var(--ink-4);font-size:.82em;font-weight:700;line-height:1.5;word-break:keep-all;}
 	.image-template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
-	.image-template{min-height:54px;border:1.4px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink-2);font-family:inherit;font-size:.88em;font-weight:900;line-height:1.3;padding:10px 8px;cursor:pointer;word-break:keep-all;}
+	.image-template{position:relative;min-height:54px;border:1.4px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink-2);font-family:inherit;font-size:.88em;font-weight:900;line-height:1.3;padding:10px 8px;cursor:pointer;word-break:keep-all;overflow:visible;}
+	.image-template.best{border-color:#F59E0B;background:#FFF7ED;color:#7C3A03;padding-top:16px;box-shadow:0 5px 14px rgba(245,158,11,.18);}
+	.best-badge{position:absolute;top:-9px;left:10px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:#EF4444;color:#fff;font-size:.68em;font-weight:1000;letter-spacing:.02em;line-height:1;padding:5px 8px;box-shadow:0 4px 10px rgba(239,68,68,.28);}
 	.image-template:active{transform:scale(.98);background:var(--teal-soft);border-color:var(--teal-mid);}
 	.image-quota{display:inline-flex;flex:none;background:var(--teal-soft);color:var(--teal-dark);border-radius:999px;padding:5px 9px;font-size:.72em;font-weight:900;white-space:nowrap;}
 	.image-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
@@ -1346,6 +1348,11 @@ function imageTemplateIcon(template){
   if(template&&/생일|안부|카드/.test(template.label||""))return "💌";
   return "🎨";
 }
+function imageTemplateButton(template){
+  const isBest=template&&template.id==="sticker_from_photo";
+  const badge=isBest?`<span class="best-badge">BEST</span>`:"";
+  return `<button class="image-template ${isBest?'best':''}" onclick="startImageTemplate('${esc(template.id)}')">${badge}${imageTemplateIcon(template)} ${esc(template.label)}</button>`;
+}
 async function loadImageTemplates(){
   try{
     const response=await fetch("./public/data/image-prompt-templates.json");
@@ -1367,7 +1374,7 @@ function renderImageTools(){
     box.innerHTML=`<button class="image-template" onclick="answerImagePrompt('따뜻한 꽃 인사 이미지 만들어줘')">🎨 이미지 만들기</button>`;
     return;
   }
-  box.innerHTML=imageTemplates.map(t=>`<button class="image-template" onclick="startImageTemplate('${esc(t.id)}')">${imageTemplateIcon(t)} ${esc(t.label)}</button>`).join("");
+  box.innerHTML=imageTemplates.map(imageTemplateButton).join("");
 }
 function prepareImageChat(){
   if(!currentSubject){go("subject");return false;}
@@ -1387,7 +1394,7 @@ function findImageTemplate(text){
   if(/생일/.test(q))return imageTemplates.find(t=>t.id==="birthday_card");
   if(/안부|가족|카드/.test(q))return imageTemplates.find(t=>t.id==="family_greeting")||imageTemplates.find(t=>t.id==="birthday_card");
   if(/앨범|추억/.test(q))return imageTemplates.find(t=>t.id==="memory_album");
-  if(/내 사진|사진으로|업로드|꾸며/.test(q))return imageTemplates.find(t=>t.requiresImage);
+  if(/내 사진|사진으로|업로드|꾸며/.test(q))return imageTemplates.find(t=>t.id==="profile_makeover")||imageTemplates.find(t=>t.requiresImage&&t.id!=="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage);
   return null;
 }
 function imageChoice(label,emoji=""){
@@ -1602,24 +1609,14 @@ function showImageTemplateChoices(){
     return;
   }
   const msg="어떤 이미지 연습을 해볼까요?";
-  addBot(esc(msg),{text:msg});
-  addChoices(imageTemplates.map(t=>({
-    emoji:imageTemplateIcon(t),
-    label:t.label,
-    action:`startImageTemplate('${esc(t.id)}')`
-  })));
+  addBot(`${esc(msg)}<div class="image-template-grid chat-image-template-grid">${imageTemplates.map(imageTemplateButton).join("")}</div>`,{text:msg});
 }
 async function openImageUploadFromComposer(){
   logEvent("composer_plus_click",{target:"image_upload"});
   if(!currentSubject){go("subject");return;}
   if(!currentUser){go("login");return;}
   if(!imageTemplates.length)await loadImageTemplates();
-  const template=imageTemplates.find(t=>t.id==="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage);
-  if(!template){
-    showImageTemplateChoices();
-    return;
-  }
-  startImageTemplate(template.id);
+  showImageTemplateChoices();
 }
 function answerImageStep(value){
   addUser(value);
@@ -1757,7 +1754,7 @@ async function handleImageFile(event){
   if(!file)return;
   if(!pendingImageTemplate){
     if(!imageTemplates.length)await loadImageTemplates();
-    pendingImageTemplate=imageTemplates.find(t=>t.id==="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage)||null;
+    pendingImageTemplate=imageTemplates.find(t=>t.id==="profile_makeover")||imageTemplates.find(t=>t.requiresImage&&t.id!=="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage)||null;
   }
   if(!pendingImageTemplate){
     toast("이미지 메뉴를 먼저 선택해 주세요");
