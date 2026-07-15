@@ -16,6 +16,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
+  color-scheme:light;
   --teal:#3A8F7A; --teal-dark:#00695C; --teal-deep:#2C7264; --teal-soft:#E5F3EE; --teal-soft2:#E0F2F1; --teal-mid:#9BCDBE;
   --ink:#101828; --ink-2:#1E2939; --ink-3:#4A5565; --ink-4:#6A7282; --ink-5:#A3AAB8;
   --line:#D1D5DC; --line-2:#E5E7EB; --bg:#F3F4F6; --surface:#FFFFFF;
@@ -27,7 +28,8 @@
   --fs:19px;
 }
 body.fs-0{--fs:17px;} body.fs-1{--fs:19px;} body.fs-2{--fs:23px;}
-html,body{width:100%;height:100%;min-height:100%;overflow-x:hidden;}
+html,body{width:100%;height:100%;min-height:100%;overflow-x:hidden;color-scheme:light;}
+input,textarea,button,select{color-scheme:light;}
 body{
   min-width:0;
   font-family:"Pretendard Variable",Pretendard,"Noto Sans KR",system-ui,sans-serif;
@@ -47,7 +49,7 @@ body{
 /* 상단바 */
 .appbar{min-width:0;max-width:100%;flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 12px;
   background:var(--surface);border-bottom:1px solid var(--line-2);z-index:6;}
-.back-btn{width:36px;height:36px;border:none;border-radius:50%;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-size:1.35em;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;}
+.back-btn{min-width:76px;height:38px;border:none;border-radius:999px;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-size:.86em;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;padding:0 11px;white-space:nowrap;box-shadow:inset 0 0 0 1px rgba(58,143,122,.18);}
 .back-btn:active{transform:scale(.94);}
 .brand{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto;}
 .brand img{width:32px;height:32px;border-radius:9px;display:block;}
@@ -220,7 +222,7 @@ body{
 .msg.user{align-self:flex-end;}
 .msg .av{width:38px;height:38px;flex:none;border-radius:50%;background:var(--teal-soft);overflow:hidden;}
 .msg .av img{width:100%;height:100%;object-fit:cover;}
-.bubble{padding:13px 16px;font-size:1.05em;line-height:1.5;}
+.bubble{padding:13px 16px;font-size:1.05em;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere;}
 .msg.bot .bubble{background:#fff;color:var(--ink);border:1px solid var(--line-2);border-radius:16px 16px 16px 4px;box-shadow:var(--shadow-card);}
 .msg.user .bubble{background:var(--teal);color:#fff;border-radius:16px 4px 16px 16px;font-weight:600;}
 .bubble .speak-ic{margin:8px 0 0 auto;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -228,6 +230,10 @@ body{
 .bubble .speak-ic svg{width:19px;height:19px;}
 .bubble.safety{background:#FCEDEC!important;border:1px solid #F3C2BE!important;color:#8E2A22!important;}
 .bubble.safety .speak-ic{background:#F6D6D3;color:#8E2A22;}
+.bubble-clamp{max-height:52vh;overflow:hidden;position:relative;}
+.bubble-clamp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff);}
+.full-read{display:inline-flex;margin-top:9px;border:none;background:transparent;color:var(--teal-dark);font-family:inherit;font-size:.94em;font-weight:900;cursor:pointer;padding:4px 0;text-align:left;}
+.full-read::before{content:">";font-weight:900;margin-right:4px;}
 .image-result{margin-top:12px;border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--bg);}
 .image-result img{display:block;width:100%;height:auto;}
 .image-result .caption{padding:9px 11px;color:var(--ink-4);font-size:.86em;font-weight:700;}
@@ -264,8 +270,8 @@ body{
 .cardwrap{align-self:stretch;padding-left:60px;display:flex;flex-direction:column;gap:10px;}
 .rcard{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-card);padding:15px 16px;box-shadow:var(--shadow-card);}
 .rcard .tag{display:inline-block;font-size:.78em;font-weight:800;padding:4px 11px;border-radius:999px;color:#fff;letter-spacing:-.01em;}
-.rcard .rname{font-weight:800;font-size:1.1em;line-height:1.42;letter-spacing:-.01em;margin:10px 0 3px;color:var(--ink);}
-.rcard .rsub{font-size:.92em;color:var(--ink-4);line-height:1.55;}
+.rcard .rname{font-weight:800;font-size:1.14em;line-height:1.42;letter-spacing:-.01em;margin:10px 0 3px;color:var(--ink);}
+.rcard .rsub{font-size:.98em;color:var(--ink-4);line-height:1.58;}
 .rmeta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-2);}
 .rmeta .mi{display:flex;align-items:center;gap:6px;font-size:.9em;}
 .rmeta .mk{color:var(--ink-5);font-weight:700;}.rmeta .mv{color:var(--ink-3);font-weight:600;}
@@ -328,6 +334,7 @@ body{
 	.image-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
 	.image-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--teal-dark);font-family:inherit;font-weight:900;font-size:.9em;padding:12px 8px;cursor:pointer;}
 	.image-actions button.primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+	.image-actions,.image-result,.full-read{white-space:normal;}
 
 /* 설정 */
 .set-group{margin-top:18px;background:var(--surface);border:1px solid var(--line-2);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
@@ -376,6 +383,20 @@ body{
 .etag.pass{background:#143524;color:#4ADE80;}.etag.fail{background:#3A1620;color:#FB7185;}
 .adl{margin-top:14px;width:100%;border:1px solid #3E86FF;background:transparent;color:#6FA8FF;border-radius:12px;font-family:inherit;font-weight:800;padding:12px;cursor:pointer;}
 
+.scroll-cue{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:25;border:none;border-radius:999px;background:rgba(16,24,40,.86);color:#fff;font-family:inherit;font-size:.86em;font-weight:900;padding:10px 15px;box-shadow:0 8px 22px rgba(16,24,40,.22);cursor:pointer;}
+.scroll-cue:active{transform:translateX(-50%) scale(.97);}
+.reader-overlay{position:absolute;inset:0;background:#fff;z-index:45;display:flex;flex-direction:column;color:var(--ink);}
+.reader-head{height:58px;display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line-2);background:#fff;flex:none;}
+.reader-head button{border:none;border-radius:999px;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-weight:900;font-size:.94em;padding:10px 13px;cursor:pointer;}
+.reader-head strong{font-size:1.03em;font-weight:900;}
+.reader-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:20px 18px 28px;font-size:1.1em;line-height:1.72;white-space:pre-line;word-break:keep-all;overflow-wrap:anywhere;}
+.confirm-layer{position:absolute;inset:0;background:rgba(16,24,40,.42);z-index:46;display:flex;align-items:center;justify-content:center;padding:20px;}
+.confirm-box{width:100%;max-width:340px;background:#fff;border-radius:18px;padding:20px 18px 16px;box-shadow:0 20px 50px rgba(16,24,40,.28);}
+.confirm-box h2{font-size:1.16em;font-weight:900;line-height:1.35;color:var(--ink);}
+.confirm-box p{margin-top:8px;font-size:.93em;font-weight:700;line-height:1.55;color:var(--ink-4);word-break:keep-all;}
+.confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
+.confirm-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-3);font-family:inherit;font-weight:900;font-size:.95em;padding:13px 8px;cursor:pointer;}
+.confirm-actions .primary{background:var(--teal);border-color:var(--teal);color:#fff;}
 .toast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);background:var(--ink);
   color:#fff;padding:12px 20px;border-radius:999px;font-size:.9em;font-weight:700;opacity:0;pointer-events:none;
   transition:.25s;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:88%;text-align:center;}
@@ -406,7 +427,7 @@ body{
 <body class="fs-1">
 <div class="phone">
   <header class="appbar">
-    <button class="back-btn" id="backBtn" onclick="handleBack()" aria-label="뒤로가기" hidden>←</button>
+    <button class="back-btn" id="backBtn" onclick="handleBack()" aria-label="돌아가기" hidden>← 뒤로</button>
     <div class="brand"><img id="logoImg" alt="찾아봇 로고"><b>찾아봇</b></div>
     <div class="appbar-actions">
       <button class="mini-btn" id="fontMini" onclick="cycleFont()"><span class="a">가</span> 글자</button>
@@ -601,6 +622,7 @@ body{
 	    <button class="csend" onclick="submitChat()" aria-label="보내기"><svg viewBox="0 0 24 24" fill="none"><path d="M4.5 20 21 12 4.5 4 4.5 10.2 14 12 4.5 13.8Z" fill="currentColor"/></svg></button>
 	  </div>
 	  <input id="imageUploadInput" type="file" accept="image/*" hidden onchange="handleImageFile(event)">
+	  <button class="scroll-cue" id="scrollCue" onclick="scrollChatToBottom()" hidden>↓ 아래로 내려서 더 보기</button>
 
   <!-- 탭바 -->
   <nav class="tabbar" id="tabbar" style="display:none;">
@@ -615,6 +637,25 @@ body{
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M10.65 2.5h2.7l.45 2.32c.73.2 1.42.49 2.05.86l1.96-1.31 1.91 1.91-1.31 1.96c.37.63.66 1.32.86 2.05l2.33.46v2.7l-2.33.46a7.27 7.27 0 0 1-.86 2.05l1.31 1.96-1.91 1.91-1.96-1.31c-.63.37-1.32.66-2.05.86l-.45 2.32h-2.7l-.45-2.32a7.34 7.34 0 0 1-2.05-.86l-1.96 1.31-1.91-1.91 1.31-1.96a7.27 7.27 0 0 1-.86-2.05l-2.33-.46v-2.7l2.33-.46c.2-.73.49-1.42.86-2.05L4.28 6.28l1.91-1.91 1.96 1.31c.63-.37 1.32-.66 2.05-.86l.45-2.32ZM12 15.6a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2Z"/></svg><span class="tl">설정</span>
     </button>
   </nav>
+
+  <div class="reader-overlay" id="fullReader" hidden>
+    <div class="reader-head">
+      <button type="button" onclick="closeFullReader()">← 뒤로</button>
+      <strong>내용 전체보기</strong>
+    </div>
+    <div class="reader-body" id="fullReaderBody"></div>
+  </div>
+
+  <div class="confirm-layer" id="backConfirm" hidden>
+    <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="backConfirmTitle">
+      <h2 id="backConfirmTitle">찾아봇을 나가시겠어요?</h2>
+      <p>실수로 닫히지 않도록 한 번 더 확인할게요. 계속 이용하면 지금 화면으로 돌아갑니다.</p>
+      <div class="confirm-actions">
+        <button type="button" class="primary" onclick="closeBackConfirm()">계속 이용</button>
+        <button type="button" onclick="confirmExitApp()">나가기</button>
+      </div>
+    </div>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
@@ -854,10 +895,17 @@ let imageTemplates=[];
 let pendingImageTemplate=null;
 let pendingImageFlow=null;
 let generatedImages={};
+let fullTextStore={};
 let ga4Ready=false;
 let deferredInstallPrompt=null;
 let pwaInstalled=false;
 let activeScreen="subject";
+let lastUserMessageEl=null;
+let scrollCueTimer=null;
+let assistantBusy=false;
+let backGuardReady=false;
+let lastExitBackAt=0;
+let allowBrowserExit=false;
 const appVariant=(new URLSearchParams(location.search).get("variant")||(location.hash.includes("beta")?"education_beta":"main"));
 let voiceAudio=null;
 let voiceAudioUrl=null;
@@ -1036,11 +1084,59 @@ function stripHtml(html){
   return (d.textContent||d.innerText||"").replace(/\s+/g," ").trim();
 }
 function cleanAssistantText(text){
-  return String(text||"")
+  const cleaned=String(text||"")
     .replace(/\*\*/g,"")
     .replace(/^#{1,6}\s*/gm,"")
+    .replace(/\s+(\d{1,2}[.)]\s+)/g,"\n$1")
+    .replace(/\s+([가-힣A-Za-z0-9]{1,5}:)\s*/g,"\n$1 ")
     .replace(/\s+\n/g,"\n")
+    .replace(/\n{3,}/g,"\n\n")
     .trim();
+  return cleaned;
+}
+function hasFriendlyIcon(text){
+  return /^[\s🍚🫂🩺💰🎈📱🚨☀️🌿💬🧭😊✨🎂🌷🫶💌🔎🏠]/.test(String(text||""));
+}
+function decorateBotText(text,opts={}){
+  const clean=cleanAssistantText(text);
+  if(!clean||opts.icon===false)return clean;
+  if(opts.safety)return hasFriendlyIcon(clean)?clean:`🚨 ${clean}`;
+  return hasFriendlyIcon(clean)?clean:`💬 ${clean}`;
+}
+function hasRichHtml(html){
+  return /<(div|button|a|img|svg|span|input|article|section|ul|ol|li)/i.test(String(html||""));
+}
+function needsFullReader(text){
+  const clean=String(text||"").trim();
+  return clean.length>260||clean.split(/\n/).length>6;
+}
+function textBubbleHtml(text,opts={}){
+  const safe=esc(text);
+  if(!opts.safety&&needsFullReader(text)){
+    const id=makeId("full");
+    fullTextStore[id]=text;
+    return `<div class="bubble-clamp">${safe}</div><button class="full-read" onclick="openFullTextById('${esc(id)}')">내용 전체보기</button>`;
+  }
+  return safe;
+}
+function openFullTextById(id){
+  openFullText(fullTextStore[id]||"");
+}
+function openFullText(text){
+  const reader=document.getElementById("fullReader");
+  const body=document.getElementById("fullReaderBody");
+  if(!reader||!body)return;
+  body.textContent=cleanAssistantText(text);
+  reader.hidden=false;
+  logEvent("full_text_open",{length:String(text||"").length});
+}
+function closeFullReader(){
+  const reader=document.getElementById("fullReader");
+  if(reader)reader.hidden=true;
+}
+function isFullReaderOpen(){
+  const reader=document.getElementById("fullReader");
+  return Boolean(reader&&!reader.hidden);
 }
 function shouldLogMessages(){return Boolean(currentUser&&currentUser.userId&&currentUser.logConsent!==false);}
 function logMessage(role,content,metadata={}){
@@ -1749,6 +1845,10 @@ function updateUserUi(){
 
 /* 화면 전환 */
 function handleBack(){
+  if(isFullReaderOpen()){
+    closeFullReader();
+    return;
+  }
   if(activeScreen==="login"){
     closeLoginModal();
     go("subject");
@@ -1756,12 +1856,35 @@ function handleBack(){
   }
   if(activeScreen==="subject"&&currentUser){
     go("home");
+    return;
   }
+  if(activeScreen==="chat"||activeScreen==="saved"||activeScreen==="settings"||activeScreen==="admin"){
+    go("home");
+    return;
+  }
+  if(activeScreen==="home")showBackConfirm();
+}
+function showBackConfirm(){
+  const modal=document.getElementById("backConfirm");
+  if(modal)modal.hidden=false;
+  logEvent("back_exit_confirm_open",{screen:activeScreen});
+}
+function closeBackConfirm(){
+  const modal=document.getElementById("backConfirm");
+  if(modal)modal.hidden=true;
+}
+function confirmExitApp(){
+  closeBackConfirm();
+  allowBrowserExit=true;
+  logEvent("back_exit_confirmed",{screen:activeScreen});
+  try{history.back();}catch(e){}
+  setTimeout(()=>{try{window.close();}catch(e){}},120);
 }
 function updateBackUi(screen){
   const btn=document.getElementById("backBtn");
   if(!btn)return;
-  btn.hidden=!(screen==="login"||(screen==="subject"&&currentUser));
+  btn.hidden=(screen==="subject"&&!currentUser);
+  btn.textContent=screen==="home"?"← 뒤로":"← 돌아가기";
 }
 function go(screen){
   activeScreen=screen;
@@ -1771,34 +1894,109 @@ function go(screen){
   document.getElementById("composer").style.display=(isChat||screen==="home")&&!isSubject&&!isLogin?"flex":"none";
   document.getElementById("tabbar").style.display=(isAdmin||isSubject||isLogin)?"none":"flex";
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===screen||(isChat&&t.dataset.screen==="home")));
-  document.getElementById("scroll").scrollTop=0;
+  hideScrollCue();
+  if(screen!=="chat")document.getElementById("scroll").scrollTop=0;
 	  if(screen==="saved")renderArchive();
 	  if(screen==="login")prepareLoginScreen();
   updateBackUi(screen);
 	}
+function handleBrowserBack(){
+  closeBackConfirm();
+  if(isFullReaderOpen()){
+    closeFullReader();
+    return true;
+  }
+  if(activeScreen!=="home"){
+    handleBack();
+    return true;
+  }
+  const now=Date.now();
+  if(now-lastExitBackAt<1900){
+    allowBrowserExit=true;
+    try{history.back();}catch(e){}
+    return false;
+  }
+  lastExitBackAt=now;
+  toast("한 번 더 누르시면 종료됩니다");
+  return true;
+}
+function setupBackGuard(){
+  if(backGuardReady||!("pushState"in history))return;
+  backGuardReady=true;
+  try{
+    history.replaceState({chajabot:true,root:true},"",location.href);
+    history.pushState({chajabot:true,guard:true},"",location.href);
+  }catch(e){return;}
+  window.addEventListener("popstate",()=>{
+    if(allowBrowserExit)return;
+    const keep=handleBrowserBack();
+    if(keep){
+      try{history.pushState({chajabot:true,guard:true},"",location.href);}catch(e){}
+    }
+  });
+}
 
 /* ===== 대화 렌더 ===== */
 function addUser(text){
   const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg user";
-  w.innerHTML=`<div class="bubble">${esc(text)}</div>`;t.appendChild(w);sc();
+  w.innerHTML=`<div class="bubble">${esc(text)}</div>`;t.appendChild(w);lastUserMessageEl=w;scrollToEl(w);
   logMessage("user",text,{mode:"chat"});
+  return w;
 }
 function addBot(html,opts={}){
   const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg bot";
-  const replay=opts.text?`<button class="speak-ic" title="읽어주기" aria-label="읽어주기" onclick="speak(this.dataset.t,true)" data-t="${esc(opts.text)}"><svg viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="M15.5 8.5a4.5 4.5 0 0 1 0 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`:"";
-  w.innerHTML=`<div class="av"><img src="${FACE_IDLE}" alt="찾아봇"></div><div class="bubble ${opts.safety?'safety':''}">${html}${opts.call119?'<a class="call119" href="tel:119"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5V20a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" stroke="#fff" stroke-width="1.8"/></svg> 119에 전화하기</a>':''}${replay}</div>`;
-  t.appendChild(w);sc();
-  logMessage("assistant",opts.text||stripHtml(html),{mode:opts.safety?"safety":"chat",safety:Boolean(opts.safety),call119:Boolean(opts.call119)});
+  const rawSpeakText=opts.text?cleanAssistantText(opts.text):"";
+  let speakText=opts.text?decorateBotText(opts.text,opts):"";
+  let bodyHtml=html;
+  if(opts.text&&!hasRichHtml(html))bodyHtml=textBubbleHtml(speakText,opts);
+  const replay=rawSpeakText?`<button class="speak-ic" title="읽어주기" aria-label="읽어주기" onclick="speak(this.dataset.t,true)" data-t="${esc(rawSpeakText)}"><svg viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="M15.5 8.5a4.5 4.5 0 0 1 0 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`:"";
+  w.innerHTML=`<div class="av"><img src="${FACE_IDLE}" alt="찾아봇"></div><div class="bubble ${opts.safety?'safety':''}">${bodyHtml}${opts.call119?'<a class="call119" href="tel:119"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5V20a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" stroke="#fff" stroke-width="1.8"/></svg> 119에 전화하기</a>':''}${replay}</div>`;
+  t.appendChild(w);scrollToTurn(w);
+  logMessage("assistant",rawSpeakText||stripHtml(html),{mode:opts.safety?"safety":"chat",safety:Boolean(opts.safety),call119:Boolean(opts.call119)});
   return w;
 }
-function addTyping(){const t=document.getElementById("thread");const w=document.createElement("div");w.className="msg bot";w.id="typing";w.innerHTML=`<div class="av"><img src="${FACE_THINK}" alt=""></div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;t.appendChild(w);sc();}
-function rmTyping(){const t=document.getElementById("typing");if(t)t.remove();}
+function setAssistantBusy(on){
+  assistantBusy=Boolean(on);
+  const send=document.querySelector(".composer .csend");
+  if(send)send.disabled=assistantBusy;
+}
+function addTyping(){setAssistantBusy(true);const t=document.getElementById("thread");const old=document.getElementById("typing");if(old)old.remove();const w=document.createElement("div");w.className="msg bot";w.id="typing";w.innerHTML=`<div class="av"><img src="${FACE_THINK}" alt=""></div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;t.appendChild(w);scrollToTurn(w);}
+function rmTyping(){const t=document.getElementById("typing");if(t)t.remove();setAssistantBusy(false);}
 function addCards(list){const t=document.getElementById("thread");const w=document.createElement("div");w.className="cardwrap";w.innerHTML=list.map(rcard).join("");t.appendChild(w);return w;}
 function addChoices(items){const t=document.getElementById("thread");const w=document.createElement("div");w.className="choices";
-  w.innerHTML=items.map(c=>`<button class="choice ${c.skip?'skip':''}" onclick="${esc(c.action||"")}">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${esc(c.label)}</button>`).join("");t.appendChild(w);sc();}
+  w.innerHTML=items.map(c=>`<button class="choice ${c.skip?'skip':''}" onclick="${esc(c.action||"")}">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${esc(c.label)}</button>`).join("");t.appendChild(w);showScrollCueSoon(420);}
 function addStepTag(txt){const t=document.getElementById("thread");const w=document.createElement("div");w.className="step-tag";w.textContent=txt;t.appendChild(w);}
-function sc(){const b=document.getElementById("scroll");requestAnimationFrame(()=>b.scrollTop=b.scrollHeight);}
-function scrollToEl(el){const b=document.getElementById("scroll");if(!b||!el)return;requestAnimationFrame(()=>b.scrollTo({top:Math.max(0,el.offsetTop-14),behavior:"smooth"}));}
+function isNearChatBottom(){
+  const b=document.getElementById("scroll");
+  return !b||(b.scrollHeight-b.scrollTop-b.clientHeight)<36;
+}
+function hideScrollCue(){
+  const cue=document.getElementById("scrollCue");
+  if(cue)cue.hidden=true;
+  clearTimeout(scrollCueTimer);
+}
+function showScrollCueSoon(delay=260){
+  clearTimeout(scrollCueTimer);
+  scrollCueTimer=setTimeout(()=>{
+    const cue=document.getElementById("scrollCue");
+    if(!cue||activeScreen!=="chat"||isNearChatBottom())return;
+    cue.hidden=false;
+  },delay);
+}
+function scrollChatToBottom(){
+  const b=document.getElementById("scroll");
+  if(!b)return;
+  b.scrollTo({top:b.scrollHeight,behavior:"smooth"});
+  hideScrollCue();
+}
+function sc(){showScrollCueSoon(180);}
+function scrollToEl(el){
+  const b=document.getElementById("scroll");if(!b||!el)return;
+  requestAnimationFrame(()=>{b.scrollTo({top:Math.max(0,el.offsetTop-12),behavior:"smooth"});showScrollCueSoon(560);});
+}
+function scrollToTurn(el){
+  scrollToEl(lastUserMessageEl||el);
+}
 
 /* 대화 시작 */
     function startChat(seedNode){
@@ -1860,7 +2058,7 @@ async function groundedAnswer(list,analysis,tokens,danger){
         query:ctx.query||tokens.join(" ")||ctx.cat||"",
         category:ctx.cat||"all",
         axisLabel:analysis&&analysis.axisLabel,
-        limit:3,
+        limit:list.length||2,
         results:list
       })
     });
@@ -1885,8 +2083,9 @@ function recommend(danger){
         }
         const tokens=ctx.tokens.length?ctx.tokens:tokenize(ctx.query||ctx.cat||"");
         const emergency=ctx.cat==="emergency";
-        let list=search(tokens,{cat:ctx.cat,filterCat:ctx.cat,emergency,limit:3});
-        if(list.length===0)list=search(tokens,{cat:ctx.cat,emergency,limit:3});
+        const cardLimit=emergency?3:2;
+        let list=search(tokens,{cat:ctx.cat,filterCat:ctx.cat,emergency,limit:cardLimit});
+        if(list.length===0)list=search(tokens,{cat:ctx.cat,emergency,limit:cardLimit});
     if(list.length===0){
       const t="죄송해요, 딱 맞는 자원을 못 찾았어요. 처음으로 돌아가 다시 골라볼까요?";
       addBot(esc(t),{text:t});addChoices([{label:"처음부터 다시 찾기",action:"renderNode('root',1)"},{label:"처음 화면으로",action:"go('home')"}]);return;
@@ -1899,7 +2098,7 @@ function recommend(danger){
     const aiGuide=await groundedAnswer(list,analysis,tokens,danger);
     if(aiGuide)addBot(esc(aiGuide),{text:aiGuide});
     const cardsEl=addCards(list);
-    addBot("이 중에 마음에 드는 게 있으세요? 더 찾아보고 싶으시면 아래에서 골라주세요.");
+    addBot("이 중에 마음에 드는 게 있으세요? 더 찾아보고 싶으시면 아래에서 골라주세요.",{text:"이 중에 마음에 드는 게 있으세요? 더 찾아보고 싶으시면 아래에서 골라주세요."});
     addChoices([
       {emoji:"🔁",label:"다른 걱정도 말해볼게요",action:"renderNode('root',1)"},
       {emoji:"🏠",label:"처음 화면으로",action:"go('home')"}
@@ -1915,7 +2114,8 @@ function recommend(danger){
     function isVagueInactive(text){return containsAny(text,["별로 하는 일 없어","하는 일 없어","할 일 없어","별로 없어","딱히 없어","관심 없어","심심","무료해","그냥 있어","뭐 없어","없어"]);}
     function isThinText(text){return text.length<2||/^(요|음|아|어|네|예|응|아니|아니요|몰라|글쎄|그냥)$/.test(text);}
     function detectUnsupported(text){
-      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|오늘.*(더워|추워|덥|춥)|밖.*(더워|추워|덥|춥)/.test(text))return "weather";
+      const weatherText=String(text||"").replace(/생활비/g,"");
+      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|오늘.*(더워|추워|덥|춥)|밖.*(더워|추워|덥|춥)/.test(weatherText))return "weather";
       if(/(이미지|그림|사진|로고|포스터|카드|이모티콘|스티커).*(만들어줘|생성해줘|그려줘|꾸며줘|바꿔줘)|(?:만들어줘|그려줘|꾸며줘|바꿔줘).*(이미지|그림|사진|로고|포스터|카드|이모티콘|스티커)/.test(text))return "image";
       return null;
     }
@@ -2002,8 +2202,9 @@ function recommend(danger){
         addBot(esc(msg),{text:msg});
         speak(msg);
         addChoices([
-          {emoji:"🧭",label:"복지자원도 찾아보기",action:"askFree('좋아요. 생활 도움, 건강, 돈, 배움, 모임 중 어떤 쪽 복지자원이 필요하세요?','broad_probe',null,[], '')"},
-          {emoji:"💬",label:"다른 질문하기",action:"focusChat()"}
+          {emoji:"💬",label:"일반 대화 계속하기",action:"continueGeneralChat()"},
+          {emoji:"🧭",label:"복지자원 추천해줘",action:"askFree('좋아요. 생활 도움, 건강, 돈, 배움, 모임 중 어떤 쪽 복지자원이 필요하세요?','broad_probe',null,[], '')"},
+          {emoji:"✍️",label:"다른 질문 입력하기",action:"focusChat()"}
         ]);
         return true;
       }catch(e){
@@ -2019,7 +2220,7 @@ function recommend(danger){
       if(!clean)return;
       addUser(clean);
       logEvent("daily_talk_prompt_submit",{length:clean.length});
-      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|옷차림|더워|추워|덥|춥/.test(clean)){
+      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|옷차림|더워|추워|덥|춥/.test(clean.replace(/생활비/g,""))){
         await answerWeather(clean);
         return;
       }
@@ -2064,6 +2265,31 @@ function recommend(danger){
     function askFree(text,stage,cat=null,tokens=[],query=""){
       freeCtx={stage,cat,tokens,query:query||""};
       sayFree(text);
+    }
+    function wantsWelfareRecommendation(text){
+      return /복지|지원|기관|센터|자원|추천|찾아|어디|신청|상담|연결|도움|프로그램|서비스|받고 싶|필요/.test(String(text||""));
+    }
+    function continueGeneralChat(){
+      const msg="좋아요. 복지 찾기 말고 편하게 이어서 이야기해요. 궁금한 말이나 하고 싶은 이야기를 그대로 적어 주세요.";
+      addBot(esc(msg),{text:msg});
+      focusChat();
+    }
+    function answerAsGeneralChat(text){
+      answerFreeChat(text);
+    }
+    function recommendFromText(cat,text){
+      recommendWith(cat,tokenize(text),text,"좋아요. 말씀하신 내용에 맞는 복지자원을 적게 추려서 찾아볼게요.");
+    }
+    function askWelfareOrGeneral(cat,tokens,text){
+      const cm=cat?CAT_META[cat]:null;
+      const label=cm?cm.label:"말씀하신 내용";
+      const msg=`${label} 쪽으로 들렸어요. 복지자원을 찾아볼까요, 아니면 일반 대화로 이어갈까요?`;
+      addBot(esc(msg),{text:msg});
+      freeCtx={stage:"confirm_recommend",cat,tokens,query:text};
+      addChoices([
+        {emoji:"🧭",label:"복지자원 추천해줘",action:`recommendFromText(${jsArg(cat)},${jsArg(text)})`},
+        {emoji:"💬",label:"일반 대화하고 싶어",action:`answerAsGeneralChat(${jsArg(text)})`}
+      ]);
     }
     function recommendWith(cat,tokens,query,intro){
       const pickedTokens=Array.isArray(tokens)?tokens:tokenize(String(tokens||query||""));
@@ -2112,6 +2338,14 @@ function recommend(danger){
         }
       }
       if(freeCtx.stage==="confirm_recommend"){
+        if(/일반|대화|그냥|복지 말고/.test(text)){
+          answerAsGeneralChat(freeCtx.query||text);
+          return true;
+        }
+        if(/복지|추천|찾아/.test(text)){
+          recommendWith(freeCtx.cat,freeCtx.tokens,freeCtx.query,"좋아요. 말씀하신 내용과 맞는 자원을 찾아볼게요.");
+          return true;
+        }
         if(isYesText(text)){
           recommendWith(freeCtx.cat,freeCtx.tokens,freeCtx.query,"좋아요. 말씀하신 내용과 맞는 자원을 찾아볼게요.");
           return true;
@@ -2169,7 +2403,8 @@ function recommend(danger){
         return;
       }
       if(cat){
-        recommendWith(cat,tokens,text);
+        if(wantsWelfareRecommendation(text))recommendWith(cat,tokens,text);
+        else askWelfareOrGeneral(cat,tokens,text);
         return;
       }
       if(isYesText(text)){
@@ -2180,7 +2415,10 @@ function recommend(danger){
       if(answered)return;
       askFree("자유대화 연결이 잠시 어렵습니다. 대신 복지, 건강, 배움, 모임 자원은 바로 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,tokens,text);
     }
-function submitChat(){const input=document.getElementById("chatInput");const v=input.value.trim();if(v){logEvent("chat_submit",{length:v.length});askText(v);input.value="";}}
+function submitChat(){
+  if(assistantBusy){toast("답변이 끝난 뒤 다음 질문을 보내주세요");return;}
+  const input=document.getElementById("chatInput");const v=input.value.trim();if(v){logEvent("chat_submit",{length:v.length});askText(v);input.value="";}
+}
 function focusChat(){if(!currentSubject){go("subject");return;}if(!currentUser){go("login");return;}logEvent("direct_input_focus");const i=document.getElementById("chatInput");if(!i)return;i.focus();i.scrollIntoView({block:"nearest"});const c=document.getElementById("composer");if(c){c.style.boxShadow="inset 0 3px 0 #3A8F7A";setTimeout(()=>c.style.boxShadow="",1000);}}
 
 
@@ -2415,7 +2653,14 @@ async function init(){
   document.getElementById("chatInput").placeholder=rand(HOME_PLACEHOLDERS);
   document.getElementById("qgrid").innerHTML=QUICK_QUESTIONS.map((q,i)=>`<button class="qbtn" onclick="quickStart(${i})"><span class="em">${q.emoji}</span><span class="lb">${q.label}</span></button>`).join("");
   renderDailyTalkGrid();
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLoginModal();});
+  setupBackGuard();
+  const scrollBox=document.getElementById("scroll");
+  if(scrollBox){
+    scrollBox.addEventListener("wheel",hideScrollCue,{passive:true});
+    scrollBox.addEventListener("touchmove",hideScrollCue,{passive:true});
+    scrollBox.addEventListener("scroll",()=>{if(activeScreen!=="chat"||isNearChatBottom())hideScrollCue();},{passive:true});
+  }
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeLoginModal();}});
   if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else if(!currentUser)go("login");else go("home");
 }
 function quickStart(i){const q=QUICK_QUESTIONS[i];logEvent("quick_start",{index:i,label:q&&q.label,seed:q&&q.seed});startChat(q.seed);}

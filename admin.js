@@ -193,11 +193,15 @@ function renderAdminLogs(data) {
   const messages = data.messages || [];
   const usageEvents = data.usageEvents || [];
   const users = data.users || [];
+  const todayConversations = conversations.filter((row) => isToday(row.created_at || row.updated_at)).length;
+  const todayMessages = messages.filter((row) => isToday(row.created_at)).length;
+  const todayUsageEvents = usageEvents.filter((row) => isToday(row.created_at)).length;
+  const todayUsers = users.filter((row) => isToday(row.last_seen_at || row.created_at)).length;
   document.getElementById("adminLogSummary").innerHTML = `
-    <div class="admin-log-metric"><b>${conversations.length}</b><span>대화</span></div>
-    <div class="admin-log-metric"><b>${messages.length}</b><span>메시지</span></div>
-    <div class="admin-log-metric"><b>${usageEvents.length}</b><span>이벤트/사용량</span></div>
-    <div class="admin-log-metric"><b>${users.length}</b><span>사용자</span></div>
+    <div class="admin-log-metric"><b>${conversations.length}</b><span>대화 · 오늘 ${todayConversations}</span></div>
+    <div class="admin-log-metric"><b>${messages.length}</b><span>메시지 · 오늘 ${todayMessages}</span></div>
+    <div class="admin-log-metric"><b>${usageEvents.length}</b><span>이벤트/사용량 · 오늘 ${todayUsageEvents}</span></div>
+    <div class="admin-log-metric"><b>${users.length}</b><span>사용자 · 오늘 ${todayUsers}</span></div>
   `;
   const rows = [
     ...messages.slice(0, 36).map((row) => ({
@@ -256,6 +260,13 @@ function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function isToday(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
 }
 
 function clipText(value, max) {
