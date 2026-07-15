@@ -1,4 +1,4 @@
-const CACHE_NAME = "chajabot-pwa-v8";
+const CACHE_NAME = "chajabot-pwa-v9";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -16,6 +16,8 @@ const APP_SHELL = [
   "/public/assets/state-curious.png",
   "/public/assets/state-listening.png",
   "/public/assets/chajabot-full.png",
+  "/public/assets/sticker-example-input.png",
+  "/public/assets/sticker-example-result.png",
   "/public/icons/favicon-32.png",
   "/public/icons/apple-touch-icon.png",
   "/public/icons/icon-192.png",
