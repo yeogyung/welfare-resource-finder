@@ -596,8 +596,8 @@ body{
 
         <div class="set-group">
           <div class="set-row">
-            <div class="lw"><div class="sl">이용 주체</div><div class="sd">처음 선택한 이용 방식을 바꿀 수 있어요</div></div>
-            <button class="region-val" onclick="resetSubject()">👤 <span id="subjectVal">선택 전</span> ›</button>
+            <div class="lw"><div class="sl">이용 주체</div><div class="sd">다시 선택하면 로그인도 다시 확인해요</div></div>
+            <button class="region-val" onclick="showSubjectResetConfirm()">👤 <span id="subjectVal">선택 전</span> ›</button>
           </div>
           <div class="set-row">
             <div class="lw"><div class="sl">로그인 정보</div><div class="sd" id="loginVal">아직 확인 전이에요</div></div>
@@ -676,6 +676,16 @@ body{
       <div class="confirm-actions">
         <button type="button" onclick="confirmExitApp()">나가기</button>
         <button type="button" class="primary" onclick="closeBackConfirm()">계속 이용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-layer" id="subjectResetConfirm" hidden>
+    <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="subjectResetConfirmTitle">
+      <h2 id="subjectResetConfirmTitle">처음부터 다시 선택할까요?</h2>
+      <div class="confirm-actions">
+        <button type="button" onclick="confirmResetSubject()">다시 선택</button>
+        <button type="button" class="primary" onclick="closeSubjectResetConfirm()">계속 이용</button>
       </div>
     </div>
   </div>
@@ -1068,6 +1078,20 @@ function chooseSubject(id){
   logEvent("subject_confirm",{subject:currentSubject.id,method:"direct"});
   updateSubjectUi();
   if(currentUser){go("home");toast(`${currentSubject.label}로 시작합니다`);}else go("login");
+}
+function showSubjectResetConfirm(){
+  const modal=document.getElementById("subjectResetConfirm");
+  if(modal)modal.hidden=false;
+  logEvent("subject_reset_confirm_open",{screen:activeScreen});
+}
+function closeSubjectResetConfirm(){
+  const modal=document.getElementById("subjectResetConfirm");
+  if(modal)modal.hidden=true;
+}
+function confirmResetSubject(){
+  closeSubjectResetConfirm();
+  logEvent("subject_reset_confirmed",{screen:activeScreen});
+  resetSubject();
 }
 function resetSubject(){
   store.set("cb_subject","");
@@ -1976,6 +2000,11 @@ function updateUserUi(){
 
 /* 화면 전환 */
 function handleBack(){
+  const subjectModal=document.getElementById("subjectResetConfirm");
+  if(subjectModal&&!subjectModal.hidden){
+    closeSubjectResetConfirm();
+    return;
+  }
   if(isFullReaderOpen()){
     closeFullReader();
     return;
@@ -2034,6 +2063,11 @@ function go(screen){
   if(screen==="home")showHomeCueSoon(520);
 	}
 function handleBrowserBack(){
+  const subjectModal=document.getElementById("subjectResetConfirm");
+  if(subjectModal&&!subjectModal.hidden){
+    closeSubjectResetConfirm();
+    return true;
+  }
   closeBackConfirm();
   if(isFullReaderOpen()){
     closeFullReader();
@@ -2837,7 +2871,7 @@ async function init(){
       if(activeScreen!=="home"||isHomeNearBottom()||scrollBox.scrollTop>30)hideHomeCue();
     },{passive:true});
   }
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeLoginModal();}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeSubjectResetConfirm();closeLoginModal();}});
   if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else if(!currentUser)go("login");else go("home");
 }
 function quickStart(i){const q=QUICK_QUESTIONS[i];logEvent("quick_start",{index:i,label:q&&q.label,seed:q&&q.seed});startChat(q.seed);}
