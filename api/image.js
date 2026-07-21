@@ -1,7 +1,7 @@
 const DEFAULT_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
 const DEFAULT_STICKER_MODEL = process.env.OPENAI_STICKER_IMAGE_MODEL || "gpt-image-2";
 const DEFAULT_QUALITY = process.env.OPENAI_IMAGE_QUALITY || "medium";
-const DEFAULT_STICKER_QUALITY = process.env.OPENAI_STICKER_IMAGE_QUALITY || "high";
+const DEFAULT_STICKER_QUALITY = process.env.OPENAI_STICKER_IMAGE_QUALITY || "medium";
 const DAILY_LIMIT = Number(process.env.OPENAI_IMAGE_DAILY_LIMIT || 3);
 const MAX_PROMPT_CHARS = 4000;
 const MAX_IMAGE_BYTES = 7 * 1024 * 1024;
@@ -290,6 +290,7 @@ module.exports = async function imageHandler(req, res) {
 
     return sendJson(res, 200, {
       ...image,
+      imageDataUrl: image.imageUrl,
       generatedBy: "openai",
       mode,
       model,
