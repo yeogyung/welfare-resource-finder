@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const { supabaseRequest, encodeEq } = require("./_supabase");
 
 const SUBJECTS = new Set(["general", "participant", "staff"]);
-const PARTICIPANT_LOCK_AFTER = process.env.PARTICIPANT_LOCK_AFTER || "2026-07-21T15:00:00.000Z";
+const PARTICIPANT_LOCK_AFTER = process.env.PARTICIPANT_LOCK_AFTER || "2026-07-21T15:45:00.000Z";
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;

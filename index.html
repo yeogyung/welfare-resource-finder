@@ -949,7 +949,7 @@ const EVAL_SET=[
 
 /* 저장소 */
 const store={mem:{},get(k){try{const v=localStorage.getItem(k);return v!==null?v:(this.mem[k]??null);}catch(e){return this.mem[k]??null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){this.mem[k]=v;}}};
-const LOGIN_SESSION_VERSION="education-20260722-v1";
+const LOGIN_SESSION_VERSION="education-20260722-v2";
 if(store.get("cb_login_session_version")!==LOGIN_SESSION_VERSION){
   ["cb_subject","cb_user_profile","cb_current_conversation"].forEach(k=>store.set(k,""));
   store.set("cb_login_session_version",LOGIN_SESSION_VERSION);
