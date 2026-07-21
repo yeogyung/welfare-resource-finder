@@ -1,4 +1,5 @@
 const DEFAULT_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1-mini";
+const DEFAULT_STICKER_MODEL = process.env.OPENAI_STICKER_IMAGE_MODEL || "gpt-image-1";
 const DAILY_LIMIT = Number(process.env.OPENAI_IMAGE_DAILY_LIMIT || 3);
 const MAX_PROMPT_CHARS = 4000;
 const MAX_IMAGE_BYTES = 7 * 1024 * 1024;
@@ -51,6 +52,12 @@ function takeQuota(key, limit) {
 function normalizeSize(size) {
   const allowed = new Set(["1024x1024", "1024x1536", "1536x1024"]);
   return allowed.has(size) ? size : "1024x1024";
+}
+
+function resolveModel(body) {
+  if (body.model) return compact(body.model, 80);
+  if (body.templateId === "sticker_from_photo") return DEFAULT_STICKER_MODEL;
+  return DEFAULT_MODEL;
 }
 
 function dataUrlToBlobParts(dataUrl) {
@@ -123,7 +130,7 @@ module.exports = async function imageHandler(req, res) {
     });
   }
 
-  const model = compact(body.model || DEFAULT_MODEL, 80);
+  const model = resolveModel(body);
   const size = normalizeSize(body.size);
   const endpoint = mode === "edit" ? "https://api.openai.com/v1/images/edits" : "https://api.openai.com/v1/images/generations";
 
