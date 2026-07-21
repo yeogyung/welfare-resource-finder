@@ -289,6 +289,7 @@ module.exports = async function imageHandler(req, res) {
     }).catch(() => {});
 
     return sendJson(res, 200, {
+      ok: true,
       ...image,
       imageDataUrl: image.imageUrl,
       generatedBy: "openai",
