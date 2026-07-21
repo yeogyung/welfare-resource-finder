@@ -1,6 +1,6 @@
 const DEFAULT_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1-mini";
 const DAILY_LIMIT = Number(process.env.OPENAI_IMAGE_DAILY_LIMIT || 3);
-const MAX_PROMPT_CHARS = 1200;
+const MAX_PROMPT_CHARS = 4000;
 const MAX_IMAGE_BYTES = 7 * 1024 * 1024;
 const { supabaseRequest } = require("./_supabase");
 
@@ -22,7 +22,12 @@ function readBody(req) {
 }
 
 function compact(value, max = MAX_PROMPT_CHARS) {
-  return String(value || "").replace(/\s+/g, " ").trim().slice(0, max);
+  return String(value || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+    .slice(0, max);
 }
 
 function clientKey(req, body) {

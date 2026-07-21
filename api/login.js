@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const { supabaseRequest, encodeEq } = require("./_supabase");
 
 const SUBJECTS = new Set(["general", "participant", "staff"]);
+const PARTICIPANT_LOCK_AFTER = process.env.PARTICIPANT_LOCK_AFTER || "2026-07-21T15:00:00.000Z";
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -71,6 +72,15 @@ async function getParticipant(participantId) {
   return Array.isArray(result.data) ? result.data[0] || null : null;
 }
 
+async function isParticipantLocked(participantId) {
+  if (!participantId) return false;
+  const result = await supabaseRequest(
+    `/app_users?participant_id=eq.${encodeEq(participantId)}&last_seen_at=gte.${encodeEq(PARTICIPANT_LOCK_AFTER)}&select=id&limit=1`
+  );
+  if (!result.configured || !result.ok) return false;
+  return Array.isArray(result.data) && result.data.length > 0;
+}
+
 module.exports = async function loginHandler(req, res) {
   if (req.method && !["POST", "OPTIONS"].includes(req.method)) {
     return sendJson(res, 405, { error: "Method not allowed" });
@@ -88,6 +98,12 @@ module.exports = async function loginHandler(req, res) {
 
   if (displayName.length < 2) return sendJson(res, 400, { error: "Name is required" });
   if (!participant && phone.length < 8) return sendJson(res, 400, { error: "Valid phone number is required" });
+  if (participant && (await isParticipantLocked(participant.id))) {
+    return sendJson(res, 409, {
+      error: "Participant already selected",
+      message: "이미 선택된 성함이에요. 담당자에게 말씀해 주세요.",
+    });
+  }
 
   const phoneLast4 = participant?.phone_last4 || phone.slice(-4);
   const phoneMasked = participant?.phone_masked || maskPhone(phone);

@@ -49,7 +49,7 @@ body{
 /* 상단바 */
 .appbar{min-width:0;max-width:100%;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px 12px;
   background:var(--surface);border-bottom:1px solid var(--line-2);z-index:6;}
-.back-btn{min-width:74px;height:38px;border:none;border-radius:999px;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-size:15px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;padding:0 10px;white-space:nowrap;box-shadow:inset 0 0 0 1px rgba(58,143,122,.18);}
+.back-btn{min-width:88px;height:42px;border:none;border-radius:999px;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-size:18px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;padding:0 14px;white-space:nowrap;box-shadow:inset 0 0 0 1px rgba(58,143,122,.18);}
 .back-btn:active{transform:scale(.94);}
 .brand{display:flex;align-items:center;gap:8px;min-width:max-content;flex:0 0 auto;}
 .brand img{width:32px;height:32px;border-radius:9px;display:block;}
@@ -89,11 +89,11 @@ body{
 .subject-card.primary .arr{color:var(--teal-dark);font-size:1.8em;}
 .subject-badge{display:inline-flex;width:max-content;max-width:100%;margin-bottom:7px;border-radius:999px;background:var(--teal);color:#fff;padding:4px 9px;font-size:.72em;font-weight:900;line-height:1.2;}
 .subject-secondary-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-.subject-card.compact{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:112px;padding:12px 10px;border-radius:14px;}
-.subject-card.compact .si{width:39px;height:39px;border-radius:12px;}
-.subject-card.compact .si svg{width:24px;height:24px;}
-.subject-card.compact .st{font-size:.91em;line-height:1.25;}
-.subject-card.compact .sd{font-size:.72em;line-height:1.34;margin-top:3px;color:var(--ink-4);}
+.subject-card.compact{display:grid;grid-template-columns:46px minmax(0,1fr);gap:10px;align-items:center;min-height:88px;padding:13px 12px;border-radius:14px;}
+.subject-card.compact .si{width:46px;height:46px;border-radius:14px;}
+.subject-card.compact .si svg{width:28px;height:28px;}
+.subject-card.compact .st{font-size:1.06em;line-height:1.25;}
+.subject-card.compact .sd{font-size:.78em;line-height:1.34;margin-top:3px;color:var(--ink-4);}
 .subject-card.compact .arr{display:none;}
 .subject-note{margin-top:15px;color:var(--ink-5);font-size:.8em;font-weight:650;line-height:1.55;word-break:keep-all;}
 [hidden]{display:none!important;}
@@ -111,6 +111,8 @@ body{
 .participant-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
 .participant-btn{border:1.5px solid var(--line);border-radius:12px;background:#fff;min-height:48px;padding:10px 8px;font-family:inherit;font-size:.92em;font-weight:900;color:var(--ink);cursor:pointer;word-break:keep-all;}
 .participant-btn.on{border-color:var(--teal);background:var(--teal-soft);color:var(--teal-dark);box-shadow:0 0 0 2px rgba(58,143,122,.12);}
+.participant-btn:disabled,.participant-btn.locked{background:#F1F3F5;border-color:#D8DEE6;color:#98A2B3;cursor:not-allowed;box-shadow:none;}
+.participant-lock{display:block;margin-top:3px;font-size:.72em;font-weight:900;color:#7C8798;}
 .participant-loading{margin-top:10px;color:var(--ink-5);font-size:.82em;font-weight:700;}
 .manual-toggle{margin-top:10px;border:none;background:transparent;color:var(--teal-dark);font-family:inherit;font-size:.82em;font-weight:900;text-decoration:underline;cursor:pointer;}
 .login-form{display:flex;flex-direction:column;gap:13px;margin-top:16px;}
@@ -242,6 +244,8 @@ body{
 .typing{display:flex;gap:5px;padding:14px 17px;}
 .typing span{width:8px;height:8px;border-radius:50%;background:var(--ink-5);animation:blink 1.2s infinite;}
 .typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+.typing-wrap{display:flex;align-items:center;gap:11px;flex-wrap:wrap;}
+.stop-gen{border:1.4px solid var(--emergency);border-radius:999px;background:#fff;color:var(--emergency);font-family:inherit;font-size:.82em;font-weight:900;padding:8px 12px;cursor:pointer;}
 @keyframes blink{0%,60%,100%{opacity:.3}30%{opacity:1}}
 /* 꼬리질문 선택지 */
 .choices{display:flex;flex-direction:column;gap:9px;padding:2px 14px 6px 60px;}
@@ -249,6 +253,8 @@ body{
   padding:14px 16px;font-family:inherit;font-weight:600;font-size:1em;text-align:left;cursor:pointer;
   box-shadow:var(--shadow-chip);transition:.14s;display:flex;align-items:center;gap:10px;}
 .choice:active{transform:scale(.985);background:var(--teal-soft);border-color:var(--teal-mid);}
+.choice:disabled{opacity:.72;cursor:default;transform:none;}
+.choice.selected{border-color:var(--teal);background:var(--teal-soft);color:var(--teal-dark);font-weight:900;}
 .choice.skip{border-style:dashed;color:var(--teal-dark);font-weight:700;box-shadow:none;background:transparent;justify-content:center;}
 .choice .ce{font-size:1.2em;}
 .step-tag{align-self:flex-start;margin:0 0 -4px 60px;font-size:.76em;font-weight:800;color:var(--teal-dark);
@@ -265,6 +271,9 @@ body{
 .composer .csend{width:44px;height:44px;border-radius:50%;border:none;background:var(--teal);color:#fff;flex:0 0 44px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.14s;}
 .composer .csend svg{width:21px;height:21px;}
 .composer .csend:active,.composer .cmic:active,.composer .cadd:active{transform:scale(.93);}
+.composer.busy .tinput{background:#F1F3F5;color:#98A2B3;}
+.composer.busy .cmic,.composer.busy .cadd,.composer.busy .csend{opacity:.55;cursor:not-allowed;}
+.composer .tinput:disabled{cursor:not-allowed;}
 
 /* ===== 자원 카드 ===== */
 .cardwrap{align-self:stretch;padding-left:60px;display:flex;flex-direction:column;gap:10px;}
@@ -343,6 +352,9 @@ body{
 	.sticker-example figcaption{padding:8px 6px;text-align:center;color:var(--teal-dark);font-size:.8em;font-weight:900;line-height:1.25;}
 	.sticker-photo-examples{margin:10px 0 2px 0;padding:10px 12px 10px 30px;background:var(--teal-soft);border-radius:12px;color:var(--teal-dark);font-size:.9em;font-weight:900;line-height:1.6;}
 	.sticker-photo-examples li{padding-left:2px;}
+	.photo-confirm-preview{margin-top:14px;border:1px solid var(--line-2);border-radius:14px;background:var(--bg);overflow:hidden;}
+	.photo-confirm-preview img{display:block;width:100%;max-height:240px;object-fit:contain;background:#fff;}
+	.photo-confirm-preview figcaption{padding:9px 10px;text-align:center;color:var(--teal-dark);font-size:.86em;font-weight:900;}
 	.image-style-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
 	.image-style-card{border:1.4px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font-family:inherit;text-align:left;padding:10px;cursor:pointer;box-shadow:var(--shadow-card);}
 	.image-style-card strong{display:block;margin-top:8px;font-size:.92em;font-weight:900;line-height:1.3;word-break:keep-all;}
@@ -417,6 +429,7 @@ body{
 .confirm-layer{position:absolute;inset:0;background:rgba(16,24,40,.42);z-index:46;display:flex;align-items:center;justify-content:center;padding:20px;}
 .confirm-box{width:100%;max-width:340px;background:#fff;border-radius:18px;padding:22px 18px 16px;box-shadow:0 20px 50px rgba(16,24,40,.28);}
 .confirm-box h2{font-size:1.16em;font-weight:900;line-height:1.35;color:var(--ink);}
+.confirm-box p{margin-top:8px;color:var(--ink-4);font-size:.92em;font-weight:750;line-height:1.5;word-break:keep-all;}
 .confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
 .confirm-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-3);font-family:inherit;font-weight:900;font-size:.95em;padding:13px 8px;cursor:pointer;}
 .confirm-actions .primary{background:var(--teal);border-color:var(--teal);color:#fff;}
@@ -427,7 +440,7 @@ body{
 @media (max-width:640px){
   .appbar{width:100%;padding-left:12px;padding-right:12px;overflow:hidden;gap:7px;}
   .appbar-actions{flex:0 0 auto;gap:5px;}
-  .back-btn{min-width:70px;height:38px;padding:0 9px;font-size:14px;}
+  .back-btn{min-width:84px;height:42px;padding:0 12px;font-size:17px;}
   .brand{gap:7px;}
   .brand img{width:31px;height:31px;}
   .brand b{font-size:17px;}
@@ -445,7 +458,7 @@ body{
 @media (max-width:374px){
   .qgrid{grid-template-columns:1fr;}
   .appbar-actions{gap:5px;}
-  .back-btn{min-width:64px;padding:0 8px;font-size:13px;}
+  .back-btn{min-width:76px;padding:0 10px;font-size:16px;}
   .brand{gap:6px;}
   .brand img{width:29px;height:29px;}
   .brand b{font-size:16px;}
@@ -457,7 +470,7 @@ body{
 <body class="fs-1">
 <div class="phone">
   <header class="appbar">
-    <button class="back-btn" id="backBtn" onclick="handleBack()" aria-label="돌아가기" hidden>← 뒤로</button>
+    <button class="back-btn" id="backBtn" onclick="handleBack()" aria-label="뒤로" hidden>← 뒤로</button>
     <div class="brand"><img id="logoImg" alt="찾아봇 로고"><b>찾아봇</b></div>
     <div class="appbar-actions">
       <button class="mini-btn" id="fontMini" onclick="cycleFont()"><span class="a">가</span> 글자</button>
@@ -470,8 +483,8 @@ body{
     <section id="screen-subject" class="screen active">
       <div class="subject-screen">
         <div class="subject-kicker">찾아봇 시작</div>
-        <h1 class="subject-title">교육 참가자는 여기로 시작해 주세요</h1>
-        <p class="subject-sub">현장 교육에 참여하시는 어르신은 큰 버튼을 눌러 주세요. 일반 이용자와 운영자는 아래에서 선택할 수 있어요.</p>
+        <h1 class="subject-title">내 유형을 선택해 주세요</h1>
+        <p class="subject-sub">교육 참가자는 큰 버튼으로 시작해 주세요.</p>
         <div class="progress-row" aria-hidden="true"><span class="progress-dot on"></span><span class="progress-dot"></span></div>
         <div class="subject-list" id="subjectCards"></div>
         <p class="subject-note">선택 후 이름과 전화번호 확인을 거쳐 찾아봇을 시작합니다.</p>
@@ -698,6 +711,30 @@ body{
     </div>
   </div>
 
+  <div class="confirm-layer" id="participantConfirm" hidden>
+    <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="participantConfirmTitle">
+      <h2 id="participantConfirmTitle"><span id="participantConfirmName">선택한 이름</span>님이 맞으신가요?</h2>
+      <div class="confirm-actions">
+        <button type="button" onclick="cancelParticipantSelection()">아니오</button>
+        <button type="button" class="primary" onclick="confirmParticipantSelection()">네</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-layer" id="photoConfirm" hidden>
+    <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="photoConfirmTitle">
+      <h2 id="photoConfirmTitle">이 사진으로 만들까요?</h2>
+      <figure class="photo-confirm-preview">
+        <img id="photoConfirmPreview" alt="선택한 사진 미리보기">
+        <figcaption>선택한 사진</figcaption>
+      </figure>
+      <div class="confirm-actions">
+        <button type="button" onclick="cancelPhotoSelection()">다시 고르기</button>
+        <button type="button" class="primary" onclick="confirmPhotoSelection()">네</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
@@ -912,6 +949,11 @@ const EVAL_SET=[
 
 /* 저장소 */
 const store={mem:{},get(k){try{const v=localStorage.getItem(k);return v!==null?v:(this.mem[k]??null);}catch(e){return this.mem[k]??null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){this.mem[k]=v;}}};
+const LOGIN_SESSION_VERSION="education-20260722-v1";
+if(store.get("cb_login_session_version")!==LOGIN_SESSION_VERSION){
+  ["cb_subject","cb_user_profile","cb_current_conversation"].forEach(k=>store.set(k,""));
+  store.set("cb_login_session_version",LOGIN_SESSION_VERSION);
+}
 let savedIds=(()=>{try{return JSON.parse(store.get("cb_saved")||"[]");}catch(e){return [];}})();
 let ttsOn=store.get("cb_tts")==="1";
 let fontLevel=parseInt(store.get("cb_font")||"1");
@@ -923,6 +965,7 @@ let pendingLogin=null;
 let participantOptions=[];
 let participantListLoaded=false;
 let selectedParticipant=null;
+let pendingParticipantConfirm=null;
 let manualParticipantLogin=false;
 let lastEval=null;
 let ctx={cat:null,tokens:[],query:""}; // 버튼 기반 추천 상태
@@ -937,6 +980,8 @@ const STICKER_EXAMPLE_INPUT="./public/assets/sticker-example-input.png";
 const STICKER_EXAMPLE_RESULT="./public/assets/sticker-example-result.png";
 let pendingImageTemplate=null;
 let pendingImageFlow=null;
+let pendingPhotoConfirm=null;
+let activeImageController=null;
 let generatedImages={};
 let fullTextStore={};
 let ga4Ready=false;
@@ -1543,15 +1588,7 @@ function askImageDetails(flow){
 function buildImagePrompt(flow){
   const template=flow.template||{};
   if(isStickerSheetTemplate(template)){
-    const first=flow.initialText?`처음 요청: ${flow.initialText}`:"";
-    return [
-      template.prompt||"첨부한 사진을 활용해서 카카오톡/라인 스타일 16개 4x4 이모티콘 시트를 만들어 주세요.",
-      "업로드한 사진 속 인물의 얼굴, 머리 모양, 옷, 원본 분위기를 최대한 유지하세요.",
-      "한 장의 이미지 안에 16개 스티커를 4x4로 균형 있게 배치하세요. 각 스티커는 서로 겹치지 않게 충분히 간격을 두세요.",
-      "각 스티커는 흰색 외곽 테두리가 있는 카카오톡/라인 스타일 스티커 느낌으로 만드세요.",
-      "텍스트는 짧은 한국어 문구만 사용하고, 문구가 얼굴을 가리지 않게 배치하세요.",
-      first
-    ].filter(Boolean).join("\n");
+    return template.prompt||"첨부한 사진을 활용해서 카카오톡/라인 스타일 이모티콘 시트 만들어줘.";
   }
   const answers=(flow.answers||[]).map(a=>`${a.key}: ${a.value}`).join(" / ");
   const first=flow.initialText?`처음 요청: ${flow.initialText}`:"";
@@ -1617,6 +1654,7 @@ function showImageTemplateChoices(){
   addBot(`${esc(msg)}<div class="image-template-grid chat-image-template-grid">${imageTemplates.map(imageTemplateButton).join("")}</div>`,{text:msg});
 }
 async function openImageUploadFromComposer(){
+  if(assistantBusy){toast("답변이 끝난 뒤 사진을 추가해 주세요");return;}
   logEvent("composer_plus_click",{target:"image_upload"});
   if(!currentSubject){go("subject");return;}
   if(!currentUser){go("login");return;}
@@ -1753,10 +1791,50 @@ async function resizeImageDataUrl(file){
     img.src=raw;
   });
 }
+function showPhotoConfirm(template,imageDataUrl){
+  pendingPhotoConfirm={template,imageDataUrl};
+  const preview=document.getElementById("photoConfirmPreview");
+  const modal=document.getElementById("photoConfirm");
+  if(preview)preview.src=imageDataUrl;
+  if(modal)modal.hidden=false;
+  logEvent("image_photo_confirm_open",{templateId:template&&template.id||""});
+}
+function cancelPhotoSelection(reopen=true){
+  const modal=document.getElementById("photoConfirm");
+  if(modal)modal.hidden=true;
+  pendingPhotoConfirm=null;
+  if(reopen)setTimeout(()=>document.getElementById("imageUploadInput")?.click(),80);
+}
+function confirmPhotoSelection(){
+  const item=pendingPhotoConfirm;
+  const modal=document.getElementById("photoConfirm");
+  if(modal)modal.hidden=true;
+  pendingPhotoConfirm=null;
+  if(!item||!item.template||!item.imageDataUrl)return;
+  const template=item.template;
+  addUser("사진을 선택했어요");
+  if(!pendingImageFlow||pendingImageFlow.template.id!==template.id){
+    pendingImageFlow={template,mode:"edit",imageDataUrl:"",answers:[],initialText:"",step:""};
+  }
+  pendingImageFlow.imageDataUrl=item.imageDataUrl;
+  pendingImageTemplate=null;
+  logEvent("image_photo_confirm_yes",{templateId:template.id||""});
+  if(isStickerSheetTemplate(template)){
+    generateStickerSheet(pendingImageFlow);
+    return;
+  }
+  askImageStyle(pendingImageFlow);
+}
 async function handleImageFile(event){
   const file=event.target.files&&event.target.files[0];
   event.target.value="";
-  if(!file)return;
+  if(!file){
+    if(pendingImageTemplate||pendingImageFlow){
+      const msg="사진을 골라야 이미지를 만들 수 있어요. 사진 고르기를 눌러주세요.";
+      addBot(`${esc(msg)}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 고르기</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
+    }
+    return;
+  }
   if(!pendingImageTemplate){
     if(!imageTemplates.length)await loadImageTemplates();
     pendingImageTemplate=imageTemplates.find(t=>t.id==="profile_makeover")||imageTemplates.find(t=>t.requiresImage&&t.id!=="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage)||null;
@@ -1775,19 +1853,9 @@ async function handleImageFile(event){
   }
   const template=pendingImageTemplate;
   if(!prepareImageChat())return;
-  addUser("사진을 선택했어요");
   try{
     const imageDataUrl=await resizeImageDataUrl(file);
-    if(!pendingImageFlow||pendingImageFlow.template.id!==template.id){
-      pendingImageFlow={template,mode:"edit",imageDataUrl:"",answers:[],initialText:"",step:""};
-    }
-    pendingImageFlow.imageDataUrl=imageDataUrl;
-    pendingImageTemplate=null;
-    if(isStickerSheetTemplate(template)){
-      generateStickerSheet(pendingImageFlow);
-      return;
-    }
-    askImageStyle(pendingImageFlow);
+    showPhotoConfirm(template,imageDataUrl);
   }catch(e){
     const msg="사진을 읽지 못했어요. 다른 사진으로 다시 시도해 주세요.";
     addBot(esc(msg),{text:msg});
@@ -1830,6 +1898,16 @@ async function downloadGeneratedImage(id){
     toast("새 창에서 이미지를 열었어요");
   }
 }
+function cancelImageRequest(){
+  if(activeImageController){
+    try{activeImageController.abort();}catch(e){}
+    activeImageController=null;
+  }
+  rmTyping();
+  const msg="이미지 생성을 중지했어요. 다시 만들고 싶으면 버튼을 눌러 주세요.";
+  addBot(`${esc(msg)}<div class="image-actions"><button class="primary" onclick="showImageTemplateChoices()">이미지 다시 만들기</button><button onclick="focusChat()">직접 말하기</button></div>`,{text:msg});
+  logEvent("image_request_cancel");
+}
 async function requestImage({mode="generate",prompt="",imageDataUrl="",label="이미지",templateId=""}={}){
   if(!prepareImageChat())return true;
   const cleanPrompt=String(prompt||"").trim();
@@ -1839,13 +1917,18 @@ async function requestImage({mode="generate",prompt="",imageDataUrl="",label="�
     return true;
   }
   logEvent("image_request_submit",{mode,templateId:templateId||"",label});
-  addTyping();
+  if(activeImageController){
+    try{activeImageController.abort();}catch(e){}
+  }
+  activeImageController=new AbortController();
+  addTyping({cancelable:true,label:"이미지 생성 중"});
   let typing=true;
   function clearTyping(){if(typing){rmTyping();typing=false;}}
   try{
     const response=await fetch("/api/image",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
+      signal:activeImageController.signal,
       body:JSON.stringify({
         mode,
         prompt:cleanPrompt,
@@ -1858,6 +1941,7 @@ async function requestImage({mode="generate",prompt="",imageDataUrl="",label="�
       })
     });
     const data=await response.json().catch(()=>({}));
+    activeImageController=null;
     clearTyping();
     if(!response.ok){
       const msg=data.message||"이미지 기능이 잠시 어렵습니다. 잠시 뒤 다시 시도해 주세요.";
@@ -1875,6 +1959,11 @@ async function requestImage({mode="generate",prompt="",imageDataUrl="",label="�
     logEvent("image_request_success",{mode,templateId:templateId||"",quotaRemaining:data.quota&&data.quota.remaining});
     return true;
   }catch(e){
+    if(e&&e.name==="AbortError"){
+      clearTyping();
+      return true;
+    }
+    activeImageController=null;
     clearTyping();
     const msg="이미지 연결이 잠시 어렵습니다. 인터넷 상태를 확인하고 다시 시도해 주세요.";
     addBot(esc(msg),{text:msg});
@@ -1884,6 +1973,7 @@ async function requestImage({mode="generate",prompt="",imageDataUrl="",label="�
 }
 function useManualLogin(){
   selectedParticipant=null;
+  pendingParticipantConfirm=null;
   manualParticipantLogin=true;
   logEvent("participant_manual_login_open");
   const manual=document.getElementById("manualLoginFields");
@@ -1891,9 +1981,7 @@ function useManualLogin(){
   document.querySelectorAll(".participant-btn").forEach(btn=>btn.classList.remove("on"));
   setLoginError("");
 }
-function selectParticipant(id){
-  const item=participantOptions.find(p=>p.id===id);
-  if(!item)return;
+function applyParticipantSelection(item){
   selectedParticipant=item;
   manualParticipantLogin=false;
   const manual=document.getElementById("manualLoginFields");
@@ -1902,9 +1990,41 @@ function selectParticipant(id){
   if(manual)manual.hidden=true;
   if(name)name.value=item.displayName||"";
   if(phone)phone.value="";
-  document.querySelectorAll(".participant-btn").forEach(btn=>btn.classList.toggle("on",btn.dataset.id===id));
+  document.querySelectorAll(".participant-btn").forEach(btn=>btn.classList.toggle("on",btn.dataset.id===item.id));
   setLoginError("");
-  logEvent("participant_select",{participantId:id});
+  logEvent("participant_select",{participantId:item.id});
+}
+function showParticipantConfirm(item){
+  pendingParticipantConfirm=item;
+  const name=document.getElementById("participantConfirmName");
+  const modal=document.getElementById("participantConfirm");
+  if(name)name.textContent=item.displayName||"선택한 이름";
+  if(modal)modal.hidden=false;
+}
+function cancelParticipantSelection(){
+  pendingParticipantConfirm=null;
+  const modal=document.getElementById("participantConfirm");
+  if(modal)modal.hidden=true;
+}
+function confirmParticipantSelection(){
+  const item=pendingParticipantConfirm;
+  cancelParticipantSelection();
+  if(!item)return;
+  if(item.locked){
+    setLoginError("이미 선택된 성함이에요. 담당자에게 말씀해 주세요.");
+    return;
+  }
+  applyParticipantSelection(item);
+}
+function selectParticipant(id){
+  const item=participantOptions.find(p=>p.id===id);
+  if(!item)return;
+  if(item.locked){
+    setLoginError("이미 선택된 성함이에요. 담당자에게 말씀해 주세요.");
+    toast("이미 선택된 성함이에요");
+    return;
+  }
+  showParticipantConfirm(item);
 }
 function renderParticipantOptions(){
   const box=document.getElementById("participantList");
@@ -1916,10 +2036,15 @@ function renderParticipantOptions(){
   picker.hidden=!isParticipant||participantOptions.length===0;
   if(loading)loading.hidden=participantListLoaded;
   if(manual&&isParticipant&&participantOptions.length)manual.hidden=true;
-  box.innerHTML=participantOptions.map(p=>`<button class="participant-btn ${selectedParticipant&&selectedParticipant.id===p.id?'on':''}" type="button" data-id="${esc(p.id)}" onclick="selectParticipant('${esc(p.id)}')">${esc(p.displayName)}</button>`).join("");
+  if(selectedParticipant&&participantOptions.some(p=>p.id===selectedParticipant.id&&p.locked))selectedParticipant=null;
+  box.innerHTML=participantOptions.map(p=>{
+    const locked=Boolean(p.locked);
+    const on=selectedParticipant&&selectedParticipant.id===p.id;
+    return `<button class="participant-btn ${on?'on':''} ${locked?'locked':''}" type="button" data-id="${esc(p.id)}" ${locked?'disabled aria-disabled="true"':`onclick="selectParticipant('${esc(p.id)}')"`}>${esc(p.displayName)}${locked?'<span class="participant-lock">이미 선택됨</span>':""}</button>`;
+  }).join("");
 }
-async function loadParticipants(){
-  if(participantListLoaded)return renderParticipantOptions();
+async function loadParticipants(force=false){
+  if(participantListLoaded&&!force)return renderParticipantOptions();
   participantListLoaded=true;
   try{
     const response=await fetch("/api/participants");
@@ -1932,6 +2057,7 @@ async function loadParticipants(){
 }
 function prepareLoginScreen(){
   selectedParticipant=null;
+  pendingParticipantConfirm=null;
   manualParticipantLogin=false;
   updateSubjectUi();
   const manual=document.getElementById("manualLoginFields");
@@ -2008,6 +2134,16 @@ async function confirmLogin(){
       body:JSON.stringify({name:pendingLogin.name,phone:pendingLogin.phone,participantId:pendingLogin.participantId,subject:pendingLogin.subject})
     });
     const data=await response.json().catch(()=>({}));
+    if(!response.ok||data.error){
+      if(response.status===409){
+        setLoginError(data.message||"이미 선택된 성함이에요. 담당자에게 말씀해 주세요.");
+        if(btn){btn.disabled=false;btn.textContent=originalText||"계속하기";}
+        pendingLogin=null;
+        await loadParticipants(true);
+        return;
+      }
+      throw new Error(data.error||"login");
+    }
     currentUser=Object.assign({},fallback,data,{confirmedAt:new Date().toISOString()});
   }catch(e){
     currentUser=fallback;
@@ -2028,6 +2164,9 @@ async function confirmLogin(){
   }));
   pendingLogin=null;
   if(btn){btn.disabled=false;btn.textContent=originalText||"계속하기";}
+  if(currentUser&&currentUser.participantId){
+    participantOptions=participantOptions.map(p=>p.id===currentUser.participantId?Object.assign({},p,{locked:true}):p);
+  }
   closeLoginModal();
   updateUserUi();
   logEvent("login_confirm",{matched:Boolean(currentUser.matched),storage:currentUser.storage||"unknown"});
@@ -2064,6 +2203,16 @@ function handleBack(){
   const subjectModal=document.getElementById("subjectResetConfirm");
   if(subjectModal&&!subjectModal.hidden){
     closeSubjectResetConfirm();
+    return;
+  }
+  const participantModal=document.getElementById("participantConfirm");
+  if(participantModal&&!participantModal.hidden){
+    cancelParticipantSelection();
+    return;
+  }
+  const photoModal=document.getElementById("photoConfirm");
+  if(photoModal&&!photoModal.hidden){
+    cancelPhotoSelection(false);
     return;
   }
   if(isFullReaderOpen()){
@@ -2105,7 +2254,7 @@ function updateBackUi(screen){
   const btn=document.getElementById("backBtn");
   if(!btn)return;
   btn.hidden=(screen==="subject"&&!currentUser);
-  btn.textContent=screen==="home"?"← 뒤로":"← 돌아가기";
+  btn.textContent="← 뒤로";
 }
 function go(screen){
   activeScreen=screen;
@@ -2127,6 +2276,16 @@ function handleBrowserBack(){
   const subjectModal=document.getElementById("subjectResetConfirm");
   if(subjectModal&&!subjectModal.hidden){
     closeSubjectResetConfirm();
+    return true;
+  }
+  const participantModal=document.getElementById("participantConfirm");
+  if(participantModal&&!participantModal.hidden){
+    cancelParticipantSelection();
+    return true;
+  }
+  const photoModal=document.getElementById("photoConfirm");
+  if(photoModal&&!photoModal.hidden){
+    cancelPhotoSelection(false);
     return true;
   }
   closeBackConfirm();
@@ -2185,14 +2344,39 @@ function addBot(html,opts={}){
 }
 function setAssistantBusy(on){
   assistantBusy=Boolean(on);
+  const composer=document.getElementById("composer");
+  const input=document.getElementById("chatInput");
+  const mic=document.getElementById("chatMic");
+  const add=document.getElementById("chatAdd");
   const send=document.querySelector(".composer .csend");
+  if(composer)composer.classList.toggle("busy",assistantBusy);
+  if(input){
+    input.disabled=assistantBusy;
+    input.placeholder=assistantBusy?"답변이 끝난 뒤 입력해 주세요":rand(HOME_PLACEHOLDERS);
+  }
+  if(mic)mic.disabled=assistantBusy;
+  if(add)add.disabled=assistantBusy;
   if(send)send.disabled=assistantBusy;
 }
-function addTyping(){setAssistantBusy(true);const t=document.getElementById("thread");const old=document.getElementById("typing");if(old)old.remove();const w=document.createElement("div");w.className="msg bot";w.id="typing";w.innerHTML=`<div class="av"><img src="${FACE_THINK}" alt=""></div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;t.appendChild(w);scrollToTurn(w);}
+function addTyping(opts={}){setAssistantBusy(true);const t=document.getElementById("thread");const old=document.getElementById("typing");if(old)old.remove();const w=document.createElement("div");w.className="msg bot";w.id="typing";const cancel=opts.cancelable?`<button class="stop-gen" type="button" onclick="cancelImageRequest()">중지</button>`:"";w.innerHTML=`<div class="av"><img src="${FACE_THINK}" alt=""></div><div class="bubble"><div class="typing-wrap"><div class="typing" aria-label="${esc(opts.label||'답변 준비 중')}"><span></span><span></span><span></span></div>${cancel}</div></div>`;t.appendChild(w);scrollToTurn(w);}
 function rmTyping(){const t=document.getElementById("typing");if(t)t.remove();setAssistantBusy(false);}
 function addCards(list){const t=document.getElementById("thread");const w=document.createElement("div");w.className="cardwrap";w.innerHTML=list.map(rcard).join("");t.appendChild(w);return w;}
 function addChoices(items){const t=document.getElementById("thread");const w=document.createElement("div");w.className="choices";
-  w.innerHTML=items.map(c=>`<button class="choice ${c.skip?'skip':''}" onclick="${esc(c.action||"")}">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${esc(c.label)}</button>`).join("");t.appendChild(w);showScrollCueSoon(420);}
+  w.innerHTML=items.map(c=>{
+    const action=encodeURIComponent(c.action||"");
+    return `<button class="choice ${c.skip?'skip':''}" onclick="runChoice(this,'${action}')">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${esc(c.label)}</button>`;
+  }).join("");t.appendChild(w);showScrollCueSoon(420);}
+function runChoice(btn,encodedAction){
+  if(assistantBusy){toast("답변이 끝난 뒤 눌러 주세요");return;}
+  const wrap=btn&&btn.closest?btn.closest(".choices"):null;
+  if(wrap){
+    lastUserMessageEl=wrap;
+    wrap.querySelectorAll("button").forEach(b=>{b.disabled=true;b.classList.toggle("selected",b===btn);});
+  }
+  const action=decodeURIComponent(encodedAction||"");
+  if(!action)return;
+  try{Function(action)();}catch(e){toast("다시 한 번 눌러 주세요");}
+}
 function addStepTag(txt){const t=document.getElementById("thread");const w=document.createElement("div");w.className="step-tag";w.textContent=txt;t.appendChild(w);}
 function isNearChatBottom(){
   const b=document.getElementById("scroll");
