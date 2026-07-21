@@ -66,6 +66,7 @@ Supabase Table Editor에서 아래 테이블을 확인한다.
 
 - 원문 대화는 GA4가 아니라 Supabase `messages`에만 저장한다.
 - `usage_events.feature`가 `event:resource_detail_click`, `event:saved_share`처럼 시작하면 클릭 로그다.
+- 이미지 생성/편집 일일 제한은 KST 기준으로 `usage_events.feature in ('image_edit','image_generate')` 행을 세어 적용한다.
 - 원문 대화에는 건강, 가족, 연락처 같은 개인정보가 섞일 수 있으므로 관리자만 접근한다.
 - 교육/실습 종료 후에는 필요한 기간만 보관하고 오래된 `messages`부터 정리한다.
 - Supabase Free 플랜에서는 로그가 계속 쌓이면 저장 용량과 조회 속도에 영향을 줄 수 있다.
