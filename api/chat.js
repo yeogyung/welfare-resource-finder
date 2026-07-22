@@ -1,5 +1,5 @@
 const DEFAULT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
-const DEFAULT_WEB_SEARCH_MODEL = process.env.OPENAI_WEB_SEARCH_MODEL || "gpt-4.1-mini";
+const DEFAULT_WEB_SEARCH_MODEL = process.env.OPENAI_WEB_SEARCH_MODEL || "gpt-5.4-mini";
 const DAILY_LIMIT = Number(process.env.OPENAI_CHAT_DAILY_LIMIT || 80);
 const MAX_MESSAGE_CHARS = 1400;
 const MAX_HISTORY_ITEMS = 8;
@@ -148,6 +148,7 @@ function instructionsFor({ webSearch }) {
     "영화관 할인은 CGV, 롯데시네마, 메가박스, 카드사, 통신사 등 공식 페이지를 우선 확인한다.",
     "정확한 할인 적용 여부는 지점, 카드, 통신사, 연령, 예매 경로에 따라 달라질 수 있다고 짧게 알려준다.",
     "웹검색을 사용한 답변 끝에는 '확인한 곳'을 쓰고, 출처 이름과 URL을 2~4개 적는다.",
+    "마크다운 링크 형식 [이름](URL)은 쓰지 말고, 출처 URL은 그대로 적는다.",
   ].join("\n");
 }
 

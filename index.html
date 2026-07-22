@@ -1204,6 +1204,7 @@ function stripHtml(html){
 }
 function cleanAssistantText(text){
   const cleaned=String(text||"")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,"$1 $2")
     .replace(/\*\*/g,"")
     .replace(/^#{1,6}\s*/gm,"")
     .replace(/\s+(\d{1,2}[.)]\s+)/g,"\n$1")
