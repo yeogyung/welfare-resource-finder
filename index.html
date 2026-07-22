@@ -228,6 +228,7 @@ body{
 .bubble{padding:13px 16px;font-size:1.05em;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere;}
 .msg.bot .bubble{background:#fff;color:var(--ink);border:1px solid var(--line-2);border-radius:16px 16px 16px 4px;box-shadow:var(--shadow-card);}
 .msg.user .bubble{background:var(--teal);color:#fff;border-radius:16px 4px 16px 16px;font-weight:600;}
+.bubble a,.reader-body a{color:var(--teal-dark);font-weight:850;text-decoration:underline;text-underline-offset:2px;word-break:break-all;}
 .bubble .speak-ic{margin:8px 0 0 auto;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   color:var(--teal-dark);background:var(--teal-soft);border:none;cursor:pointer;}
 .bubble .speak-ic svg{width:19px;height:19px;}
@@ -1212,6 +1213,17 @@ function cleanAssistantText(text){
     .trim();
   return cleaned;
 }
+function linkifyEscapedText(text){
+  return esc(text).replace(/https?:\/\/[^\s<>"']+/g,(match)=>{
+    let url=match;
+    let tail="";
+    while(/[),.!?。！？]$/.test(url)){
+      tail=url.slice(-1)+tail;
+      url=url.slice(0,-1);
+    }
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${tail}`;
+  });
+}
 function hasFriendlyIcon(text){
   return /^[\s🍚🫂🩺💰🎈📱🚨☀️🌿💬🧭😊✨🎂🌷🫶💌🔎🏠]/.test(String(text||""));
 }
@@ -1229,7 +1241,7 @@ function needsFullReader(text){
   return clean.length>260||clean.split(/\n/).length>6;
 }
 function textBubbleHtml(text,opts={}){
-  const safe=esc(text);
+  const safe=linkifyEscapedText(text);
   if(!opts.safety&&needsFullReader(text)){
     const id=makeId("full");
     fullTextStore[id]=text;
@@ -1244,7 +1256,7 @@ function openFullText(text){
   const reader=document.getElementById("fullReader");
   const body=document.getElementById("fullReaderBody");
   if(!reader||!body)return;
-  body.textContent=cleanAssistantText(text);
+  body.innerHTML=linkifyEscapedText(cleanAssistantText(text));
   reader.hidden=false;
   logEvent("full_text_open",{length:String(text||"").length});
 }

@@ -1,4 +1,5 @@
 const DEFAULT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
+const DEFAULT_WEB_SEARCH_MODEL = process.env.OPENAI_WEB_SEARCH_MODEL || "gpt-4.1-mini";
 const DAILY_LIMIT = Number(process.env.OPENAI_CHAT_DAILY_LIMIT || 80);
 const MAX_MESSAGE_CHARS = 1400;
 const MAX_HISTORY_ITEMS = 8;
@@ -91,7 +92,72 @@ function extractOutputText(data) {
   return dedupeRepeatedText(chunks.join("\n"));
 }
 
-async function recordUsage(body, model, usage, quota) {
+function shouldUseWebSearch(message) {
+  if (process.env.OPENAI_WEB_SEARCH_ENABLED === "0") return false;
+  const q = String(message || "");
+  const liveIntent =
+    /오늘|내일|이번\s*(주|달|달엔|주말)|지금|현재|최근|최신|실시간|새로|업데이트/.test(q) ||
+    /할인|행사|이벤트|쿠폰|가격|요금|입장료|예매|예약|상영|시간표|운영\s*시간|영업\s*시간|휴무|근처|주소|전화번호|홈페이지|웹사이트/.test(q) ||
+    /영화관|CGV|씨지브이|롯데시네마|메가박스|극장|카드\s*할인|통신사\s*할인|멤버십/.test(q) ||
+    /날씨|교통|뉴스|공연|전시|박물관|축제/.test(q);
+  const creativeOnly = /삼행시|생일\s*문자|축하\s*문자|편지|농담|이야기\s*해줘|시\s*써|사진|이미지|이모티콘/.test(q);
+  return liveIntent && !creativeOnly;
+}
+
+function koreaDateLabel() {
+  try {
+    return new Intl.DateTimeFormat("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(new Date());
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
+function instructionsFor({ webSearch }) {
+  if (!webSearch) return instructions;
+  return [
+    instructions,
+    `오늘 날짜는 ${koreaDateLabel()}이다.`,
+    "사용자가 할인, 행사, 영화관, 가격, 상영시간, 운영시간, 최신 정보처럼 바뀔 수 있는 정보를 물으면 웹검색으로 확인한 내용만 답한다.",
+    "영화관 할인은 CGV, 롯데시네마, 메가박스, 카드사, 통신사 등 공식 페이지를 우선 확인한다.",
+    "정확한 할인 적용 여부는 지점, 카드, 통신사, 연령, 예매 경로에 따라 달라질 수 있다고 짧게 알려준다.",
+    "웹검색을 사용한 답변 끝에는 '확인한 곳'을 쓰고, 출처 이름과 URL을 2~4개 적는다.",
+  ].join("\n");
+}
+
+function extractCitations(data) {
+  const seen = new Set();
+  const citations = [];
+  for (const output of data?.output || []) {
+    for (const content of output?.content || []) {
+      for (const ann of content?.annotations || []) {
+        if (ann?.type !== "url_citation" || !ann.url || seen.has(ann.url)) continue;
+        seen.add(ann.url);
+        citations.push({ title: compact(ann.title || "관련 페이지", 120), url: ann.url });
+      }
+    }
+  }
+  return citations.slice(0, 4);
+}
+
+function usedWebSearch(data) {
+  return Array.isArray(data?.output) && data.output.some((item) => item?.type === "web_search_call");
+}
+
+function appendSources(answer, citations) {
+  if (!citations.length) return answer;
+  const sourceLines = citations
+    .filter((item) => item.url && !answer.includes(item.url))
+    .map((item, index) => `${index + 1}. ${item.title} ${item.url}`);
+  if (!sourceLines.length) return answer;
+  return `${answer}\n\n확인한 곳\n${sourceLines.join("\n")}`;
+}
+
+async function recordUsage(body, model, usage, quota, extra = {}) {
   const userId = compact(body.userId || "anonymous", 140);
   const eventId = `usage_chat_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   const inputTokens = Number(usage?.input_tokens || usage?.prompt_tokens || 0) || null;
@@ -102,7 +168,7 @@ async function recordUsage(body, model, usage, quota) {
     body: {
       id: eventId,
       user_id: userId,
-      feature: "chat",
+      feature: extra.feature || "chat",
       provider: "openai",
       model,
       input_tokens: inputTokens,
@@ -112,6 +178,8 @@ async function recordUsage(body, model, usage, quota) {
         subject: body.subject || null,
         userType: body.userType || null,
         quotaRemaining: quota?.remaining ?? null,
+        webSearch: Boolean(extra.webSearch),
+        sourceCount: Number(extra.sourceCount || 0),
       },
     },
   });
@@ -158,14 +226,19 @@ module.exports = async function chatHandler(req, res) {
   }
 
   const history = normalizeHistory(body.history);
-  const model = compact(body.model || DEFAULT_MODEL, 80);
+  const webSearch = shouldUseWebSearch(message);
+  const model = webSearch ? compact(body.webSearchModel || DEFAULT_WEB_SEARCH_MODEL, 80) : compact(body.model || DEFAULT_MODEL, 80);
   const payload = {
     model,
-    instructions,
+    instructions: instructionsFor({ webSearch }),
     input: transcriptFrom(history, message),
     max_output_tokens: Number(process.env.OPENAI_CHAT_MAX_OUTPUT_TOKENS || 700),
     store: false,
   };
+  if (webSearch) {
+    payload.tools = [{ type: "web_search" }];
+    payload.tool_choice = "required";
+  }
 
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -187,20 +260,31 @@ module.exports = async function chatHandler(req, res) {
     if (!response.ok) {
       return sendJson(res, response.status, {
         error: "OpenAI chat request failed",
+        message: webSearch
+          ? "실시간 정보 검색 연결이 잠시 어렵습니다. 조금 뒤 다시 물어봐 주세요."
+          : undefined,
         detail: text.slice(0, 700),
       });
     }
 
-    const answer = extractOutputText(data);
+    const citations = extractCitations(data);
+    const webSearchUsed = webSearch && usedWebSearch(data);
+    const answer = appendSources(extractOutputText(data), citations);
     if (!answer) return sendJson(res, 502, { error: "Empty OpenAI answer" });
-    await recordUsage(body, model, data.usage || null, quota).catch(() => {});
+    await recordUsage(body, model, data.usage || null, quota, {
+      feature: webSearchUsed ? "chat_web_search" : "chat",
+      webSearch: webSearchUsed,
+      sourceCount: citations.length,
+    }).catch(() => {});
 
     return sendJson(res, 200, {
       answer,
       generatedBy: "openai",
-      mode: "free-chat",
+      mode: webSearchUsed ? "web-search-chat" : "free-chat",
       model,
       quota,
+      webSearch: webSearchUsed,
+      sources: citations,
       usage: data.usage || null,
     });
   } catch (error) {
