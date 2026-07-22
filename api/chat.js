@@ -104,6 +104,11 @@ function shouldUseWebSearch(message) {
   return liveIntent && !creativeOnly;
 }
 
+function isCinemaDiscountQuery(message) {
+  const q = String(message || "");
+  return /영화관|CGV|씨지브이|롯데시네마|메가박스|극장/.test(q) && /할인|쿠폰|이벤트|행사|가격|요금|예매/.test(q);
+}
+
 function koreaDateLabel() {
   try {
     return new Intl.DateTimeFormat("ko-KR", {
@@ -115,6 +120,23 @@ function koreaDateLabel() {
   } catch {
     return new Date().toISOString().slice(0, 10);
   }
+}
+
+function inputFor(history, message, { webSearch }) {
+  const transcript = transcriptFrom(history, message);
+  if (!webSearch) return transcript;
+  const hints = [];
+  if (isCinemaDiscountQuery(message)) {
+    hints.push(
+      "영화관 할인 질문이다. CGV, 롯데시네마, 메가박스 공식 할인/이벤트 페이지를 우선 확인해서 영화관별로 짧게 안내한다.",
+      "너무 넓은 질문이라도 '확인해 보세요'만 말하지 말고, 현재 확인 가능한 대표 할인 경로와 주의사항을 먼저 답한다.",
+      "공식 확인 후보 URL: CGV 쿠폰/제휴할인 https://cgv.co.kr/evt/discountInformation",
+      "공식 확인 후보 URL: 롯데시네마 이벤트 https://www.lottecinema.co.kr/NLCMW/Event",
+      "공식 확인 후보 URL: 메가박스 제휴/할인 이벤트 https://megabox.co.kr/event/promotion"
+    );
+  }
+  hints.push("출처 URL은 반드시 평문 URL로 답변 끝에 적는다.");
+  return `${transcript}\n\n검색 지시:\n${hints.join("\n")}`;
 }
 
 function instructionsFor({ webSearch }) {
@@ -155,6 +177,15 @@ function appendSources(answer, citations) {
     .map((item, index) => `${index + 1}. ${item.title} ${item.url}`);
   if (!sourceLines.length) return answer;
   return `${answer}\n\n확인한 곳\n${sourceLines.join("\n")}`;
+}
+
+function fallbackCitationsFor(message) {
+  if (!isCinemaDiscountQuery(message)) return [];
+  return [
+    { title: "CGV 쿠폰/제휴할인", url: "https://cgv.co.kr/evt/discountInformation" },
+    { title: "롯데시네마 이벤트", url: "https://www.lottecinema.co.kr/NLCMW/Event" },
+    { title: "메가박스 제휴/할인 이벤트", url: "https://megabox.co.kr/event/promotion" },
+  ];
 }
 
 async function recordUsage(body, model, usage, quota, extra = {}) {
@@ -231,7 +262,7 @@ module.exports = async function chatHandler(req, res) {
   const payload = {
     model,
     instructions: instructionsFor({ webSearch }),
-    input: transcriptFrom(history, message),
+    input: inputFor(history, message, { webSearch }),
     max_output_tokens: Number(process.env.OPENAI_CHAT_MAX_OUTPUT_TOKENS || 700),
     store: false,
   };
@@ -269,12 +300,13 @@ module.exports = async function chatHandler(req, res) {
 
     const citations = extractCitations(data);
     const webSearchUsed = webSearch && usedWebSearch(data);
-    const answer = appendSources(extractOutputText(data), citations);
+    const finalCitations = citations.length ? citations : fallbackCitationsFor(message);
+    const answer = appendSources(extractOutputText(data), finalCitations);
     if (!answer) return sendJson(res, 502, { error: "Empty OpenAI answer" });
     await recordUsage(body, model, data.usage || null, quota, {
       feature: webSearchUsed ? "chat_web_search" : "chat",
       webSearch: webSearchUsed,
-      sourceCount: citations.length,
+      sourceCount: finalCitations.length,
     }).catch(() => {});
 
     return sendJson(res, 200, {
@@ -284,7 +316,7 @@ module.exports = async function chatHandler(req, res) {
       model,
       quota,
       webSearch: webSearchUsed,
-      sources: citations,
+      sources: finalCitations,
       usage: data.usage || null,
     });
   } catch (error) {
