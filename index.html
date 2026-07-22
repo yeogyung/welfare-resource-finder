@@ -1577,7 +1577,7 @@ function showStickerSheetIntro(flow){
   flow.step="need_sticker_image";
   pendingImageTemplate=flow.template;
   const msg="이런 식으로 16개 이모티콘 시트를 만들게요. 사용할 사진을 골라주세요.";
-  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("갤러리에서 사진 선택하기","다른 메뉴 보기",{gallery:true})}`,{text:msg});
+  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기","다른 메뉴 보기",{gallery:true})}`,{text:msg});
   openPhotoPicker();
 }
 function askImageStyle(flow){
@@ -1751,7 +1751,7 @@ function handleImageFollowup(text){
   }
   if(flow.step==="need_sticker_image"){
     const msg="먼저 이모티콘으로 만들 사진을 골라주세요.";
-    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("갤러리에서 사진 선택하기","권한 도움",{gallery:true})}`,{text:msg});
+    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기","권한 도움",{gallery:true})}`,{text:msg});
     setTimeout(()=>openPhotoPicker(),80);
     return true;
   }
