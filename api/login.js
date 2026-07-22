@@ -95,10 +95,11 @@ module.exports = async function loginHandler(req, res) {
   const displayName = normalizeName(participant?.display_name || body.name || body.displayName);
   const phone = participant ? "" : normalizePhone(body.phone);
   const subject = SUBJECTS.has(body.subject) ? body.subject : "general";
+  const resumeLockedParticipant = Boolean(body.resumeLockedParticipant);
 
   if (displayName.length < 2) return sendJson(res, 400, { error: "Name is required" });
   if (!participant && phone.length < 8) return sendJson(res, 400, { error: "Valid phone number is required" });
-  if (participant && (await isParticipantLocked(participant.id))) {
+  if (participant && !resumeLockedParticipant && (await isParticipantLocked(participant.id))) {
     return sendJson(res, 409, {
       error: "Participant already selected",
       message: "이미 선택된 성함이에요. 담당자에게 말씀해 주세요.",
@@ -121,6 +122,7 @@ module.exports = async function loginHandler(req, res) {
     userType,
     participantId: participant?.id || null,
     matched: Boolean(participant),
+    resumed: Boolean(participant && resumeLockedParticipant),
   };
 
   const dbPayload = {

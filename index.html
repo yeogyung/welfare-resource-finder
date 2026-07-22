@@ -111,8 +111,9 @@ body{
 .participant-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
 .participant-btn{border:1.5px solid var(--line);border-radius:12px;background:#fff;min-height:48px;padding:10px 8px;font-family:inherit;font-size:.92em;font-weight:900;color:var(--ink);cursor:pointer;word-break:keep-all;}
 .participant-btn.on{border-color:var(--teal);background:var(--teal-soft);color:var(--teal-dark);box-shadow:0 0 0 2px rgba(58,143,122,.12);}
-.participant-btn:disabled,.participant-btn.locked{background:#F1F3F5;border-color:#D8DEE6;color:#98A2B3;cursor:not-allowed;box-shadow:none;}
-.participant-lock{display:block;margin-top:3px;font-size:.72em;font-weight:900;color:#7C8798;}
+.participant-btn:disabled{background:#F1F3F5;border-color:#D8DEE6;color:#98A2B3;cursor:not-allowed;box-shadow:none;}
+.participant-btn.locked{background:#F7FAF9;border-color:#CFE5DD;color:#425466;box-shadow:none;}
+.participant-lock{display:block;margin-top:3px;font-size:.72em;font-weight:900;color:var(--teal-dark);}
 .participant-loading{margin-top:10px;color:var(--ink-5);font-size:.82em;font-weight:700;}
 .manual-toggle{margin-top:10px;border:none;background:transparent;color:var(--teal-dark);font-family:inherit;font-size:.82em;font-weight:900;text-decoration:underline;cursor:pointer;}
 .login-form{display:flex;flex-direction:column;gap:13px;margin-top:16px;}
@@ -714,6 +715,7 @@ body{
   <div class="confirm-layer" id="participantConfirm" hidden>
     <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="participantConfirmTitle">
       <h2 id="participantConfirmTitle"><span id="participantConfirmName">선택한 이름</span>님이 맞으신가요?</h2>
+      <p id="participantConfirmHint" class="confirm-hint"></p>
       <div class="confirm-actions">
         <button type="button" onclick="cancelParticipantSelection()">아니오</button>
         <button type="button" class="primary" onclick="confirmParticipantSelection()">네</button>
@@ -2043,8 +2045,13 @@ function applyParticipantSelection(item){
 function showParticipantConfirm(item){
   pendingParticipantConfirm=item;
   const name=document.getElementById("participantConfirmName");
+  const hint=document.getElementById("participantConfirmHint");
   const modal=document.getElementById("participantConfirm");
   if(name)name.textContent=item.displayName||"선택한 이름";
+  if(hint){
+    hint.textContent=item.locked?"사용 기록이 있는 이름이에요. 본인이 맞으면 이어서 시작할게요.":"";
+    hint.hidden=!item.locked;
+  }
   if(modal)modal.hidden=false;
 }
 function cancelParticipantSelection(){
@@ -2056,20 +2063,11 @@ function confirmParticipantSelection(){
   const item=pendingParticipantConfirm;
   cancelParticipantSelection();
   if(!item)return;
-  if(item.locked){
-    setLoginError("이미 선택된 성함이에요. 담당자에게 말씀해 주세요.");
-    return;
-  }
   applyParticipantSelection(item);
 }
 function selectParticipant(id){
   const item=participantOptions.find(p=>p.id===id);
   if(!item)return;
-  if(item.locked){
-    setLoginError("이미 선택된 성함이에요. 담당자에게 말씀해 주세요.");
-    toast("이미 선택된 성함이에요");
-    return;
-  }
   showParticipantConfirm(item);
 }
 function renderParticipantOptions(){
@@ -2086,7 +2084,7 @@ function renderParticipantOptions(){
   box.innerHTML=participantOptions.map(p=>{
     const locked=Boolean(p.locked);
     const on=selectedParticipant&&selectedParticipant.id===p.id;
-    return `<button class="participant-btn ${on?'on':''} ${locked?'locked':''}" type="button" data-id="${esc(p.id)}" ${locked?'disabled aria-disabled="true"':`onclick="selectParticipant('${esc(p.id)}')"`}>${esc(p.displayName)}${locked?'<span class="participant-lock">이미 선택됨</span>':""}</button>`;
+    return `<button class="participant-btn ${on?'on':''} ${locked?'locked':''}" type="button" data-id="${esc(p.id)}" onclick="selectParticipant('${esc(p.id)}')">${esc(p.displayName)}${locked?'<span class="participant-lock">사용 기록 있음</span>':""}</button>`;
   }).join("");
 }
 async function loadParticipants(force=false){
@@ -2148,7 +2146,7 @@ function submitLogin(event){
   if(name.length<2){setLoginError("성함을 2글자 이상 입력해 주세요.");return;}
   if(!participant&&phone.length<8){setLoginError("전화번호를 숫자로 입력해 주세요.");return;}
   setLoginError("");
-  pendingLogin={participantId:participant&&participant.id,name,phone,phoneMasked:participant?"명단 등록":maskPhone(phone),phoneLast4:participant?"":phone.slice(-4),subject:currentSubject.id,logConsent:true};
+  pendingLogin={participantId:participant&&participant.id,name,phone,phoneMasked:participant?"명단 등록":maskPhone(phone),phoneLast4:participant?"":phone.slice(-4),subject:currentSubject.id,logConsent:true,resumeLockedParticipant:Boolean(participant&&participant.locked)};
   confirmLogin();
 }
 function closeLoginModal(){
@@ -2177,7 +2175,7 @@ async function confirmLogin(){
     const response=await fetch("/api/login",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({name:pendingLogin.name,phone:pendingLogin.phone,participantId:pendingLogin.participantId,subject:pendingLogin.subject})
+      body:JSON.stringify({name:pendingLogin.name,phone:pendingLogin.phone,participantId:pendingLogin.participantId,subject:pendingLogin.subject,resumeLockedParticipant:Boolean(pendingLogin.resumeLockedParticipant)})
     });
     const data=await response.json().catch(()=>({}));
     if(!response.ok||data.error){
