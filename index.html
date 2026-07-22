@@ -735,6 +735,17 @@ body{
     </div>
   </div>
 
+  <div class="confirm-layer" id="permissionHelp" hidden>
+    <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="permissionHelpTitle">
+      <h2 id="permissionHelpTitle">권한 허용이 필요해요</h2>
+      <p id="permissionHelpBody">권한을 허용한 뒤 다시 눌러 주세요.</p>
+      <div class="confirm-actions">
+        <button type="button" onclick="closePermissionHelp()">닫기</button>
+        <button type="button" class="primary" id="permissionActionBtn" onclick="requestPermissionAgain()">권한 허용하기</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
@@ -981,6 +992,7 @@ const STICKER_EXAMPLE_RESULT="./public/assets/sticker-example-result.png";
 let pendingImageTemplate=null;
 let pendingImageFlow=null;
 let pendingPhotoConfirm=null;
+let pendingPermissionType=null;
 let activeImageController=null;
 let generatedImages={};
 let fullTextStore={};
@@ -1534,11 +1546,15 @@ function stickerExampleHtml(){
 function stickerPhotoExamplesHtml(){
   return `<ul class="sticker-photo-examples"><li>손주 사진</li><li>내 사진</li><li>반려동물 사진</li><li>좋아하는 트로트 가수 사진</li><li>가족 사진이나 여행 사진</li></ul>`;
 }
+function photoActionButtonsHtml(primaryLabel="사진 고르기",secondaryLabel="다른 메뉴 보기"){
+  const secondaryAction=secondaryLabel==="권한 도움"?"openPermissionHelp('photo')":"showImageTemplateChoices()";
+  return `<div class="image-actions"><button class="primary" type="button" onclick="openPhotoPicker()">${esc(primaryLabel)}</button><button type="button" onclick="${secondaryAction}">${esc(secondaryLabel)}</button></div>`;
+}
 function showStickerSheetIntro(flow){
   flow.step="need_sticker_image";
   pendingImageTemplate=flow.template;
   const msg="이런 식으로 16개 이모티콘 시트를 만들게요. 사용할 사진을 골라주세요.";
-  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 고르기</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
+  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기")}`,{text:msg});
 }
 function askImageStyle(flow){
   if(!flow.template.requiresImage){
@@ -1650,8 +1666,8 @@ function beginImageFlow(template,{addLabel=true,initialText=""}={}){
     }
     pendingImageFlow.step="need_image";
     const msg=`${template.label}을 해볼게요. 꾸밀 사진을 선택해 주세요.`;
-    addBot(`${esc(msg)}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 선택</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
-    setTimeout(()=>document.getElementById("imageUploadInput")?.click(),250);
+    addBot(`${esc(msg)}${photoActionButtonsHtml("사진 선택")}`,{text:msg});
+    setTimeout(()=>openPhotoPicker(),250);
     return;
   }
   askImagePurpose(pendingImageFlow);
@@ -1706,12 +1722,12 @@ function handleImageFollowup(text){
   }
   if(flow.step==="need_image"){
     const msg="먼저 사진을 골라 주세요. 사진을 고른 뒤 문구와 분위기를 이어서 정할게요.";
-    addBot(`${esc(msg)}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 선택</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
+    addBot(`${esc(msg)}${photoActionButtonsHtml("사진 선택","권한 도움")}`,{text:msg});
     return true;
   }
   if(flow.step==="need_sticker_image"){
     const msg="먼저 이모티콘으로 만들 사진을 골라주세요.";
-    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 고르기</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
+    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기","권한 도움")}`,{text:msg});
     return true;
   }
   if(flow.step==="style"){
@@ -1819,7 +1835,21 @@ function cancelPhotoSelection(reopen=true){
   const modal=document.getElementById("photoConfirm");
   if(modal)modal.hidden=true;
   pendingPhotoConfirm=null;
-  if(reopen)setTimeout(()=>document.getElementById("imageUploadInput")?.click(),80);
+  if(reopen)setTimeout(()=>openPhotoPicker(),80);
+}
+function openPhotoPicker(){
+  if(assistantBusy){toast("답변이 끝난 뒤 사진을 골라 주세요");return;}
+  const input=document.getElementById("imageUploadInput");
+  if(!input){
+    openPermissionHelp("photo");
+    return;
+  }
+  logEvent("photo_picker_open",{templateId:pendingImageTemplate&&pendingImageTemplate.id||pendingImageFlow&&pendingImageFlow.template&&pendingImageFlow.template.id||""});
+  try{
+    input.click();
+  }catch(e){
+    openPermissionHelp("photo");
+  }
 }
 function confirmPhotoSelection(){
   const item=pendingPhotoConfirm;
@@ -1847,7 +1877,7 @@ async function handleImageFile(event){
   if(!file){
     if(pendingImageTemplate||pendingImageFlow){
       const msg="사진을 골라야 이미지를 만들 수 있어요. 사진 고르기를 눌러주세요.";
-      addBot(`${esc(msg)}<div class="image-actions"><button class="primary" onclick="document.getElementById('imageUploadInput').click()">사진 고르기</button><button onclick="showImageTemplateChoices()">다른 메뉴 보기</button></div>`,{text:msg});
+      addBot(`${esc(msg)}${photoActionButtonsHtml("사진 고르기","권한 도움")}`,{text:msg});
     }
     return;
   }
@@ -3021,17 +3051,63 @@ function renderSaved(){
 
 /* 음성 */
 let recog=null,recogActive=false,sttTarget="home";
+function closePermissionHelp(){
+  const modal=document.getElementById("permissionHelp");
+  if(modal)modal.hidden=true;
+}
+function openPermissionHelp(type="mic"){
+  pendingPermissionType=type;
+  const title=document.getElementById("permissionHelpTitle");
+  const body=document.getElementById("permissionHelpBody");
+  const action=document.getElementById("permissionActionBtn");
+  if(type==="photo"){
+    if(title)title.textContent="사진 접근이 필요해요";
+    if(body)body.textContent="사진 선택 창이 안 열리면 브라우저나 홈 화면 앱의 사진 접근 권한을 허용해 주세요. 보통은 아래 버튼을 다시 누르면 사진 선택 창이 열립니다.";
+    if(action)action.textContent="사진 고르기";
+  }else{
+    if(title)title.textContent="마이크 권한이 필요해요";
+    if(body)body.textContent="마이크 권한 팝업이 뜨면 허용을 눌러 주세요. 이미 차단했다면 브라우저 주소창 또는 앱 정보의 사이트 설정에서 마이크를 허용해야 합니다.";
+    if(action)action.textContent="권한 허용하기";
+  }
+  const modal=document.getElementById("permissionHelp");
+  if(modal)modal.hidden=false;
+}
+async function requestPermissionAgain(){
+  const type=pendingPermissionType||"mic";
+  closePermissionHelp();
+  if(type==="photo"){
+    openPhotoPicker();
+    return;
+  }
+  const ok=await requestMicPermission(true);
+  if(ok)setTimeout(()=>startVoice(sttTarget||"chat"),120);
+}
+async function requestMicPermission(showSuccess=false){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return true;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(track=>track.stop());
+    if(showSuccess)toast("마이크 권한이 허용됐어요");
+    return true;
+  }catch(e){
+    logEvent("mic_permission_blocked",{name:e&&e.name||""});
+    openPermissionHelp("mic");
+    return false;
+  }
+}
 function initSTT(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return false;
   recog=new SR();recog.lang="ko-KR";recog.interimResults=false;recog.maxAlternatives=1;
   recog.onresult=ev=>{const text=ev.results[0][0].transcript;setTimeout(()=>askText(text),200);};
   recog.onend=()=>{recogActive=false;setMic(false);};
-  recog.onerror=ev=>{recogActive=false;setMic(false);if(ev.error!=="aborted")toast("잘 못 들었어요. 다시 한 번 말씀해 주세요");};return true;}
+  recog.onerror=ev=>{recogActive=false;setMic(false);if(ev.error==="not-allowed"||ev.error==="service-not-allowed")openPermissionHelp("mic");else if(ev.error!=="aborted")toast("잘 못 들었어요. 다시 한 번 말씀해 주세요");};return true;}
 function setMic(on){const cm=document.getElementById("chatMic");if(cm)cm.classList.toggle("listening",on);}
-function startVoice(target){sttTarget=target;
+async function startVoice(target){sttTarget=target;
   logEvent("voice_input_start",{target});
   if(!recog&&!initSTT()){const cm=document.getElementById("chatMic");if(cm)cm.classList.add("off");toast("음성 입력이 안 되는 기기예요. 아래에 입력해 주세요");return;}
   if(recogActive){recog.stop();return;}
-  try{recog.start();recogActive=true;setMic(true);}catch(e){recogActive=false;setMic(false);}}
+  const allowed=await requestMicPermission(false);
+  if(!allowed)return;
+  try{recog.start();recogActive=true;setMic(true);}catch(e){recogActive=false;setMic(false);openPermissionHelp("mic");}}
 function fallbackSpeak(text){
   if(!("speechSynthesis"in window))return;
   try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="ko-KR";u.rate=.92;u.pitch=1.02;window.speechSynthesis.speak(u);}catch(e){}
@@ -3158,7 +3234,7 @@ async function init(){
       if(activeScreen!=="home"||isHomeNearBottom()||scrollBox.scrollTop>30)hideHomeCue();
     },{passive:true});
   }
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeSubjectResetConfirm();closeLoginModal();}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeSubjectResetConfirm();closePermissionHelp();closeLoginModal();}});
   if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else if(!currentUser)go("login");else go("home");
 }
 function quickStart(i){const q=QUICK_QUESTIONS[i];logEvent("quick_start",{index:i,label:q&&q.label,seed:q&&q.seed});startChat(q.seed);}
