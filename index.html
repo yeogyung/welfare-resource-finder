@@ -2380,18 +2380,44 @@ function addCards(list){const t=document.getElementById("thread");const w=docume
 function addChoices(items){const t=document.getElementById("thread");const w=document.createElement("div");w.className="choices";
   w.innerHTML=items.map(c=>{
     const action=encodeURIComponent(c.action||"");
-    return `<button class="choice ${c.skip?'skip':''}" onclick="runChoice(this,'${action}')">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${esc(c.label)}</button>`;
-  }).join("");t.appendChild(w);showScrollCueSoon(420);}
+    return `<button class="choice ${c.skip?'skip':''}" type="button" data-action="${esc(action)}">${c.emoji?`<span class="ce">${c.emoji}</span>`:''}${esc(c.label)}</button>`;
+  }).join("");
+  w.querySelectorAll(".choice").forEach(b=>b.addEventListener("click",()=>runChoice(b)));
+  t.appendChild(w);showScrollCueSoon(420);}
+function setChoiceGroupDisabled(wrap,disabled,selectedBtn=null){
+  if(!wrap)return;
+  wrap.querySelectorAll("button").forEach(b=>{
+    b.disabled=disabled;
+    b.classList.toggle("selected",Boolean(selectedBtn&&b===selectedBtn));
+  });
+}
+function runChoiceAction(action){
+  const pickMatch=action.match(/^pick\('([^']+)'\s*,\s*(\d+)\)$/);
+  if(pickMatch){pick(pickMatch[1],Number(pickMatch[2]));return true;}
+  const renderMatch=action.match(/^renderNode\('([^']+)'\s*,\s*(\d+)\)$/);
+  if(renderMatch){renderNode(renderMatch[1],Number(renderMatch[2]));return true;}
+  const goMatch=action.match(/^go\('([^']+)'\)$/);
+  if(goMatch){go(goMatch[1]);return true;}
+  if(action==="explainCurrentRecommendations()"){explainCurrentRecommendations();return true;}
+  if(action==="focusChat()"){focusChat();return true;}
+  if(action==="continueGeneralChat()"){continueGeneralChat();return true;}
+  try{Function(action)();return true;}catch(e){console.warn("choice action failed",e,action);return false;}
+}
 function runChoice(btn,encodedAction){
+  if(assistantBusy&&!document.getElementById("typing"))setAssistantBusy(false);
   if(assistantBusy){toast("답변이 끝난 뒤 눌러 주세요");return;}
   const wrap=btn&&btn.closest?btn.closest(".choices"):null;
   if(wrap){
     lastUserMessageEl=wrap;
-    wrap.querySelectorAll("button").forEach(b=>{b.disabled=true;b.classList.toggle("selected",b===btn);});
+    setChoiceGroupDisabled(wrap,true,btn);
   }
-  const action=decodeURIComponent(encodedAction||"");
+  const encoded=(encodedAction!==undefined&&encodedAction!==null)?encodedAction:(btn&&btn.dataset?btn.dataset.action:"");
+  const action=decodeURIComponent(encoded||"");
   if(!action)return;
-  try{Function(action)();}catch(e){toast("다시 한 번 눌러 주세요");}
+  if(!runChoiceAction(action)){
+    setChoiceGroupDisabled(wrap,false,null);
+    toast("다시 한 번 눌러 주세요");
+  }
 }
 function addStepTag(txt){const t=document.getElementById("thread");const w=document.createElement("div");w.className="step-tag";w.textContent=txt;t.appendChild(w);}
 function isNearChatBottom(){
