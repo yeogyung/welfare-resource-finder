@@ -3051,6 +3051,12 @@ function renderSaved(){
 
 /* 음성 */
 let recog=null,recogActive=false,sttTarget="home";
+const VOICE_LISTEN_WINDOW_MS=12000;
+const VOICE_RESTART_DELAY_MS=320;
+let voiceListenUntil=0;
+let voiceHadResult=false;
+let voiceManualStop=false;
+let voiceRestartTimer=null;
 function closePermissionHelp(){
   const modal=document.getElementById("permissionHelp");
   if(modal)modal.hidden=true;
@@ -3095,19 +3101,94 @@ async function requestMicPermission(showSuccess=false){
     return false;
   }
 }
+function clearVoiceRestart(){
+  clearTimeout(voiceRestartTimer);
+  voiceRestartTimer=null;
+}
+function shouldKeepListening(){
+  return !voiceManualStop&&!voiceHadResult&&Date.now()<voiceListenUntil;
+}
+function finishVoiceListening(showToast=false){
+  clearVoiceRestart();
+  recogActive=false;
+  setMic(false);
+  if(showToast&&!voiceHadResult&&!voiceManualStop)toast("음성을 듣지 못했어요. 다시 눌러 천천히 말씀해 주세요");
+}
+function beginSpeechRecognition(){
+  clearVoiceRestart();
+  try{
+    recog.start();
+    recogActive=true;
+    setMic(true);
+    return true;
+  }catch(e){
+    recogActive=false;
+    setMic(false);
+    openPermissionHelp("mic");
+    return false;
+  }
+}
+function restartVoiceIfWaiting(){
+  clearVoiceRestart();
+  if(!shouldKeepListening()){
+    finishVoiceListening(true);
+    return;
+  }
+  setMic(true);
+  voiceRestartTimer=setTimeout(()=>beginSpeechRecognition(),VOICE_RESTART_DELAY_MS);
+}
 function initSTT(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return false;
   recog=new SR();recog.lang="ko-KR";recog.interimResults=false;recog.maxAlternatives=1;
-  recog.onresult=ev=>{const text=ev.results[0][0].transcript;setTimeout(()=>askText(text),200);};
-  recog.onend=()=>{recogActive=false;setMic(false);};
-  recog.onerror=ev=>{recogActive=false;setMic(false);if(ev.error==="not-allowed"||ev.error==="service-not-allowed")openPermissionHelp("mic");else if(ev.error!=="aborted")toast("잘 못 들었어요. 다시 한 번 말씀해 주세요");};return true;}
+  recog.onresult=ev=>{
+    let text="";
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const item=ev.results[i]&&ev.results[i][0];
+      if(item&&item.transcript)text=item.transcript;
+    }
+    text=String(text||"").trim();
+    if(!text)return;
+    voiceHadResult=true;
+    voiceManualStop=true;
+    clearVoiceRestart();
+    try{recog.stop();}catch(e){}
+    recogActive=false;
+    setMic(false);
+    setTimeout(()=>askText(text),200);
+  };
+  recog.onend=()=>{
+    recogActive=false;
+    if(shouldKeepListening())restartVoiceIfWaiting();
+    else finishVoiceListening(false);
+  };
+  recog.onerror=ev=>{
+    recogActive=false;
+    if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){
+      voiceManualStop=true;
+      finishVoiceListening(false);
+      openPermissionHelp("mic");
+      return;
+    }
+    if(ev.error==="aborted"){
+      if(shouldKeepListening())restartVoiceIfWaiting();
+      else finishVoiceListening(false);
+      return;
+    }
+    if(shouldKeepListening())restartVoiceIfWaiting();
+    else finishVoiceListening(ev.error==="no-speech");
+  };return true;}
 function setMic(on){const cm=document.getElementById("chatMic");if(cm)cm.classList.toggle("listening",on);}
 async function startVoice(target){sttTarget=target;
   logEvent("voice_input_start",{target});
   if(!recog&&!initSTT()){const cm=document.getElementById("chatMic");if(cm)cm.classList.add("off");toast("음성 입력이 안 되는 기기예요. 아래에 입력해 주세요");return;}
-  if(recogActive){recog.stop();return;}
+  if(recogActive||voiceRestartTimer){voiceManualStop=true;clearVoiceRestart();try{recog.stop();}catch(e){}finishVoiceListening(false);return;}
   const allowed=await requestMicPermission(false);
   if(!allowed)return;
-  try{recog.start();recogActive=true;setMic(true);}catch(e){recogActive=false;setMic(false);openPermissionHelp("mic");}}
+  voiceListenUntil=Date.now()+VOICE_LISTEN_WINDOW_MS;
+  voiceHadResult=false;
+  voiceManualStop=false;
+  toast("천천히 말씀해 주세요");
+  beginSpeechRecognition();
+}
 function fallbackSpeak(text){
   if(!("speechSynthesis"in window))return;
   try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="ko-KR";u.rate=.92;u.pitch=1.02;window.speechSynthesis.speak(u);}catch(e){}
