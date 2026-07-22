@@ -62,6 +62,9 @@ async function initAdmin() {
   document.getElementById("downloadEval").addEventListener("click", downloadEvaluation);
   document.getElementById("loadLogs").addEventListener("click", loadAdminLogs);
   document.getElementById("downloadLogs").addEventListener("click", downloadAdminLogs);
+  document.getElementById("downloadQa").addEventListener("click", downloadQaLogs);
+  const qaDate = document.getElementById("qaDate");
+  if (qaDate) qaDate.value = todayDateInput();
 }
 
 async function loadData() {
@@ -154,6 +157,17 @@ function downloadEvaluation() {
 
 function adminToken() {
   return document.getElementById("adminToken").value.trim();
+}
+
+function todayDateInput() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${map.year}-${map.month}-${map.day}`;
 }
 
 function setLogMessage(message, tone = "muted") {
@@ -253,6 +267,37 @@ async function downloadAdminLogs() {
     URL.revokeObjectURL(url);
   } catch (error) {
     setLogMessage(error.message || "CSV를 내려받지 못했습니다.", "warn");
+  }
+}
+
+async function downloadQaLogs() {
+  const token = adminToken();
+  if (!token) {
+    setLogMessage("관리자 토큰을 입력해 주세요.", "warn");
+    return;
+  }
+  const date = document.getElementById("qaDate")?.value || todayDateInput();
+  const button = document.getElementById("downloadQa");
+  button.disabled = true;
+  setLogMessage(`${date} Q/A 전체를 준비하는 중입니다...`);
+  try {
+    const response = await fetch(`/api/log?admin=1&view=qa&date=${encodeURIComponent(date)}&format=csv&limit=5000`, {
+      headers: { "x-admin-token": token },
+    });
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || "Q/A 다운로드 실패");
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `chajabot-qa-${date}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setLogMessage(`${date} Q/A CSV를 내려받았습니다.`);
+  } catch (error) {
+    setLogMessage(error.message || "Q/A CSV를 내려받지 못했습니다.", "warn");
+  } finally {
+    button.disabled = false;
   }
 }
 

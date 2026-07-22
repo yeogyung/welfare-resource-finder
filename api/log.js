@@ -44,13 +44,50 @@ function csvEscape(value) {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-function rowsToCsv(rows) {
-  if (!rows.length) return "type,id,created_at,user_id,summary\n";
-  const headers = Array.from(rows.reduce((set, row) => {
+function rowsToCsv(rows, preferredHeaders = null) {
+  if (!rows.length) return `${(preferredHeaders || ["type", "id", "created_at", "user_id", "summary"]).join(",")}\n`;
+  const headers = preferredHeaders || Array.from(rows.reduce((set, row) => {
     Object.keys(row).forEach((key) => set.add(key));
     return set;
   }, new Set(["type", "id", "created_at"])));
   return `${headers.join(",")}\n${rows.map((row) => headers.map((key) => csvEscape(row[key])).join(",")).join("\n")}\n`;
+}
+
+function datePartsInKst(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${map.year}-${map.month}-${map.day}`;
+}
+
+function kstDayRange(dateText) {
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(dateText || "") ? dateText : datePartsInKst();
+  const [year, month, day] = date.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day, -9, 0, 0, 0));
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { date, startIso: start.toISOString(), endIso: end.toISOString() };
+}
+
+function formatKst(iso) {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(new Date(iso));
+}
+
+function compactLong(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
 }
 
 function getAdminToken(req) {
@@ -104,13 +141,120 @@ async function loadAdminLogs(limit) {
   return { conversations, messages, usage, users };
 }
 
+async function loadQaPairs(dateText, limit) {
+  const range = kstDayRange(dateText);
+  const encodedStart = encodeURIComponent(range.startIso);
+  const encodedEnd = encodeURIComponent(range.endIso);
+  const [messages, conversations, users] = await Promise.all([
+    supabaseRequest(
+      `/messages?select=id,conversation_id,user_id,role,content,content_kind,mode,created_at&created_at=gte.${encodedStart}&created_at=lt.${encodedEnd}&order=created_at.asc&limit=${limit}`
+    ),
+    supabaseRequest(
+      `/conversations?select=id,user_id,user_type,subject,title,mode,created_at,updated_at&updated_at=gte.${encodedStart}&updated_at=lt.${encodedEnd}&order=updated_at.asc&limit=${limit}`
+    ),
+    supabaseRequest("/app_users?select=id,display_name,phone_masked,subject,user_type,matched,participant_id,last_seen_at,created_at&order=last_seen_at.desc&limit=2000"),
+  ]);
+  if (!messages.configured) return { configured: false, range, rows: [] };
+  if (!messages.ok) return { configured: true, ok: false, range, warning: { table: "messages", status: messages.status, detail: messages.detail }, rows: [] };
+
+  const userMap = new Map((users.ok ? users.data || [] : []).map((row) => [row.id, row]));
+  const conversationMap = new Map((conversations.ok ? conversations.data || [] : []).map((row) => [row.id, row]));
+  const byConversation = new Map();
+  for (const message of messages.data || []) {
+    const key = message.conversation_id || "unknown";
+    if (!byConversation.has(key)) byConversation.set(key, []);
+    byConversation.get(key).push(message);
+  }
+
+  const rows = [];
+  for (const [conversationId, list] of byConversation) {
+    list.sort((left, right) => new Date(left.created_at) - new Date(right.created_at));
+    for (let index = 0; index < list.length; index += 1) {
+      const message = list[index];
+      if (message.role !== "user") continue;
+      const answers = [];
+      for (let next = index + 1; next < list.length; next += 1) {
+        if (list[next].role === "user") break;
+        if (list[next].role === "assistant") answers.push(list[next].content);
+      }
+      const user = userMap.get(message.user_id) || {};
+      const conversation = conversationMap.get(conversationId) || {};
+      const question = compactLong(message.content);
+      const answer = compactLong(answers.join("\n---\n"));
+      rows.push({
+        date: range.date,
+        time_kst: formatKst(message.created_at),
+        display_name: user.display_name || "",
+        subject: user.subject || conversation.subject || "",
+        user_type: user.user_type || conversation.user_type || "",
+        participant_id: user.participant_id || "",
+        matched: user.matched ?? "",
+        conversation_id: conversationId,
+        user_id: message.user_id,
+        question,
+        answer,
+        question_chars: question.length,
+        answer_chars: answer.length,
+      });
+    }
+  }
+
+  return {
+    configured: true,
+    ok: true,
+    range,
+    rows,
+    warnings: {
+      conversations: conversations.ok ? null : { status: conversations.status, detail: conversations.detail },
+      users: users.ok ? null : { status: users.status, detail: users.detail },
+    },
+  };
+}
+
 async function handleAdminLogs(req, res, url) {
   const adminToken = String(process.env.ADMIN_TOKEN || "").trim();
   if (!adminToken) return sendJson(res, 501, { error: "ADMIN_TOKEN is not configured" });
   if (getAdminToken(req) !== adminToken) return sendJson(res, 401, { error: "Invalid admin token" });
 
-  const limit = Math.min(200, Math.max(10, Number(url.searchParams.get("limit") || 80)));
+  const view = clean(url.searchParams.get("view"), 20);
   const format = clean(url.searchParams.get("format"), 20);
+  if (view === "qa") {
+    const limit = Math.min(5000, Math.max(10, Number(url.searchParams.get("limit") || 5000)));
+    const qa = await loadQaPairs(url.searchParams.get("date"), limit);
+    if (!qa.configured) return sendJson(res, 200, { dbConfigured: false, rows: [] });
+    if (!qa.ok) return sendJson(res, 200, { dbConfigured: true, rows: [], warning: qa.warning, range: qa.range });
+    if (format === "csv") {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename=chajabot-qa-${qa.range.date}.csv`);
+      res.setHeader("Cache-Control", "no-store");
+      return res.end(rowsToCsv(qa.rows, [
+        "date",
+        "time_kst",
+        "display_name",
+        "subject",
+        "user_type",
+        "participant_id",
+        "matched",
+        "question",
+        "answer",
+        "question_chars",
+        "answer_chars",
+        "conversation_id",
+        "user_id",
+      ]));
+    }
+    return sendJson(res, 200, {
+      dbConfigured: true,
+      generatedAt: new Date().toISOString(),
+      range: qa.range,
+      count: qa.rows.length,
+      rows: qa.rows,
+      warnings: qa.warnings,
+    });
+  }
+
+  const limit = Math.min(200, Math.max(10, Number(url.searchParams.get("limit") || 80)));
   const logs = await loadAdminLogs(limit);
   const configured = Object.values(logs).some((result) => result.configured);
   if (!configured) return sendJson(res, 200, { dbConfigured: false, conversations: [], messages: [], usageEvents: [], users: [] });
