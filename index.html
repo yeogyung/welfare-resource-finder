@@ -1664,7 +1664,7 @@ function askImageTextIntent(flow){
 }
 function askImageTextValue(flow){
   flow.step="text_value";
-  const msg="넣을 문구를 그대로 말씀해 주세요. 채팅창에 쓰거나 음성으로 말해도 됩니다.";
+  const msg="넣고 싶은 문구를 알려주세요. 아래 왼쪽 마이크 버튼을 누르고 말하거나, 채팅창에 글자로 써 주세요.";
   addBot(esc(msg),{text:msg});
 }
 function confirmImageText(flow,text){
@@ -1787,7 +1787,7 @@ function generateStickerSheet(flow){
 }
 function askSingleStickerText(flow){
   flow.step="single_sticker_text";
-  const msg="이모티콘에 넣을 짧은 문구를 골라주세요. 채팅창에 직접 써도 돼요.";
+  const msg="이모티콘에 넣을 짧은 문구를 골라주세요. 원하는 말이 있으면 아래 왼쪽 마이크 버튼을 누르고 말하거나, 채팅창에 써 주세요.";
   addBot(esc(msg),{text:msg});
   addChoices([
     imageChoice("헐","😮"),
