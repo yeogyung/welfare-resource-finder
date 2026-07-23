@@ -34,6 +34,8 @@ const EVAL_SET = [
   { q: "복지 신청을 어디서 해야 하는지 모르겠어요.", expect: ["복지로", "주민센터", "129", "신청"], category: "care" },
 ];
 
+const PRODUCTION_ADMIN_URL = "https://welfare-resource-finder.vercel.app/admin";
+
 const SYNONYMS = [
   ["쓰러", "응급 안전 위기 독거노인 장애인 응급안전안심"],
   ["혼자", "독거 고립 외로움 말벗 맞춤돌봄 사회참여"],
@@ -65,6 +67,9 @@ async function initAdmin() {
   document.getElementById("downloadQa").addEventListener("click", downloadQaLogs);
   const qaDate = document.getElementById("qaDate");
   if (qaDate) qaDate.value = todayDateInput();
+  if (isLocalFileAdmin()) {
+    setLogMessage(`로컬 파일에서는 운영 로그를 불러올 수 없습니다. ${PRODUCTION_ADMIN_URL} 에서 열어주세요.`, "warn");
+  }
 }
 
 async function loadData() {
@@ -159,6 +164,24 @@ function adminToken() {
   return document.getElementById("adminToken").value.trim();
 }
 
+function isLocalFileAdmin() {
+  return window.location.protocol === "file:";
+}
+
+function requireHostedAdmin() {
+  if (!isLocalFileAdmin()) return true;
+  setLogMessage(`지금은 로컬 파일 화면입니다. 운영 로그는 ${PRODUCTION_ADMIN_URL} 에서 열어야 합니다.`, "warn");
+  return false;
+}
+
+function adminRequestError(response, data = {}) {
+  if (response.status === 401) {
+    return "관리자 토큰이 맞지 않습니다. Vercel 환경변수 ADMIN_TOKEN 값과 정확히 같은지 확인해 주세요. 방금 토큰을 바꿨다면 재배포 후 다시 시도해야 합니다.";
+  }
+  if (response.status === 501) return "Vercel에 ADMIN_TOKEN 환경변수가 아직 설정되지 않았습니다.";
+  return data.error || "로그 조회 실패";
+}
+
 function todayDateInput() {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Seoul",
@@ -176,6 +199,7 @@ function setLogMessage(message, tone = "muted") {
 }
 
 async function loadAdminLogs() {
+  if (!requireHostedAdmin()) return;
   const token = adminToken();
   if (!token) {
     setLogMessage("관리자 토큰을 입력해 주세요.", "warn");
@@ -189,7 +213,7 @@ async function loadAdminLogs() {
       headers: { "x-admin-token": token },
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "로그 조회 실패");
+    if (!response.ok) throw new Error(adminRequestError(response, data));
     adminState.logs = data;
     renderAdminLogs(data);
     document.getElementById("downloadLogs").disabled = false;
@@ -245,6 +269,7 @@ function renderAdminLogs(data) {
 }
 
 async function downloadAdminLogs() {
+  if (!requireHostedAdmin()) return;
   const token = adminToken();
   if (!token) {
     setLogMessage("관리자 토큰을 입력해 주세요.", "warn");
@@ -256,7 +281,7 @@ async function downloadAdminLogs() {
     });
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(data.error || "CSV 다운로드 실패");
+      throw new Error(adminRequestError(response, data));
     }
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -271,6 +296,7 @@ async function downloadAdminLogs() {
 }
 
 async function downloadQaLogs() {
+  if (!requireHostedAdmin()) return;
   const token = adminToken();
   if (!token) {
     setLogMessage("관리자 토큰을 입력해 주세요.", "warn");
@@ -285,7 +311,13 @@ async function downloadQaLogs() {
       headers: { "x-admin-token": token },
     });
     const text = await response.text();
-    if (!response.ok) throw new Error(text || "Q/A 다운로드 실패");
+    if (!response.ok) {
+      let data = {};
+      try {
+        data = JSON.parse(text);
+      } catch {}
+      throw new Error(adminRequestError(response, data));
+    }
     const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
