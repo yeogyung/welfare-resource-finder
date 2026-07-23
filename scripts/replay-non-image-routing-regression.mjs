@@ -33,6 +33,51 @@ function predictFlow(question, oldFlow) {
   return "자유대화 AI";
 }
 
+function normalizeIntentTypos(text) {
+  return String(text || "")
+    .replace(/신천|신처|심청/g, "신청")
+    .replace(/무릅/g, "무릎")
+    .replace(/추전/g, "추천")
+    .replace(/앞차게/g, "아프지 않게")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function reviewAmbiguousInput(text) {
+  const original = String(text || "").trim();
+  const compacted = original.replace(/\s+/g, "");
+  const normalized = normalizeIntentTypos(original);
+  if (/^(신천|신처|심청|시청|방법)$/.test(compacted)) {
+    return { mode: "clarify", normalizedText: normalized };
+  }
+  if (
+    normalized !== original &&
+    /(신청|접수|등록|가입|예약).{0,12}(방법|절차|어떻게|자세히|알려)|(?:방법|절차).{0,12}(신청|접수|등록|가입|예약)/.test(
+      normalized
+    )
+  ) {
+    return { mode: "inferred", normalizedText: normalized };
+  }
+  return { mode: "none", normalizedText: normalized };
+}
+
+const policyChecks = [
+  {
+    input: "만약에 신천 방법을 자세히 알려 주세요",
+    expectedMode: "inferred",
+    expectedIncludes: "신청",
+  },
+  {
+    input: "신천",
+    expectedMode: "clarify",
+  },
+  {
+    input: "무릅에 좋은 운동 세 가지만 알려 줘",
+    expectedMode: "none",
+    expectedIncludes: "무릎",
+  },
+];
+
 const source = JSON.parse(fs.readFileSync(SOURCE, "utf8"));
 const rows = source.replays || [];
 const failures = [];
@@ -93,10 +138,36 @@ const summary = {
   fixed_weather_misroutes: results.filter(
     (row) => row.old_flow === "날씨 API" && row.new_flow === "자유대화 AI"
   ).length,
-  failure_count: failures.length,
 };
 
-fs.writeFileSync(OUT, JSON.stringify({ summary, failures, results }, null, 2));
+const policyResults = policyChecks.map((item) => {
+  const review = reviewAmbiguousInput(item.input);
+  const pass =
+    review.mode === item.expectedMode &&
+    (!item.expectedIncludes || String(review.normalizedText || "").includes(item.expectedIncludes));
+  if (!pass) {
+    failures.push({
+      question: item.input,
+      reason: "오타/모호 질문 정책이 기대와 다름",
+      expectedMode: item.expectedMode,
+      actualMode: review.mode,
+      normalizedText: review.normalizedText,
+    });
+  }
+  return {
+    input: item.input,
+    expected_mode: item.expectedMode,
+    actual_mode: review.mode,
+    normalized_text: review.normalizedText,
+    assessment: pass ? "pass" : "review",
+  };
+});
+
+summary.policy_check_count = policyResults.length;
+summary.policy_failure_count = policyResults.filter((row) => row.assessment !== "pass").length;
+summary.failure_count = failures.length;
+
+fs.writeFileSync(OUT, JSON.stringify({ summary, failures, results, policyResults }, null, 2));
 console.log(JSON.stringify(summary, null, 2));
 
 if (failures.length) {

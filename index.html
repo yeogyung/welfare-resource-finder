@@ -2905,6 +2905,34 @@ function explainCurrentRecommendations(){
     function isNoText(text){return /^(아니|싫|괜찮아|됐어|몰라|글쎄|그냥)$/.test(text)||containsAny(text,["아니요","관심 없어","생각 없어","할 거 없어","하는 일 없어","별로 없어","딱히 없어"]);}
     function isVagueInactive(text){return containsAny(text,["별로 하는 일 없어","하는 일 없어","할 일 없어","별로 없어","딱히 없어","관심 없어","심심","무료해","그냥 있어","뭐 없어","없어"]);}
     function isThinText(text){return text.length<2||/^(요|음|아|어|네|예|응|아니|아니요|몰라|글쎄|그냥)$/.test(text);}
+    function normalizeIntentTypos(text){
+      return String(text||"")
+        .replace(/신천|신처|심청/g,"신청")
+        .replace(/무릅/g,"무릎")
+        .replace(/추전/g,"추천")
+        .replace(/앞차게/g,"아프지 않게")
+        .replace(/\s+/g," ")
+        .trim();
+    }
+    function reviewAmbiguousInput(text){
+      const original=String(text||"").trim();
+      const compacted=original.replace(/\s+/g,"");
+      const normalized=normalizeIntentTypos(original);
+      if(/^(신천|신처|심청|시청|방법)$/.test(compacted)){
+        return {
+          mode:"clarify",
+          message:"신청 방법을 말씀하신 걸까요? 어떤 신청인지 한 단어만 더 알려주세요."
+        };
+      }
+      if(normalized!==original&&/(신청|접수|등록|가입|예약).{0,12}(방법|절차|어떻게|자세히|알려)|(?:방법|절차).{0,12}(신청|접수|등록|가입|예약)/.test(normalized)){
+        return {
+          mode:"inferred",
+          normalizedText:normalized,
+          intentNote:"신청 방법을 말씀하신 것 같아요. 정확한 서비스명이 없으면 일반적인 신청 절차를 먼저 짧게 안내해 주세요."
+        };
+      }
+      return {mode:"none",normalizedText:normalized};
+    }
     function isWeatherIntent(text){
       const weatherText=String(text||"").replace(/생활비/g,"");
       const hasWeatherSignal=/날씨|기온|습도|우산|옷차림|비\s*(?:가|와|오|올|내리|는|도|많이)|비올|눈\s*(?:이|와|오|올|내리|은)|오늘.*(?:더워|추워|덥|춥)|밖.*(?:더워|추워|덥|춥)/.test(weatherText);
@@ -2981,11 +3009,14 @@ function explainCurrentRecommendations(){
       let typing=true;
       function clearTyping(){if(typing){rmTyping();typing=false;}}
       try{
+        const messageForApi=opts.normalizedMessage||text;
         const response=await fetch("/api/chat",{
           method:"POST",
           headers:{"Content-Type":"application/json"},
           body:JSON.stringify({
-            message:text,
+            message:messageForApi,
+            originalMessage:messageForApi===text?"":text,
+            intentNote:opts.intentNote||"",
             history:chatHistory.slice(-8),
             userId:currentUser&&currentUser.userId,
             userType:currentUser&&currentUser.userType,
@@ -3207,38 +3238,44 @@ function explainCurrentRecommendations(){
       if(!document.getElementById("thread").innerHTML){const hi="안녕하세요! 말씀하신 내용을 보고 필요한 자원을 같이 찾아볼게요.";addBot(esc(hi),{text:hi});}
       addUser(text);
       if(handleImageFollowup(text))return;
+      const ambiguity=reviewAmbiguousInput(text);
+      if(ambiguity.mode==="clarify"){
+        askFree(ambiguity.message,"broad_probe",null,[],text);
+        return;
+      }
+      const routeText=ambiguity.normalizedText||text;
       if(isEmergency(text)){
-        ctx={cat:"emergency",tokens:tokenize(text),query:text};
+        ctx={cat:"emergency",tokens:tokenize(routeText),query:routeText};
         freeCtx={stage:"idle",cat:null,tokens:[],query:""};
         renderNode("emergency_1",1);
         return;
       }
-      const unsupported=detectUnsupported(text);
-      if(unsupported){await handleUnsupportedText(text,unsupported);return;}
-      if(handleFreeFollowup(text))return;
-      const cat=inferFreeCategory(text);
-      const tokens=tokenize(text);
+      const unsupported=detectUnsupported(routeText);
+      if(unsupported){await handleUnsupportedText(routeText,unsupported);return;}
+      if(handleFreeFollowup(routeText))return;
+      const cat=inferFreeCategory(routeText);
+      const tokens=tokenize(routeText);
       if(isThinText(text)){
         askFree("괜찮아요. 바로 추천하지 않고 조금 더 여쭤볼게요. 요즘 불편한 점이나 해보고 싶은 일이 있으세요?","broad_probe",null,[],text);
         return;
       }
-      if(isVagueInactive(text)){
-        askFree("그러면 최근 관심 있는 일이 있으신가요? 사람 만나는 모임, 가벼운 운동, 배우는 활동 중 편한 쪽이 있을까요?","interest_probe","culture",["여가","모임","운동","배움"],text);
+      if(isVagueInactive(routeText)){
+        askFree("그러면 최근 관심 있는 일이 있으신가요? 사람 만나는 모임, 가벼운 운동, 배우는 활동 중 편한 쪽이 있을까요?","interest_probe","culture",["여가","모임","운동","배움"],routeText);
         return;
       }
       if(cat){
-        if(wantsWelfareRecommendation(text))recommendWith(cat,tokens,text);
+        if(wantsWelfareRecommendation(routeText))recommendWith(cat,tokens,routeText);
         else {
-          const answered=await answerFreeChat(text,{offerCat:cat,offerTokens:tokens});
+          const answered=await answerFreeChat(text,{offerCat:cat,offerTokens:tokens,normalizedMessage:routeText,intentNote:ambiguity.intentNote||""});
           if(!answered)askFree("먼저 답을 드리려고 했는데 연결이 잠시 어렵습니다. 질문을 한 번만 더 적어 주세요.","idle",null,[],text);
         }
         return;
       }
-      if(isYesText(text)){
+      if(isYesText(routeText)){
         askFree("좋아요. 바로 찾기 전에 어떤 쪽이 필요하신지 알려주세요. 생활 도움, 건강, 돈, 배움, 모임 중 무엇이 가까우세요?","broad_probe",null,[],text);
         return;
       }
-      const answered=await answerFreeChat(text);
+      const answered=await answerFreeChat(text,{normalizedMessage:routeText,intentNote:ambiguity.intentNote||""});
       if(answered)return;
       askFree("자유대화 연결이 잠시 어렵습니다. 대신 복지, 건강, 배움, 모임 자원은 바로 찾아드릴 수 있어요. 어떤 쪽이 필요하세요?","broad_probe",null,tokens,text);
     }

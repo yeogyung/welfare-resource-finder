@@ -158,9 +158,43 @@ function koreaDateLabel() {
   }
 }
 
-function inputFor(history, message, { webSearch }) {
+function answerPolicyFor(message, { webSearch }) {
+  const q = String(message || "");
+  const lines = [];
+  const practical =
+    /(방법|어떻게|세\s*가지|추천|알려|관리|예방|낮추|좋은|기분\s*좋게|조심|주의)/.test(q) &&
+    /(운동|건강|무릎|무릅|허리|혈압|백내장|치매|당뇨|기분|우울|스마트폰|카카오톡|생활|음식|반찬|관절)/.test(q);
+  const application =
+    /(?:신청|접수|등록|가입|예약).{0,16}(?:방법|절차|어떻게|자세히|알려)|(?:방법|절차).{0,16}(?:신청|접수|등록|가입|예약)/.test(q);
+  if (practical) {
+    lines.push("이번 답변은 실천형 답변이다. 도입 1문장 + 번호 3개만 쓰고, 번호 목록 뒤에는 추가 마무리 문장을 쓰지 않는다.");
+    lines.push("각 번호는 한 줄로 짧게 쓰고, 한 항목에 설명을 길게 붙이지 않는다.");
+  }
+  if (application) {
+    lines.push("이번 답변은 신청 방법 안내다. 특정 서비스명이 없으면 '어떤 신청인지 정확하진 않지만'이라고 밝히고, 일반 절차 3단계만 안내한다.");
+    lines.push("특정 서비스명이 있으면 그 서비스 기준으로 추정하되, 정확한 대상·서류·마감은 추천 카드나 기관에 확인하라고 짧게 말한다.");
+  }
+  if (webSearch) {
+    lines.push("본문은 5문장 이내로 쓰고, 세부 조건은 출처 확인으로 넘긴다.");
+  }
+  return lines.join("\n");
+}
+
+function inputFor(history, message, { webSearch, originalMessage = "", intentNote = "" }) {
   const transcript = transcriptFrom(history, message);
-  if (!webSearch) return transcript;
+  const extra = [];
+  if (originalMessage && originalMessage !== message) {
+    extra.push(`사용자 원문: ${originalMessage}`);
+    extra.push(`오타/음성인식 보정 후 해석: ${message}`);
+  }
+  if (intentNote) {
+    extra.push(`추정 지시: ${intentNote}`);
+    extra.push("답변 첫 문장에서 추정을 자연스럽게 밝힌 뒤, 바로 답한다.");
+  }
+  const policy = answerPolicyFor(message, { webSearch });
+  if (policy) extra.push(`답변 길이 지시:\n${policy}`);
+  const baseInput = extra.length ? `${transcript}\n\n대화 처리 지시:\n${extra.join("\n")}` : transcript;
+  if (!webSearch) return baseInput;
   const hints = [];
   if (isCinemaDiscountQuery(message)) {
     hints.push(
@@ -172,7 +206,7 @@ function inputFor(history, message, { webSearch }) {
     );
   }
   hints.push("출처 URL은 반드시 평문 URL로 답변 끝에 적는다.");
-  return `${transcript}\n\n검색 지시:\n${hints.join("\n")}`;
+  return `${baseInput}\n\n검색 지시:\n${hints.join("\n")}`;
 }
 
 function instructionsFor({ webSearch }) {
@@ -266,6 +300,8 @@ const instructions = [
   "너는 '찾아봇'의 자유대화 AI다. 한국어 존댓말을 쓰고, 고령자도 이해하기 쉬운 말로 짧고 따뜻하게 답한다.",
   "사용자는 AI 교육 실습 중일 수 있다. 일상대화, 생일 문자, 삼행시, 간단한 글쓰기, 스마트폰/AI 사용 질문에 자연스럽게 답한다.",
   "사용자가 명확히 복지자원, 기관, 신청 방법을 묻지 않았다면 복지 추천으로 성급하게 돌리지 말고 일반 대화를 먼저 이어간다.",
+  "오타나 음성인식 오류가 보여도 가능한 뜻이 분명하면 먼저 추정해서 답한다. 예: '신천 방법'은 '신청 방법'으로 이해하고 '신청 방법을 말씀하신 것 같아요.'라고 밝힌 뒤 바로 답한다.",
+  "무엇을 말하는지 전혀 알 수 없는 낮은 확신의 입력은 긴 답을 만들지 말고 확인 질문 하나만 한다.",
   "건강·의료 일반 질문도 먼저 질문에 답한다. 예를 들어 '백내장 치료 추천해줘'처럼 물으면 백내장이 무엇인지, 보통 안과 진료와 수술 상담으로 확인한다는 점, 빨리 진료가 필요한 증상을 쉬운 말로 설명한다.",
   "의료 답변은 진단·처방처럼 단정하지 말고 일반 정보로 안내한다. 마지막에는 정확한 판단은 안과, 병원, 의사와 상담하라고 부드럽게 덧붙인다.",
   "복지자원 추천, 기관 정보, 신청 방법을 명확히 묻는 경우에는 앱의 추천 카드나 복지자원 찾기 흐름을 이용하라고 짧게 안내한다. DB에 없는 기관/전화/링크는 지어내지 않는다.",
@@ -294,6 +330,8 @@ module.exports = async function chatHandler(req, res) {
 
   const body = readBody(req);
   const message = compact(body.message || body.query || "");
+  const originalMessage = compact(body.originalMessage || "", MAX_MESSAGE_CHARS);
+  const intentNote = compact(body.intentNote || "", 500);
   if (!message) return sendJson(res, 400, { error: "Message is required" });
 
   const quota = takeQuota(clientKey(req, body), DAILY_LIMIT);
@@ -311,7 +349,7 @@ module.exports = async function chatHandler(req, res) {
   const payload = {
     model,
     instructions: instructionsFor({ webSearch }),
-    input: inputFor(history, message, { webSearch }),
+    input: inputFor(history, message, { webSearch, originalMessage, intentNote }),
     max_output_tokens: Number(process.env.OPENAI_CHAT_MAX_OUTPUT_TOKENS || 700),
     store: false,
   };
