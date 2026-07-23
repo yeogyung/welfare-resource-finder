@@ -365,7 +365,8 @@ body{
 	.image-actions,.image-result,.full-read{white-space:normal;}
 	.sticker-example{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
 	.sticker-example figure{margin:0;border:1px solid var(--line-2);border-radius:13px;background:#fff;overflow:hidden;box-shadow:var(--shadow-chip);}
-	.sticker-example img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--bg);}
+	.sticker-example img{display:block;width:100%;aspect-ratio:1/1;object-fit:contain;background:#fff;}
+	.sticker-example figure.result img{object-fit:cover;}
 	.sticker-example figcaption{padding:8px 6px;text-align:center;color:var(--teal-dark);font-size:.8em;font-weight:900;line-height:1.25;}
 	.sticker-photo-examples{margin:10px 0 2px 0;padding:10px 12px 10px 30px;background:var(--teal-soft);border-radius:12px;color:var(--teal-dark);font-size:.9em;font-weight:900;line-height:1.6;}
 	.sticker-photo-examples li{padding-left:2px;}
@@ -1020,8 +1021,9 @@ let archiveTab="conversations";
 let conversationArchive=[];
 let conversationArchiveLoaded=false;
 let imageTemplates=[];
-const STICKER_EXAMPLE_INPUT="./public/assets/sticker-example-input.png";
-const STICKER_EXAMPLE_RESULT="./public/assets/sticker-example-result.png";
+const STICKER_EXAMPLE_INPUT="./public/assets/sticker-baby-input.png";
+const STICKER_SET_EXAMPLE_RESULT="./public/assets/sticker-baby-set-result.png";
+const STICKER_SINGLE_EXAMPLE_RESULT="./public/assets/sticker-baby-single-result.png";
 let pendingImageTemplate=null;
 let pendingImageFlow=null;
 let pendingPhotoConfirm=null;
@@ -1049,6 +1051,7 @@ let voiceAudioUrl=null;
 const IMAGE_WORKING_MESSAGES=[
   "찾아봇 AI가 사진을 분석하고 있어요",
   "표정과 분위기를 맞추고 있어요",
+  "문구에 맞는 표정을 고르고 있어요",
   "스티커처럼 보이도록 정리하고 있어요",
   "글자가 잘 보이게 확인하고 있어요",
   "곧 완성되어요. 조금만 기다려 주세요"
@@ -1602,19 +1605,60 @@ function stickerRealisticGuard(){
 function singleStickerGuard(textValue){
   const phrase=String(textValue||"").trim()||"화이팅!";
   return [
-    "중요: 이 요청은 이모티콘 1개만 만드는 요청이야.",
-    "4x4 시트, 여러 칸, 여러 표정, 여러 문구를 만들지 마.",
-    "첨부한 사진의 얼굴 정체성, 머리 모양, 의상, 주요 특징을 최대한 보존한 사진 기반 실사 스티커 1개로 만들어줘.",
-    "만화 캐릭터, 2D 일러스트, 아바타, 일반 캐릭터로 다시 그리지 마.",
-    "원본 인물의 실사 얼굴과 상반신을 바탕으로 표정과 포즈만 자연스럽게 편집한 포토샵/사진 편집 느낌이어야 해.",
-    "스티커처럼 흰색 외곽 테두리를 넣고, 깨끗한 흰 배경에 사람 중심으로 크게 배치해줘.",
-    `이미지 안에는 이 문구만 넣어줘: "${phrase}".`,
-    "문구는 짧고 선명하게, 얼굴이나 손을 가리지 않게 배치해줘.",
-    "머리, 얼굴, 손, 글자, 외곽 흰 테두리가 절대 잘리지 않게 상하좌우에 충분한 흰 여백을 남겨줘."
+    "첨부한 사진을 활용해서 카카오톡/라인 스타일의 단일 이모티콘 스티커를 만들어줘.",
+    "",
+    "[입력 텍스트]",
+    `"${phrase}"`,
+    "",
+    "[스타일]",
+    "- 밝고 귀여운 느낌",
+    "- 스티커처럼 외곽 흰색 테두리",
+    "- 깨끗한 흰 배경",
+    "- 색감 선명하고 또렷하게",
+    "",
+    "[구성]",
+    "- 스티커는 1개만 생성",
+    "- 인물 중심 상반신 크롭",
+    "- 중앙 배치 + 충분한 여백",
+    "",
+    "[표정/포즈 규칙]",
+    "입력된 텍스트의 의미에 맞게 표정과 포즈를 자연스럽게 생성:",
+    "- 인사/환영 (안녕, 어서 와) → 웃는 얼굴 + 손 흔들기",
+    "- 사랑/호감 (사랑해) → 하트 + 입술 내밀기 또는 애교",
+    "- 칭찬/긍정 (최고, 굿) → 엄지척 + 밝은 미소",
+    "- 웃음 (ㅋㅋㅋ) → 눈 감고 크게 웃기",
+    "- 의문 (왜?, 뭐야?) → 고개 기울임 + 궁금한 표정",
+    "- 슬픔 (힝, ㅠㅠ) → 울먹이는 표정 + 눈물",
+    "- 졸림 (잘자) → 눈 감고 기대는 포즈",
+    "- 놀람 (헉) → 눈 크게 뜸 + 입 벌림",
+    "- 멍함 (멍) → 힘 빠진 표정",
+    "- 화남 (화났어) → 찡그린 얼굴 + 분노 표시",
+    "- 먹기 (냠냠) → 음식 먹는 포즈",
+    "- 응원 (화이팅) → 주먹 쥐고 힘주는 포즈",
+    "- 감사 (고마워) → 손 모으기 또는 인사",
+    "- 기타 문장 → 문맥에 맞게 가장 자연스러운 감정으로 해석",
+    "",
+    "[텍스트]",
+    `- 입력된 "${phrase}"만 사용`,
+    "- 다른 문구 추가 금지",
+    "- 크고 또렷하게 배치",
+    "",
+    "[기타]",
+    "- 원본 얼굴 정체성 유지 (실사 느낌)",
+    "- 만화/일러스트 스타일 금지",
+    "- 자연스러운 사진 편집 느낌",
+    "",
+    "중요:",
+    "- 반드시 1개의 스티커만 생성",
+    "- 텍스트는 입력값 그대로 사용",
+    "- 표정은 텍스트 의미와 반드시 일치",
+    "- 얼굴/손/텍스트 잘림 방지",
+    "- 상하좌우에 충분한 흰 여백을 남겨줘."
   ].join("\n");
 }
-function stickerExampleHtml(){
-  return `<div class="sticker-example"><figure><img src="${STICKER_EXAMPLE_INPUT}" alt="넣은 사진 예시"><figcaption>넣은 사진</figcaption></figure><figure><img src="${STICKER_EXAMPLE_RESULT}" alt="결과물 예시"><figcaption>결과물</figcaption></figure></div>`;
+function stickerExampleHtml(kind="set"){
+  const result=kind==="single"?STICKER_SINGLE_EXAMPLE_RESULT:STICKER_SET_EXAMPLE_RESULT;
+  return `<div class="sticker-example"><figure class="source"><img src="${STICKER_EXAMPLE_INPUT}" alt="넣은 사진 예시"><figcaption>넣은 사진</figcaption></figure><figure class="result"><img src="${result}" alt="결과물 예시"><figcaption>결과물</figcaption></figure></div>`;
 }
 function stickerPhotoExamplesHtml(){
   return `<ul class="sticker-photo-examples"><li>손주 사진</li><li>내 사진</li><li>반려동물 사진</li><li>좋아하는 트로트 가수 사진</li><li>가족 사진이나 여행 사진</li></ul>`;
@@ -1631,13 +1675,13 @@ function showStickerSheetIntro(flow){
   flow.step="need_sticker_image";
   pendingImageTemplate=flow.template;
   const msg="이런 식으로 16개 이모티콘 시트를 만들게요. 사용할 사진을 골라주세요.";
-  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기","다른 메뉴 보기",{gallery:true})}`,{text:msg});
+  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml("set")}${photoActionButtonsHtml("사진 고르기","다른 메뉴 보기",{gallery:true})}`,{text:msg});
 }
 function showSingleStickerIntro(flow){
   flow.step="need_single_sticker_image";
   pendingImageTemplate=flow.template;
   const msg="이모티콘 1개를 만들게요. 사용할 사진을 골라주세요.";
-  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기","다른 메뉴 보기",{gallery:true})}`,{text:msg});
+  addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml("single")}${photoActionButtonsHtml("사진 고르기","다른 메뉴 보기",{gallery:true})}`,{text:msg});
 }
 function askImageStyle(flow){
   if(!flow.template.requiresImage){
@@ -1809,10 +1853,30 @@ function askSingleStickerText(flow){
   const msg="이모티콘에 넣을 짧은 문구를 골라주세요. 원하는 말이 있으면 아래 왼쪽 마이크 버튼을 누르고 말하거나, 채팅창에 써 주세요.";
   addBot(esc(msg),{text:msg});
   addChoices([
+    imageChoice("안녕","👋"),
+    imageChoice("사랑해","💗"),
+    imageChoice("잘자","🌙"),
     imageChoice("헐","😮"),
     imageChoice("ㅋㅋ","😄"),
     imageChoice("파이팅!","💪"),
-    imageChoice("고마워","💌")
+    imageChoice("고마워","💌"),
+    {emoji:"➕",label:"더보기",action:"showMoreSingleStickerTextChoices()"}
+  ]);
+}
+function showMoreSingleStickerTextChoices(){
+  const flow=pendingImageFlow;
+  if(!flow||flow.step!=="single_sticker_text")return;
+  const msg="더 많은 문구예요. 여기에 없는 말은 채팅창에 직접 써 주세요.";
+  addBot(esc(msg),{text:msg});
+  addChoices([
+    imageChoice("어서 와~","👋"),
+    imageChoice("최고","👍"),
+    imageChoice("굿","👍"),
+    imageChoice("왜?","❓"),
+    imageChoice("힝","😢"),
+    imageChoice("냠냠","🍪"),
+    imageChoice("뿅","✨"),
+    imageChoice("직접 쓸게요","✍️")
   ]);
 }
 function confirmSingleStickerText(flow,text){
@@ -1855,15 +1919,20 @@ function handleImageFollowup(text){
   }
   if(flow.step==="need_sticker_image"){
     const msg="먼저 이모티콘으로 만들 사진을 골라주세요.";
-    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기","권한 도움",{gallery:true})}`,{text:msg});
+    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml("set")}${photoActionButtonsHtml("사진 고르기","권한 도움",{gallery:true})}`,{text:msg});
     return true;
   }
   if(flow.step==="need_single_sticker_image"){
     const msg="먼저 이모티콘으로 만들 사진을 골라주세요.";
-    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml()}${photoActionButtonsHtml("사진 고르기","권한 도움",{gallery:true})}`,{text:msg});
+    addBot(`${esc(msg)}${stickerPhotoExamplesHtml()}${stickerExampleHtml("single")}${photoActionButtonsHtml("사진 고르기","권한 도움",{gallery:true})}`,{text:msg});
     return true;
   }
   if(flow.step==="single_sticker_text"){
+    if(/직접/.test(clean)){
+      const msg="좋아요. 아래 왼쪽 마이크 버튼을 누르고 원하는 문구를 말하거나, 채팅창에 글자로 써 주세요.";
+      addBot(esc(msg),{text:msg});
+      return true;
+    }
     if(clean.length<1){
       askSingleStickerText(flow);
       return true;
@@ -2570,7 +2639,7 @@ function addTyping(opts={}){
       if(!el)return;
       idx=(idx+1)%messages.length;
       el.textContent=messages[idx];
-    },1800);
+    },3200);
   }
   scrollToTurn(w);
 }
@@ -2836,9 +2905,20 @@ function explainCurrentRecommendations(){
     function isNoText(text){return /^(아니|싫|괜찮아|됐어|몰라|글쎄|그냥)$/.test(text)||containsAny(text,["아니요","관심 없어","생각 없어","할 거 없어","하는 일 없어","별로 없어","딱히 없어"]);}
     function isVagueInactive(text){return containsAny(text,["별로 하는 일 없어","하는 일 없어","할 일 없어","별로 없어","딱히 없어","관심 없어","심심","무료해","그냥 있어","뭐 없어","없어"]);}
     function isThinText(text){return text.length<2||/^(요|음|아|어|네|예|응|아니|아니요|몰라|글쎄|그냥)$/.test(text);}
-    function detectUnsupported(text){
+    function isWeatherIntent(text){
       const weatherText=String(text||"").replace(/생활비/g,"");
-      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|오늘.*(더워|추워|덥|춥)|밖.*(더워|추워|덥|춥)/.test(weatherText))return "weather";
+      const hasWeatherSignal=/날씨|기온|습도|우산|옷차림|비\s*(?:가|와|오|올|내리|는|도|많이)|비올|눈\s*(?:이|와|오|올|내리|은)|오늘.*(?:더워|추워|덥|춥)|밖.*(?:더워|추워|덥|춥)/.test(weatherText);
+      if(!hasWeatherSignal)return false;
+      const personalContext=/우울|울적|마음|기분|외롭|무릎|무릅|관절|허리|어깨|시려|시리|아파|아프|통증|몸|건강|치료|혈압|불안|걱정|힘들|잠이|잠\s*안|운동/.test(weatherText);
+      const strongWeatherRequest=/(?:날씨|기온|습도).{0,18}(?:어때|어떤|알려|확인|궁금|조회|볼래|보여|추천|봐줘)|(?:우산|옷차림).{0,18}(?:필요|챙|추천|어떻게|입|가져)/.test(weatherText);
+      const directWeatherRequest=strongWeatherRequest
+        ||/(?:오늘|내일|모레|지금|현재|밖|서울|광진구|복지관).{0,24}(?:날씨|기온|습도|우산|옷차림|더워|추워|덥|춥)/.test(weatherText)
+        ||/(?:비|눈)\s*(?:가|이|는)?\s*.{0,8}(?:오나|오나요|올까|올까요|오는지|내려|내리|많이|예보|와\?|와요\?)/.test(weatherText);
+      if(personalContext&&!strongWeatherRequest)return false;
+      return directWeatherRequest;
+    }
+    function detectUnsupported(text){
+      if(isWeatherIntent(text))return "weather";
       if(/(이미지|그림|사진|로고|포스터|카드|이모티콘|스티커).*(만들어줘|생성해줘|그려줘|꾸며줘|바꿔줘)|(?:만들어줘|그려줘|꾸며줘|바꿔줘).*(이미지|그림|사진|로고|포스터|카드|이모티콘|스티커)/.test(text))return "image";
       return null;
     }
@@ -2956,7 +3036,7 @@ function explainCurrentRecommendations(){
       if(!clean)return;
       addUser(clean);
       logEvent("daily_talk_prompt_submit",{length:clean.length});
-      if(/날씨|비 와|비가|비올|눈 와|눈이|우산|기온|습도|옷차림|더워|추워|덥|춥/.test(clean.replace(/생활비/g,""))){
+      if(isWeatherIntent(clean)){
         await answerWeather(clean);
         return;
       }

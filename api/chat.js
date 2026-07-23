@@ -110,8 +110,22 @@ function extractOutputText(data) {
   return cleanModelAnswer(chunks.join("\n"));
 }
 
+function isPersonalWeatherContext(message) {
+  const q = String(message || "").replace(/생활비/g, "");
+  const hasWeatherSignal =
+    /날씨|기온|습도|우산|옷차림|비\s*(?:가|와|오|올|내리|는|도|많이)|비올|눈\s*(?:이|와|오|올|내리|은)|오늘.*(?:더워|추워|덥|춥)|밖.*(?:더워|추워|덥|춥)/.test(q);
+  if (!hasWeatherSignal) return false;
+  const personalContext =
+    /우울|울적|마음|기분|외롭|무릎|무릅|관절|허리|어깨|시려|시리|아파|아프|통증|몸|건강|치료|혈압|불안|걱정|힘들|잠이|잠\s*안|운동/.test(q);
+  if (!personalContext) return false;
+  const strongWeatherRequest =
+    /(?:날씨|기온|습도).{0,18}(?:어때|어떤|알려|확인|궁금|조회|볼래|보여|추천|봐줘)|(?:우산|옷차림).{0,18}(?:필요|챙|추천|어떻게|입|가져)/.test(q);
+  return !strongWeatherRequest;
+}
+
 function shouldUseWebSearch(message) {
   if (process.env.OPENAI_WEB_SEARCH_ENABLED === "0") return false;
+  if (isPersonalWeatherContext(message)) return false;
   const q = String(message || "");
   const liveIntent =
     /오늘|내일|이번\s*(주|달|달엔|주말)|지금|현재|최근|최신|실시간|새로|업데이트/.test(q) ||

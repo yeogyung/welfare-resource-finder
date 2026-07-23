@@ -6,3 +6,5 @@ dist/
 *.zip
 outputs/
 private/
+.vercel
+.env*
