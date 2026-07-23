@@ -202,6 +202,14 @@ function appendSources(answer, citations) {
   return `${answer}\n\n확인한 곳\n${sourceLines.join("\n")}`;
 }
 
+function stripInlineSources(answer) {
+  return String(answer || "")
+    .replace(/\s*\([^()]*https?:\/\/[^()]+?\)/g, "")
+    .replace(/\n?\s*확인한 곳[\s\S]*$/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function fallbackCitationsFor(message) {
   if (!isCinemaDiscountQuery(message)) return [];
   return [
@@ -323,8 +331,10 @@ module.exports = async function chatHandler(req, res) {
 
     const citations = extractCitations(data);
     const webSearchUsed = webSearch && usedWebSearch(data);
-    const finalCitations = citations.length ? citations : fallbackCitationsFor(message);
-    const answer = appendSources(extractOutputText(data), finalCitations);
+    const fallbackCitations = fallbackCitationsFor(message);
+    const finalCitations = fallbackCitations.length ? fallbackCitations : citations;
+    const bodyAnswer = webSearch ? stripInlineSources(extractOutputText(data)) : extractOutputText(data);
+    const answer = appendSources(bodyAnswer, finalCitations);
     if (!answer) return sendJson(res, 502, { error: "Empty OpenAI answer" });
     await recordUsage(body, model, data.usage || null, quota, {
       feature: webSearchUsed ? "chat_web_search" : "chat",
