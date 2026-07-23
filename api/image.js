@@ -89,7 +89,7 @@ function normalizeSize(size) {
 
 function resolveModel(body) {
   if (body.model) return compact(body.model, 80);
-  if (body.templateId === "sticker_from_photo") return DEFAULT_STICKER_MODEL;
+  if (body.templateId === "sticker_from_photo" || body.templateId === "single_sticker_from_photo") return DEFAULT_STICKER_MODEL;
   return DEFAULT_MODEL;
 }
 
@@ -100,7 +100,7 @@ function normalizeQuality(quality) {
 
 function resolveQuality(body) {
   if (body.quality) return normalizeQuality(compact(body.quality, 20));
-  if (body.templateId === "sticker_from_photo") return normalizeQuality(DEFAULT_STICKER_QUALITY);
+  if (body.templateId === "sticker_from_photo" || body.templateId === "single_sticker_from_photo") return normalizeQuality(DEFAULT_STICKER_QUALITY);
   return normalizeQuality(DEFAULT_QUALITY);
 }
 
