@@ -366,17 +366,11 @@ body{
 	.photo-confirm-preview{margin-top:14px;border:1px solid var(--line-2);border-radius:14px;background:var(--bg);overflow:hidden;}
 	.photo-confirm-preview img{display:block;width:100%;max-height:240px;object-fit:contain;background:#fff;}
 	.photo-confirm-preview figcaption{padding:9px 10px;text-align:center;color:var(--teal-dark);font-size:.86em;font-weight:900;}
-	.image-style-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
-	.image-style-card{border:1.4px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font-family:inherit;text-align:left;padding:10px;cursor:pointer;box-shadow:var(--shadow-card);}
-	.image-style-card strong{display:block;margin-top:8px;font-size:.92em;font-weight:900;line-height:1.3;word-break:keep-all;}
-	.image-style-card small{display:block;margin-top:3px;color:var(--ink-5);font-size:.74em;font-weight:800;line-height:1.35;word-break:keep-all;}
+	.image-style-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+	.image-style-card{min-height:96px;border:1.4px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font-family:inherit;text-align:center;padding:14px 10px;cursor:pointer;box-shadow:var(--shadow-card);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+	.image-style-card strong{display:block;margin-top:0;font-size:1.02em;font-weight:950;line-height:1.3;word-break:keep-all;}
+	.image-style-card small{display:block;margin-top:7px;color:var(--ink-5);font-size:.8em;font-weight:800;line-height:1.4;word-break:keep-all;}
 	.image-style-card:active{transform:scale(.985);background:var(--teal-soft);}
-	.style-preview{height:82px;border-radius:11px;position:relative;overflow:hidden;background:linear-gradient(135deg,#F6EEE5,#DDE9EF);}
-	.style-preview::before{content:"";position:absolute;left:50%;top:19px;transform:translateX(-50%);width:35px;height:35px;border-radius:50%;background:#F2D0BE;box-shadow:0 35px 0 9px #2B3443;}
-	.style-preview::after{content:"";position:absolute;left:50%;top:34px;transform:translateX(-50%);width:24px;height:8px;border-radius:999px;border-bottom:3px solid #8A4D41;}
-	.style-preview.character{background:linear-gradient(135deg,#E9F7F3,#FFF4D8);}
-	.style-preview.character::before{width:40px;height:40px;top:16px;background:#FFF4EA;border:3px solid var(--teal);box-shadow:0 40px 0 10px #9FD9C9;}
-	.style-preview.character::after{width:28px;height:11px;border-bottom:4px solid var(--teal-dark);}
 
 /* 설정 */
 .set-group{margin-top:18px;background:var(--surface);border:1px solid var(--line-2);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
@@ -1640,13 +1634,13 @@ function askImageStyle(flow){
     return;
   }
   flow.step="style";
-  const msg="사진을 어떤 방식으로 바꿀까요? 먼저 느낌을 골라주세요.";
-  addBot(`${esc(msg)}<div class="image-style-grid"><button class="image-style-card" onclick="answerImageStyle('realistic')"><span class="style-preview real"></span><strong>실사 기반 보정</strong><small>사진 느낌은 살리고 표정·분위기만 자연스럽게</small></button><button class="image-style-card" onclick="answerImageStyle('character')"><span class="style-preview character"></span><strong>캐릭터·이모티콘</strong><small>얼굴 특징을 살려 귀엽고 단순하게</small></button></div>`,{text:msg});
+  const msg="사진을 어떻게 바꿀까요? 원하는 느낌을 골라주세요.";
+  addBot(`${esc(msg)}<div class="image-style-grid"><button class="image-style-card" onclick="answerImageStyle('realistic')"><strong>사람처럼 만들기</strong><small>사진 느낌을 살려 자연스럽게</small></button><button class="image-style-card" onclick="answerImageStyle('character')"><strong>그림처럼 만들기</strong><small>귀엽고 단순한 캐릭터 느낌</small></button></div>`,{text:msg});
 }
 function answerImageStyle(style){
   const flow=pendingImageFlow;
   if(!flow)return;
-  const label=style==="character"?"캐릭터·이모티콘 느낌":"실사 기반 보정 느낌";
+  const label=style==="character"?"그림처럼 만들기":"사람처럼 만들기";
   addUser(label);
   setImageAnswer(flow,"스타일",label);
   askImagePurpose(flow);
@@ -1704,8 +1698,8 @@ function buildImagePrompt(flow){
   const first=flow.initialText?`처음 요청: ${flow.initialText}`:"";
   const style=getImageAnswer(flow,"스타일");
   const textValue=getImageAnswer(flow,"넣을 문구");
-  const realistic=/실사|보정/.test(style);
-  const character=/캐릭터|이모티콘/.test(style);
+  const realistic=/실사|보정|사람처럼|사진처럼|자연/.test(style);
+  const character=/캐릭터|이모티콘|그림처럼|귀엽/.test(style);
   const editGuard=template.requiresImage
     ?"업로드한 사진을 참고 이미지로 삼아 편집하세요. 사진 속 인물의 얼굴형, 머리 모양, 옷 색 등 알아볼 수 있는 특징을 유지하고, 새 인물이나 무관한 일반 캐릭터로 대체하지 마세요. 사진에 없는 안경, 모자, 수염, 장신구, 컵 같은 소품을 새로 추가하지 마세요."
     :"";
@@ -1868,7 +1862,7 @@ function handleImageFollowup(text){
     return true;
   }
   if(flow.step==="style"){
-    const style=/캐릭|이모티콘|스티커|귀엽/.test(clean)?"캐릭터·이모티콘 느낌":"실사 기반 보정 느낌";
+    const style=/캐릭|이모티콘|스티커|귀엽|그림/.test(clean)?"그림처럼 만들기":"사람처럼 만들기";
     setImageAnswer(flow,"스타일",style);
     askImagePurpose(flow);
     return true;
