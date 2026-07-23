@@ -430,23 +430,6 @@ body{
 .scroll-cue:active,.home-scroll-cue:active{transform:translateX(-50%) scale(.97);}
 .home-scroll-cue{bottom:144px;background:rgba(45,130,111,.94);}
 .home-bottom-fade{position:absolute;left:0;right:0;bottom:128px;height:72px;z-index:24;pointer-events:none;background:linear-gradient(180deg,rgba(246,247,249,0),rgba(246,247,249,.94));}
-.scroll-hand{display:inline-block;font-size:1.14em;animation:swipeDown 1.15s ease-in-out infinite;}
-@keyframes swipeDown{0%,100%{transform:translateY(-4px)}55%{transform:translateY(6px)}}
-.coach-layer{position:absolute;inset:0;z-index:34;pointer-events:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(16,24,40,.06),rgba(16,24,40,.14));}
-.coach-layer[hidden]{display:none!important;}
-.coach-card{display:flex;flex-direction:column;align-items:center;gap:14px;border-radius:22px;background:rgba(255,255,255,.92);border:1px solid rgba(209,213,220,.95);padding:22px 24px 20px;box-shadow:0 16px 42px rgba(16,24,40,.22);color:var(--ink);font-weight:950;text-align:center;}
-.coach-visual{position:relative;width:128px;height:158px;}
-.coach-arrow{position:absolute;left:9px;top:12px;width:28px;height:112px;border-left:8px solid #111827;border-radius:999px;animation:coachArrow 1.7s ease-in-out infinite;}
-.coach-arrow::before,.coach-arrow::after{content:"";position:absolute;left:-18px;width:28px;height:28px;border-left:8px solid #111827;border-top:8px solid #111827;}
-.coach-arrow::before{top:-5px;transform:rotate(45deg);}
-.coach-arrow::after{bottom:-5px;transform:rotate(225deg);}
-.coach-hand{position:absolute;right:0;bottom:0;width:92px;height:128px;animation:coachSwipe 1.7s ease-in-out infinite;}
-.coach-finger{position:absolute;left:29px;top:0;width:27px;height:92px;background:#F8D9A8;border:7px solid #111827;border-radius:18px 18px 16px 16px;}
-.coach-palm{position:absolute;left:23px;bottom:0;width:64px;height:70px;background:#F8D9A8;border:7px solid #111827;border-top:none;border-radius:0 0 28px 28px;}
-.coach-thumb{position:absolute;left:0;bottom:28px;width:48px;height:28px;background:#F8D9A8;border:7px solid #111827;border-right:none;border-radius:24px 0 0 24px;transform:rotate(47deg);}
-.coach-card span{font-size:1em;line-height:1.4;}
-@keyframes coachSwipe{0%,100%{transform:translateY(22px)}45%{transform:translateY(-32px)}72%{transform:translateY(28px)}}
-@keyframes coachArrow{0%,100%{transform:scaleY(.92);opacity:.8}45%{transform:scaleY(1.08);opacity:1}}
 .reader-overlay{position:absolute;inset:0;background:#fff;z-index:45;display:flex;flex-direction:column;color:var(--ink);}
 .reader-head{height:58px;display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line-2);background:#fff;flex:none;}
 .reader-head button{border:none;border-radius:999px;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-weight:900;font-size:.94em;padding:10px 13px;cursor:pointer;}
@@ -703,17 +686,8 @@ body{
 	  </div>
 	  <input id="imageUploadInput" type="file" accept="image/*" hidden onchange="handleImageFile(event)">
 	  <div class="home-bottom-fade" id="homeBottomFade" hidden></div>
-	  <button class="home-scroll-cue" id="homeScrollCue" onclick="scrollHomeDown()" hidden><span class="scroll-hand">☝</span><span>아래로 내려보세요</span></button>
-	  <button class="scroll-cue" id="scrollCue" onclick="scrollChatToBottom()" hidden><span class="scroll-hand">☝</span><span>아래로 내려서 더 보기</span></button>
-	  <div class="coach-layer" id="scrollCoach" hidden aria-hidden="true">
-	    <div class="coach-card">
-	      <div class="coach-visual">
-	        <div class="coach-arrow"></div>
-	        <div class="coach-hand"><div class="coach-thumb"></div><div class="coach-palm"></div><div class="coach-finger"></div></div>
-	      </div>
-	      <span id="scrollCoachText">손가락으로 위로 밀어 더 보기</span>
-	    </div>
-	  </div>
+	  <button class="home-scroll-cue" id="homeScrollCue" onclick="scrollHomeDown()" hidden><span>아래로 내려보세요</span></button>
+	  <button class="scroll-cue" id="scrollCue" onclick="scrollChatToBottom()" hidden><span>아래로 내려서 더 보기</span></button>
 
   <!-- 탭바 -->
   <nav class="tabbar" id="tabbar" style="display:none;">
@@ -1042,7 +1016,6 @@ let pendingPhotoConfirm=null;
 let pendingPermissionType=null;
 let activeImageController=null;
 let imageTypingTimer=null;
-let coachTimer=null;
 let generatedImages={};
 let fullTextStore={};
 let ga4Ready=false;
@@ -2468,7 +2441,6 @@ function go(screen){
   document.getElementById("tabbar").style.display=(isAdmin||isSubject||isLogin)?"none":"flex";
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===screen||(isChat&&t.dataset.screen==="home")));
   hideScrollCue();
-  hideScrollCoach();
   if(screen!=="home")hideHomeCue();
   if(screen!=="chat")document.getElementById("scroll").scrollTop=0;
 	  if(screen==="saved")renderArchive();
@@ -2647,27 +2619,6 @@ function hideScrollCue(){
   if(cue)cue.hidden=true;
   clearTimeout(scrollCueTimer);
 }
-function hideScrollCoach(){
-  const coach=document.getElementById("scrollCoach");
-  if(coach)coach.hidden=true;
-  clearTimeout(coachTimer);
-}
-function showScrollCoach(kind="chat",delay=0){
-  clearTimeout(coachTimer);
-  coachTimer=setTimeout(()=>{
-    const coach=document.getElementById("scrollCoach");
-    const text=document.getElementById("scrollCoachText");
-    if(!coach)return;
-    if(kind==="home"&&activeScreen!=="home")return;
-    if(kind==="chat"&&activeScreen!=="chat")return;
-    if(kind==="home"&&isHomeNearBottom())return;
-    if(kind==="chat"&&isNearChatBottom())return;
-    if(text)text.textContent=kind==="home"?"손가락으로 위로 밀어 더 보기":"답변 아래도 이어서 볼 수 있어요";
-    coach.hidden=false;
-    clearTimeout(coachTimer);
-    coachTimer=setTimeout(()=>{if(coach)coach.hidden=true;},3600);
-  },delay);
-}
 function isHomeNearBottom(){
   const b=document.getElementById("scroll");
   return !b||(b.scrollHeight-b.scrollTop-b.clientHeight)<92;
@@ -2688,7 +2639,6 @@ function showHomeCueSoon(delay=260){
     if(!b||!cue||activeScreen!=="home"||isHomeNearBottom())return;
     cue.hidden=false;
     if(fade)fade.hidden=false;
-    showScrollCoach("home",120);
   },delay);
 }
 function showScrollCueSoon(delay=260){
@@ -2697,7 +2647,6 @@ function showScrollCueSoon(delay=260){
     const cue=document.getElementById("scrollCue");
     if(!cue||activeScreen!=="chat"||isNearChatBottom())return;
     cue.hidden=false;
-    showScrollCoach("chat",120);
   },delay);
 }
 function scrollChatToBottom(){
@@ -2705,14 +2654,12 @@ function scrollChatToBottom(){
   if(!b)return;
   b.scrollTo({top:b.scrollHeight,behavior:"smooth"});
   hideScrollCue();
-  hideScrollCoach();
 }
 function scrollHomeDown(){
   const b=document.getElementById("scroll");
   if(!b)return;
   b.scrollBy({top:Math.round(b.clientHeight*.55),behavior:"smooth"});
   hideHomeCue();
-  hideScrollCoach();
 }
 function sc(){showScrollCueSoon(180);}
 function scrollToEl(el){
@@ -3544,13 +3491,12 @@ async function init(){
   setupBackGuard();
   const scrollBox=document.getElementById("scroll");
   if(scrollBox){
-    const hideScrollHints=()=>{hideScrollCue();hideHomeCue();hideScrollCoach();};
+    const hideScrollHints=()=>{hideScrollCue();hideHomeCue();};
     scrollBox.addEventListener("wheel",hideScrollHints,{passive:true});
     scrollBox.addEventListener("touchmove",hideScrollHints,{passive:true});
     scrollBox.addEventListener("scroll",()=>{
       if(activeScreen!=="chat"||isNearChatBottom())hideScrollCue();
       if(activeScreen!=="home"||isHomeNearBottom()||scrollBox.scrollTop>30)hideHomeCue();
-      if(scrollBox.scrollTop>12)hideScrollCoach();
     },{passive:true});
   }
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeSubjectResetConfirm();closePermissionHelp();closeLoginModal();}});
