@@ -45,6 +45,24 @@ function dedupeRepeatedText(value) {
   return out.join(" ").trim();
 }
 
+function cleanModelAnswer(value) {
+  const normalized = String(value || "")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, "$1 $2")
+    .replace(/\*\*/g, "")
+    .replace(/(^|\s)#{1,6}\s*/g, "$1");
+  return dedupeRepeatedText(normalized)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, "$1 $2")
+    .replace(/\*\*/g, "")
+    .replace(/(^|\s)#{1,6}\s*/g, "$1")
+    .replace(/\s+([1-9]\d*)\.\s+/g, "\n$1. ")
+    .replace(/\s+([가-힣A-Za-z]):\s+/g, "\n$1: ")
+    .replace(/(https?:\/\/[^\s]+)\.\s+([A-Za-z0-9][^\s]*)/g, "$1.$2")
+    .replace(/(https?:\/\/[^\s]+)\/\s+([^\s]+)/g, "$1/$2")
+    .replace(/(https?:\/\/[^\s]+[?&])\s+([A-Za-z0-9_%=-][^\s]*)/g, "$1$2")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function clientKey(req, body) {
   const userKey = compact(body.userId || body.loginId || body.phoneHash, 120);
   if (userKey) return userKey;
@@ -81,7 +99,7 @@ function transcriptFrom(history, message) {
 }
 
 function extractOutputText(data) {
-  if (data?.output_text) return dedupeRepeatedText(data.output_text);
+  if (data?.output_text) return cleanModelAnswer(data.output_text);
   const chunks = [];
   for (const output of data?.output || []) {
     for (const content of output?.content || []) {
@@ -89,7 +107,7 @@ function extractOutputText(data) {
       if (content?.type === "output_text" && content?.text) chunks.push(content.text);
     }
   }
-  return dedupeRepeatedText(chunks.join("\n"));
+  return cleanModelAnswer(chunks.join("\n"));
 }
 
 function shouldUseWebSearch(message) {
@@ -101,6 +119,10 @@ function shouldUseWebSearch(message) {
     /영화관|CGV|씨지브이|롯데시네마|메가박스|극장|카드\s*할인|통신사\s*할인|멤버십/.test(q) ||
     /날씨|교통|뉴스|공연|전시|박물관|축제/.test(q);
   const creativeOnly = /삼행시|생일\s*문자|축하\s*문자|편지|농담|이야기\s*해줘|시\s*써|사진|이미지|이모티콘/.test(q);
+  const dailyPhraseOnly = /기분\s*좋게|좋은\s*말|시작하는\s*말|응원|위로|덕담|인사말|안부\s*문자|좋은\s*글|문구|짧은\s*말/.test(q);
+  if (dailyPhraseOnly && !/날씨|할인|행사|이벤트|가격|요금|상영|운영\s*시간|영업\s*시간|뉴스|교통|공연|전시|축제/.test(q)) {
+    return false;
+  }
   return liveIntent && !creativeOnly;
 }
 
