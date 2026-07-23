@@ -647,12 +647,12 @@ body{
 
         <div class="set-group">
           <div class="set-row">
-            <div class="lw"><div class="sl">이용 주체</div><div class="sd">다시 선택하면 로그인도 다시 확인해요</div></div>
-            <button class="region-val" onclick="showSubjectResetConfirm()">👤 <span id="subjectVal">선택 전</span> ›</button>
+            <div class="lw"><div class="sl">이용 주체</div><div class="sd">로그아웃 후 유형을 다시 고를 수 있어요</div></div>
+            <button class="region-val" onclick="showSubjectResetConfirm()">👤 <span id="subjectVal">선택 전</span> 변경 ›</button>
           </div>
           <div class="set-row">
             <div class="lw"><div class="sl">로그인 정보</div><div class="sd" id="loginVal">아직 확인 전이에요</div></div>
-            <button class="region-val" onclick="resetLogin()">✎ 다시 입력 ›</button>
+            <button class="region-val" onclick="showLoginInfo()">보기 ›</button>
           </div>
           <div class="set-row">
             <div class="lw"><div class="sl">지역 설정</div><div class="sd">추천 결과에 사용돼요</div></div>
@@ -739,10 +739,20 @@ body{
 
   <div class="confirm-layer" id="subjectResetConfirm" hidden>
     <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="subjectResetConfirmTitle">
-      <h2 id="subjectResetConfirmTitle">처음부터 다시 선택할까요?</h2>
+      <h2 id="subjectResetConfirmTitle">로그아웃하고 다시 선택할까요?</h2>
       <div class="confirm-actions">
-        <button type="button" onclick="confirmResetSubject()">다시 선택</button>
+        <button type="button" onclick="confirmResetSubject()">로그아웃</button>
         <button type="button" class="primary" onclick="closeSubjectResetConfirm()">계속 이용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-layer" id="loginInfoModal" hidden>
+    <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="loginInfoTitle">
+      <h2 id="loginInfoTitle">현재 로그인 정보</h2>
+      <p id="loginInfoBody" class="confirm-hint"></p>
+      <div class="confirm-actions">
+        <button type="button" class="primary" onclick="closeLoginInfo()">확인</button>
       </div>
     </div>
   </div>
@@ -869,12 +879,12 @@ const HOME_GREETINGS = [
   "오늘은 어떤 도움을 함께 찾아볼까요?"
 ];
 const HOME_PLACEHOLDERS = [
-  "예: 혼자 살아서 끼니가 걱정돼요",
-  "예: 스마트폰 쓰는 법을 배우고 싶어요",
-  "예: 경로당 모임에 나가고 싶어요",
-  "예: 병원 가기가 힘들어요",
-  "예: 생활비가 부족해요",
-  "예: 가까운 곳에서 즐길 거리가 있을까요"
+  "예: 오늘 뭐 하면 좋을까요?",
+  "예: 건강이 걱정돼요",
+  "예: 영화관 할인 알려줘",
+  "예: 사진을 예쁘게 꾸미고 싶어요",
+  "예: 복지관 갈 때 옷차림 알려줘",
+  "예: 외롭고 이야기하고 싶어요"
 ];
 const SUBJECT_OPTIONS = [
   {
@@ -999,7 +1009,7 @@ const EVAL_SET=[
 const store={mem:{},get(k){try{const v=localStorage.getItem(k);return v!==null?v:(this.mem[k]??null);}catch(e){return this.mem[k]??null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){this.mem[k]=v;}}};
 const LOGIN_SESSION_VERSION="education-20260722-v2";
 if(store.get("cb_login_session_version")!==LOGIN_SESSION_VERSION){
-  ["cb_subject","cb_user_profile","cb_current_conversation"].forEach(k=>store.set(k,""));
+  ["cb_subject","cb_user_profile","cb_current_conversation","cb_current_conversation_title"].forEach(k=>store.set(k,""));
   store.set("cb_login_session_version",LOGIN_SESSION_VERSION);
 }
 let savedIds=(()=>{try{const raw=JSON.parse(store.get("cb_saved")||"[]");return Array.isArray(raw)?raw.map(x=>typeof x==="string"?x:(x&&x.id)).filter(Boolean):[];}catch(e){return [];}})();
@@ -1021,6 +1031,7 @@ let ctx={cat:null,tokens:[],query:""}; // 버튼 기반 추천 상태
 let freeCtx={stage:"idle",cat:null,tokens:[],query:""}; // 자유 입력 대화 상태
 let chatHistory=[]; // OpenAI 자유대화용 최근 대화
 let currentConversationId=store.get("cb_current_conversation")||"";
+let currentConversationTitle=store.get("cb_current_conversation_title")||"";
 let archiveTab="conversations";
 let conversationArchive=[];
 let conversationArchiveLoaded=false;
@@ -1217,18 +1228,40 @@ function closeSubjectResetConfirm(){
   const modal=document.getElementById("subjectResetConfirm");
   if(modal)modal.hidden=true;
 }
-function confirmResetSubject(){
+async function releaseLoginLock(profile){
+  if(!profile||!profile.userId)return;
+  try{
+    await fetch("/api/logout",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        userId:profile.userId,
+        participantId:profile.participantId||null,
+        subject:profile.subject||"",
+        userType:profile.userType||""
+      })
+    });
+  }catch(e){}
+}
+async function confirmResetSubject(){
+  const profile=currentUser;
   closeSubjectResetConfirm();
   logEvent("subject_reset_confirmed",{screen:activeScreen});
+  await releaseLoginLock(profile);
   resetSubject();
+  toast("로그아웃했어요. 다시 선택해 주세요");
 }
 function resetSubject(){
   store.set("cb_subject","");
   store.set("cb_user_profile","");
+  store.set("cb_current_conversation_title","");
   currentSubject=null;
   currentUser=null;
+  currentConversationTitle="";
   pendingSubject=null;
   pendingLogin=null;
+  participantListLoaded=false;
+  participantOptions=[];
   selectedParticipant=null;
   manualParticipantLogin=false;
   updateSubjectUi();
@@ -1236,6 +1269,25 @@ function resetSubject(){
   renderSubjectCards();
   closeLoginModal();
   go("subject");
+}
+function showLoginInfo(){
+  const modal=document.getElementById("loginInfoModal");
+  const body=document.getElementById("loginInfoBody");
+  if(body){
+    if(currentUser){
+      const subjectLabel=currentSubject?currentSubject.label:"이용 주체 확인 전";
+      const phone=currentUser.phoneMasked||"연락처 확인 전";
+      body.innerHTML=`${esc(currentUser.displayName||"이름 확인 전")}님<br>${esc(subjectLabel)}<br>${esc(phone)}`;
+    }else{
+      body.textContent="아직 로그인 정보가 없어요.";
+    }
+  }
+  if(modal)modal.hidden=false;
+  logEvent("login_info_open",{screen:activeScreen});
+}
+function closeLoginInfo(){
+  const modal=document.getElementById("loginInfoModal");
+  if(modal)modal.hidden=true;
 }
 function updateSubjectUi(){
   const v=document.getElementById("subjectVal");
@@ -1255,6 +1307,46 @@ function ensureConversation(){
 function startNewConversation(){
   currentConversationId=makeId("conv");
   store.set("cb_current_conversation",currentConversationId);
+  currentConversationTitle="";
+  store.set("cb_current_conversation_title","");
+}
+function normalizeTitlePart(value){
+  return String(value||"")
+    .replace(/^[^\p{L}\p{N}]+/u,"")
+    .replace(/\s+/g," ")
+    .replace(/이\s*$/,"")
+    .replace(/가\s*$/,"")
+    .replace(/(걱정돼요|힘들어요|필요해요|빠듯해요|찾고 싶어요|배우고 싶어요|알려줘|추천해 줘|추천해줘)$/,"")
+    .replace(/[이가]\s*$/,"")
+    .replace(/·/g,"/")
+    .trim()
+    .slice(0,24);
+}
+function lockConversationTitle(title){
+  const clean=String(title||"").replace(/\s+/g," ").trim().slice(0,42);
+  if(!clean||currentConversationTitle)return currentConversationTitle;
+  currentConversationTitle=clean;
+  store.set("cb_current_conversation_title",clean);
+  return clean;
+}
+function conversationTitleForFlow(label){
+  const topic=normalizeTitlePart(label)||"복지";
+  return lockConversationTitle(`🔎 ${topic} 복지자원 탐색`);
+}
+function conversationTitleForDaily(topic){
+  if(!topic)return currentConversationTitle;
+  return lockConversationTitle(`💬 ${topic.label} 대화 연습`);
+}
+function conversationTitleForImage(template){
+  if(!template)return currentConversationTitle;
+  return lockConversationTitle(`🎨 ${template.label} 이미지 연습`);
+}
+function conversationTitleForText(text){
+  const raw=String(text||"").trim();
+  if(!raw)return currentConversationTitle;
+  if(/사진|이미지|이모티콘|꾸미|카드/.test(raw))return lockConversationTitle("🎨 사진/이미지 연습");
+  if(wantsWelfareRecommendation(raw))return lockConversationTitle(`🔎 ${normalizeTitlePart(raw)||"맞춤"} 복지자원 탐색`);
+  return lockConversationTitle(`💬 ${raw.replace(/\s+/g," ").slice(0,26)}`);
 }
 function stripHtml(html){
   const d=document.createElement("div");
@@ -1340,6 +1432,7 @@ function logMessage(role,content,metadata={}){
       messageId:makeId(role==="assistant"?"bot":"msg"),
       role,
       content:text,
+      title:metadata.title||currentConversationTitle||"",
       mode:metadata.mode||"chat",
       contentKind:metadata.contentKind||"text",
       metadata,
@@ -1808,6 +1901,7 @@ function beginImageFlow(template,{addLabel=true,initialText=""}={}){
   if(!template||!prepareImageChat())return;
   pendingImageFlow={template,mode:template.requiresImage?"edit":"generate",imageDataUrl:"",answers:[],initialText,step:""};
   pendingImageTemplate=null;
+  conversationTitleForImage(template);
   logEvent("image_template_start",{templateId:template.id,mode:pendingImageFlow.mode,requiresImage:Boolean(template.requiresImage)});
   if(addLabel)addUser(`${imageTemplateIcon(template)} ${template.label}`);
   if(template.requiresImage){
@@ -2299,6 +2393,10 @@ function confirmParticipantSelection(){
 function selectParticipant(id){
   const item=participantOptions.find(p=>p.id===id);
   if(!item)return;
+  if(item.locked){
+    toast("이미 사용 중인 이름이에요. 담당자에게 말씀해 주세요");
+    return;
+  }
   showParticipantConfirm(item);
 }
 function renderParticipantOptions(){
@@ -2315,7 +2413,7 @@ function renderParticipantOptions(){
   box.innerHTML=participantOptions.map(p=>{
     const locked=Boolean(p.locked);
     const on=selectedParticipant&&selectedParticipant.id===p.id;
-    return `<button class="participant-btn ${on?'on':''} ${locked?'locked':''}" type="button" data-id="${esc(p.id)}" onclick="selectParticipant('${esc(p.id)}')">${esc(p.displayName)}${locked?'<span class="participant-lock">사용 기록 있음</span>':""}</button>`;
+    return `<button class="participant-btn ${on?'on':''} ${locked?'locked':''}" type="button" data-id="${esc(p.id)}" ${locked?'disabled aria-disabled="true"':`onclick="selectParticipant('${esc(p.id)}')"`}>${esc(p.displayName)}${locked?'<span class="participant-lock">사용 기록 있음</span>':""}</button>`;
   }).join("");
 }
 async function loadParticipants(force=false){
@@ -2480,6 +2578,11 @@ function handleBack(){
     closeSubjectResetConfirm();
     return;
   }
+  const loginInfoModal=document.getElementById("loginInfoModal");
+  if(loginInfoModal&&!loginInfoModal.hidden){
+    closeLoginInfo();
+    return;
+  }
   const participantModal=document.getElementById("participantConfirm");
   if(participantModal&&!participantModal.hidden){
     cancelParticipantSelection();
@@ -2552,6 +2655,11 @@ function handleBrowserBack(){
   const subjectModal=document.getElementById("subjectResetConfirm");
   if(subjectModal&&!subjectModal.hidden){
     closeSubjectResetConfirm();
+    return true;
+  }
+  const loginInfoModal=document.getElementById("loginInfoModal");
+  if(loginInfoModal&&!loginInfoModal.hidden){
+    closeLoginInfo();
     return true;
   }
   const participantModal=document.getElementById("participantConfirm");
@@ -2832,6 +2940,7 @@ function renderNode(nodeId,step){
 function pick(nodeId,idx){
   const node=FLOW[nodeId],opt=node.opts[idx];
   logEvent("flow_choice",{nodeId,choiceIndex:idx,choiceLabel:opt.label,category:opt.cat||node.cat||""});
+  if(nodeId==="root"||!currentConversationTitle)conversationTitleForFlow(opt.label);
   addUser((opt.emoji?opt.emoji+" ":"")+opt.label);
   if(opt.cat)ctx.cat=opt.cat;
   if(opt.tokens)ctx.tokens.push(...opt.tokens);
@@ -3272,6 +3381,7 @@ function explainCurrentRecommendations(){
       text=cleanText(text);
       if(!text)return;
       if(!document.getElementById("thread").innerHTML){const hi="안녕하세요! 말씀하신 내용을 보고 필요한 자원을 같이 찾아볼게요.";addBot(esc(hi),{text:hi});}
+      conversationTitleForText(text);
       addUser(text);
       if(handleImageFollowup(text))return;
       const ambiguity=reviewAmbiguousInput(text);
@@ -3422,6 +3532,9 @@ async function openConversation(id){
     go("chat");
     currentConversationId=id;
     store.set("cb_current_conversation",id);
+    const archived=conversationArchive.find(c=>c.id===id);
+    currentConversationTitle=archived&&archived.title?archived.title:"";
+    store.set("cb_current_conversation_title",currentConversationTitle);
     document.getElementById("thread").innerHTML="";
     if(messages.length)messages.forEach(renderStoredMessage);
     else addBot("이 대화에는 아직 저장된 메시지가 없어요.",{text:"이 대화에는 아직 저장된 메시지가 없어요."});
@@ -3719,7 +3832,7 @@ async function init(){
       if(scrollBox.scrollTop>12)hideScrollCoach();
     },{passive:true});
   }
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeSubjectResetConfirm();closePermissionHelp();closeLoginModal();}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeSubjectResetConfirm();closeLoginInfo();closePermissionHelp();closeLoginModal();}});
   if(location.hash==="#admin")go("admin");else if(!currentSubject)go("subject");else if(!currentUser)go("login");else go("home");
 }
 function quickStart(i){const q=QUICK_QUESTIONS[i];logEvent("quick_start",{index:i,label:q&&q.label,seed:q&&q.seed});startChat(q.seed);}
@@ -3742,6 +3855,7 @@ function startDailyTalkTopic(id){
   chatHistory=[];
   pendingImageFlow=null;
   pendingImageTemplate=null;
+  conversationTitleForDaily(topic);
   addUser(`${topic.emoji} ${topic.label}`);
   const msg=`${topic.label}으로 연습해볼게요. 아래 질문을 눌러도 되고, 채팅창에 직접 써도 돼요.`;
   addBot(esc(msg),{text:msg});

@@ -39,6 +39,25 @@ function titleFrom(content) {
   return title || "새 대화";
 }
 
+function explicitTitle(value) {
+  return clean(value, 42);
+}
+
+function isPlaceholderTitle(value) {
+  const title = clean(value, 80);
+  if (!title || title === "새 대화") return true;
+  return [
+    "안녕하세요",
+    "새 대화를 시작할게요",
+    "오늘은 무엇을",
+    "무엇을 도와드릴까요",
+    "요즘 어떤 점이",
+    "필요한 복지든",
+    "어떤 이야기든",
+    "사진/이미지 연습을",
+  ].some((prefix) => title.startsWith(prefix));
+}
+
 function csvEscape(value) {
   const text = String(value ?? "");
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -343,6 +362,7 @@ module.exports = async function logHandler(req, res) {
   const now = new Date().toISOString();
   const userId = clean(body.userId || "anonymous", 140);
   const metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
+  const requestedTitle = explicitTitle(body.title);
 
   try {
     const conversation = await supabaseRequest("/conversations?on_conflict=id", {
@@ -353,7 +373,7 @@ module.exports = async function logHandler(req, res) {
         user_id: userId,
         user_type: clean(body.userType || "unknown", 40),
         subject: clean(body.subject || "unknown", 40),
-        title: titleFrom(body.title || content),
+        title: titleFrom(requestedTitle || content),
         mode: clean(body.mode || "chat", 40),
         source: clean(body.source || "web", 40),
         updated_at: now,
@@ -391,9 +411,18 @@ module.exports = async function logHandler(req, res) {
       });
     }
 
-    await supabaseRequest(`/conversations?id=eq.${encodeURIComponent(conversationId)}`, {
+    const conversationPatch = { updated_at: now };
+    if (requestedTitle) {
+      const existing = await supabaseRequest(
+        `/conversations?id=eq.${encodeEq(conversationId)}&user_id=eq.${encodeEq(userId)}&select=title&limit=1`
+      );
+      const currentTitle = existing.ok && existing.data && existing.data[0] ? existing.data[0].title : "";
+      if (isPlaceholderTitle(currentTitle)) conversationPatch.title = requestedTitle;
+    }
+
+    await supabaseRequest(`/conversations?id=eq.${encodeEq(conversationId)}`, {
       method: "PATCH",
-      body: { updated_at: now },
+      body: conversationPatch,
       prefer: "return=minimal",
     });
 
