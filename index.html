@@ -424,6 +424,12 @@ body{
 .scroll-cue:active,.home-scroll-cue:active{transform:translateX(-50%) scale(.97);}
 .home-scroll-cue{bottom:144px;background:rgba(45,130,111,.94);}
 .home-bottom-fade{position:absolute;left:0;right:0;bottom:128px;height:72px;z-index:24;pointer-events:none;background:linear-gradient(180deg,rgba(246,247,249,0),rgba(246,247,249,.94));}
+.scroll-coach{position:absolute;inset:0;z-index:34;pointer-events:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(16,24,40,.04),rgba(16,24,40,.12));}
+.scroll-coach[hidden]{display:none!important;}
+.scroll-coach-card{display:flex;flex-direction:column;align-items:center;gap:10px;border-radius:22px;background:rgba(255,255,255,.94);border:1px solid rgba(209,213,220,.95);padding:17px 18px 16px;box-shadow:0 16px 42px rgba(16,24,40,.2);color:var(--ink);font-weight:950;text-align:center;}
+.scroll-coach-img{width:116px;height:116px;object-fit:contain;animation:coachImgSwipe 1.55s ease-in-out infinite;}
+.scroll-coach-card strong{font-size:.96em;line-height:1.35;}
+@keyframes coachImgSwipe{0%,100%{transform:translateY(16px)}45%{transform:translateY(-18px)}70%{transform:translateY(14px)}}
 .reader-overlay{position:absolute;inset:0;background:#fff;z-index:45;display:flex;flex-direction:column;color:var(--ink);}
 .reader-head{height:58px;display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line-2);background:#fff;flex:none;}
 .reader-head button{border:none;border-radius:999px;background:var(--teal-soft);color:var(--teal-dark);font-family:inherit;font-weight:900;font-size:.94em;padding:10px 13px;cursor:pointer;}
@@ -682,6 +688,12 @@ body{
 	  <div class="home-bottom-fade" id="homeBottomFade" hidden></div>
 	  <button class="home-scroll-cue" id="homeScrollCue" onclick="scrollHomeDown()" hidden><span>아래로 내려보세요</span></button>
 	  <button class="scroll-cue" id="scrollCue" onclick="scrollChatToBottom()" hidden><span>아래로 내려서 더 보기</span></button>
+	  <div class="scroll-coach" id="scrollCoach" hidden aria-hidden="true">
+	    <div class="scroll-coach-card">
+	      <img class="scroll-coach-img" src="./public/assets/scroll-hand-coach.png" alt="">
+	      <strong id="scrollCoachText">위로 밀어 더 보기</strong>
+	    </div>
+	  </div>
 
   <!-- 탭바 -->
   <nav class="tabbar" id="tabbar" style="display:none;">
@@ -1010,6 +1022,7 @@ let pendingPhotoConfirm=null;
 let pendingPermissionType=null;
 let activeImageController=null;
 let imageTypingTimer=null;
+let coachTimer=null;
 let generatedImages={};
 let fullTextStore={};
 let ga4Ready=false;
@@ -2435,6 +2448,7 @@ function go(screen){
   document.getElementById("tabbar").style.display=(isAdmin||isSubject||isLogin)?"none":"flex";
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.screen===screen||(isChat&&t.dataset.screen==="home")));
   hideScrollCue();
+  hideScrollCoach();
   if(screen!=="home")hideHomeCue();
   if(screen!=="chat")document.getElementById("scroll").scrollTop=0;
 	  if(screen==="saved")renderArchive();
@@ -2613,6 +2627,27 @@ function hideScrollCue(){
   if(cue)cue.hidden=true;
   clearTimeout(scrollCueTimer);
 }
+function hideScrollCoach(){
+  const coach=document.getElementById("scrollCoach");
+  if(coach)coach.hidden=true;
+  clearTimeout(coachTimer);
+}
+function showScrollCoach(kind="chat",delay=0){
+  clearTimeout(coachTimer);
+  coachTimer=setTimeout(()=>{
+    const coach=document.getElementById("scrollCoach");
+    const text=document.getElementById("scrollCoachText");
+    if(!coach)return;
+    if(kind==="home"&&activeScreen!=="home")return;
+    if(kind==="chat"&&activeScreen!=="chat")return;
+    if(kind==="home"&&isHomeNearBottom())return;
+    if(kind==="chat"&&isNearChatBottom())return;
+    if(text)text.textContent=kind==="home"?"위로 밀어 더 보기":"답변 아래도 이어서 보기";
+    coach.hidden=false;
+    clearTimeout(coachTimer);
+    coachTimer=setTimeout(()=>{if(coach)coach.hidden=true;},2600);
+  },delay);
+}
 function isHomeNearBottom(){
   const b=document.getElementById("scroll");
   return !b||(b.scrollHeight-b.scrollTop-b.clientHeight)<92;
@@ -2633,6 +2668,7 @@ function showHomeCueSoon(delay=260){
     if(!b||!cue||activeScreen!=="home"||isHomeNearBottom())return;
     cue.hidden=false;
     if(fade)fade.hidden=false;
+    showScrollCoach("home",120);
   },delay);
 }
 function showScrollCueSoon(delay=260){
@@ -2641,6 +2677,7 @@ function showScrollCueSoon(delay=260){
     const cue=document.getElementById("scrollCue");
     if(!cue||activeScreen!=="chat"||isNearChatBottom())return;
     cue.hidden=false;
+    showScrollCoach("chat",120);
   },delay);
 }
 function scrollChatToBottom(){
@@ -2648,12 +2685,14 @@ function scrollChatToBottom(){
   if(!b)return;
   b.scrollTo({top:b.scrollHeight,behavior:"smooth"});
   hideScrollCue();
+  hideScrollCoach();
 }
 function scrollHomeDown(){
   const b=document.getElementById("scroll");
   if(!b)return;
   b.scrollBy({top:Math.round(b.clientHeight*.55),behavior:"smooth"});
   hideHomeCue();
+  hideScrollCoach();
 }
 function sc(){showScrollCueSoon(180);}
 function scrollToEl(el){
@@ -3485,12 +3524,13 @@ async function init(){
   setupBackGuard();
   const scrollBox=document.getElementById("scroll");
   if(scrollBox){
-    const hideScrollHints=()=>{hideScrollCue();hideHomeCue();};
+    const hideScrollHints=()=>{hideScrollCue();hideHomeCue();hideScrollCoach();};
     scrollBox.addEventListener("wheel",hideScrollHints,{passive:true});
     scrollBox.addEventListener("touchmove",hideScrollHints,{passive:true});
     scrollBox.addEventListener("scroll",()=>{
       if(activeScreen!=="chat"||isNearChatBottom())hideScrollCue();
       if(activeScreen!=="home"||isHomeNearBottom()||scrollBox.scrollTop>30)hideHomeCue();
+      if(scrollBox.scrollTop>12)hideScrollCoach();
     },{passive:true});
   }
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeFullReader();closeBackConfirm();closeSubjectResetConfirm();closePermissionHelp();closeLoginModal();}});
