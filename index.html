@@ -173,12 +173,12 @@ body{
 .chat-direct .cd-label{font-size:.92em;line-height:1.15;font-weight:900;color:var(--teal-dark);}
 .chat-direct:active .cd-arrow-btn{transform:scale(.93);}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
-.qgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:stretch;}
-.qbtn{min-width:0;min-height:106px;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:16px 14px;text-align:left;
+.qgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;align-items:stretch;}
+.qbtn{min-width:0;min-height:84px;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:13px 13px;text-align:left;
   cursor:pointer;font-family:inherit;font-size:clamp(17px,calc(var(--fs) - 1px),20px);transition:.15s;display:flex;gap:11px;align-items:flex-start;box-shadow:var(--shadow-card);}
 .qbtn:active{transform:scale(.98);background:var(--teal-soft);}
-.qbtn .em{font-size:1.55em;line-height:1;flex:0 0 30px;text-align:center;transform:translateY(1px);}
-.qbtn .lb{min-width:0;flex:1;font-weight:800;font-size:1em;line-height:1.34;color:var(--ink-2);word-break:keep-all;overflow-wrap:break-word;}
+.qbtn .em{font-size:1.42em;line-height:1;flex:0 0 28px;text-align:center;transform:translateY(1px);}
+.qbtn .lb{min-width:0;flex:1;font-weight:800;font-size:.98em;line-height:1.32;color:var(--ink-2);word-break:keep-all;overflow-wrap:break-word;}
 .daily-talk{margin-top:18px;background:#fff;border:1px solid var(--line-2);border-radius:16px;padding:15px 14px;box-shadow:var(--shadow-card);}
 .daily-talk h2{font-size:1em;font-weight:900;color:var(--ink);line-height:1.35;}
 .daily-talk p{margin-top:5px;color:var(--ink-4);font-size:.82em;font-weight:700;line-height:1.5;word-break:keep-all;}
@@ -221,7 +221,7 @@ body{
 .chat-head .ch-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1.02em;}
 .chat-head .ch-title img{width:30px;height:30px;}
 .thread{padding:16px 14px 10px;display:flex;flex-direction:column;gap:13px;}
-.msg{display:flex;gap:8px;max-width:90%;}
+.msg{display:flex;gap:8px;max-width:90%;animation:msgIn .2s ease-out;}
 .msg.bot{align-self:flex-start;}
 .msg.user{align-self:flex-end;}
 .msg .av{width:38px;height:38px;flex:none;border-radius:50%;background:var(--teal-soft);overflow:hidden;}
@@ -245,7 +245,7 @@ body{
 .call119{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:11px;background:var(--emergency);
   color:#fff;text-decoration:none;font-weight:800;padding:13px;border-radius:12px;font-size:1.02em;}
 .typing{display:flex;gap:7px;padding:12px 15px;align-items:center;}
-.typing span{width:11px;height:11px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px rgba(58,143,122,.16);animation:blink 1.05s infinite;}
+.typing span{width:12px;height:12px;border-radius:50%;background:var(--teal-dark);box-shadow:0 0 0 4px rgba(58,143,122,.18);animation:blink 1.05s infinite;}
 .typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
 .typing-wrap{display:flex;align-items:center;gap:11px;flex-wrap:wrap;}
 .typing-wrap.ai-working{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 12px;align-items:center;width:100%;}
@@ -254,6 +254,7 @@ body{
 .typing-note{min-width:0;color:var(--teal-dark);font-size:.92em;font-weight:950;line-height:1.45;word-break:keep-all;}
 @keyframes blink{0%,60%,100%{opacity:.3}30%{opacity:1}}
 @keyframes sparklePulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.08);filter:brightness(1.1)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 /* 꼬리질문 선택지 */
 .choices{display:flex;flex-direction:column;gap:9px;padding:2px 14px 6px 60px;}
 .choice{border:1.4px solid var(--line);background:#fff;color:var(--ink-2);border-radius:var(--r-chip);
@@ -329,12 +330,14 @@ body{
 	.empty h3{font-size:1.08em;color:var(--ink-3);font-weight:800;margin-bottom:6px;}
 	.empty p{font-size:.92em;line-height:1.6;}
 	.vault-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;background:var(--line-2);border-radius:14px;padding:4px;}
-	.vault-tab{border:none;border-radius:11px;background:transparent;color:var(--ink-4);font-family:inherit;font-weight:900;font-size:.94em;padding:11px 8px;cursor:pointer;}
-	.vault-tab.on{background:#fff;color:var(--teal-dark);box-shadow:0 1px 4px rgba(16,24,40,.08);}
-	.vault-panel{margin-top:16px;}
-	.vault-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
-	.vault-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-3);font-family:inherit;font-weight:900;font-size:.9em;padding:12px 8px;cursor:pointer;}
-	.vault-actions .primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+		.vault-tab{border:none;border-radius:11px;background:transparent;color:var(--ink-4);font-family:inherit;font-weight:900;font-size:.94em;padding:11px 8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
+		.vault-tab.on{background:#fff;color:var(--teal-dark);box-shadow:0 1px 4px rgba(16,24,40,.08);}
+		.vault-panel{margin-top:16px;}
+		.vault-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px;}
+		.vault-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-3);font-family:inherit;font-weight:900;font-size:.9em;padding:12px 8px;cursor:pointer;}
+		.vault-actions .primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+		.heart-icon{display:inline-flex;align-items:center;justify-content:center;width:1.05em;line-height:1;color:currentColor;font-family:Arial,Helvetica,sans-serif;font-weight:900;}
+		.rsaved{margin-top:10px;color:var(--ink-4);font-size:.86em;font-weight:850;line-height:1.4;}
 	.conversation-card{border:1px solid var(--line-2);background:#fff;border-radius:14px;padding:16px 15px;text-align:left;font-family:inherit;box-shadow:var(--shadow-card);cursor:pointer;}
 	.conversation-card .cd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;flex-wrap:wrap;}
 	.conversation-card .cdate{display:block;color:var(--teal-dark);font-size:1.32em;font-weight:1000;line-height:1.28;word-break:keep-all;}
@@ -467,9 +470,9 @@ body{
   .qbubble{width:100%;max-width:100%;margin-top:10px;}
   .qb-q{font-size:1.03em;word-break:keep-all;overflow-wrap:anywhere;}
   .qgrid{width:100%;max-width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;}
-  .qbtn{width:100%;min-height:106px;padding:16px 11px;gap:9px;}
-  .qbtn .em{font-size:1.46em;flex-basis:28px;}
-  .qbtn .lb{font-size:1em;line-height:1.32;}
+	  .qbtn{width:100%;min-height:86px;padding:13px 10px;gap:8px;}
+	  .qbtn .em{font-size:1.36em;flex-basis:26px;}
+	  .qbtn .lb{font-size:.98em;line-height:1.3;}
 }
 @media (max-width:374px){
   .qgrid{grid-template-columns:1fr;}
@@ -571,7 +574,7 @@ body{
 	        <div class="qgrid" id="qgrid"></div>
 	        <div class="daily-talk" id="dailyTalk">
 	          <h2>AI랑 일상대화</h2>
-	          <p>날씨, 건강, 취미, 가족 문자처럼 편하게 말해볼 수 있어요.</p>
+	          <p>날씨, 건강, 취미, 안부 문자처럼 편하게 말해볼 수 있어요.</p>
 	          <div class="daily-topic-grid" id="dailyTalkGrid"></div>
 	        </div>
 	        <div class="image-tools" id="imageTools" hidden>
@@ -579,7 +582,7 @@ body{
 	            <h2>사진·이미지 연습</h2>
 	            <span class="image-quota">하루 3회</span>
 	          </div>
-		          <p>사진을 꾸미거나 가족에게 보낼 카드 이미지를 만들 수 있어요.</p>
+		          <p>사진을 꾸미거나 보기 좋은 카드 이미지를 만들 수 있어요.</p>
 	          <div class="image-template-grid" id="imageTemplateGrid"></div>
 	        </div>
 	        <button class="chat-direct" onclick="focusChat()" aria-label="직접 입력해서 답하기">
@@ -601,14 +604,14 @@ body{
 	        <div class="psub">지난 대화와 찜한 복지자원을 다시 볼 수 있어요.</div>
 	        <div class="vault-tabs">
 	          <button class="vault-tab on" id="conversationTab" onclick="showArchiveTab('conversations')">대화 기록</button>
-	          <button class="vault-tab" id="savedTab" onclick="showArchiveTab('saved')">♥ 찜</button>
+	          <button class="vault-tab" id="savedTab" onclick="showArchiveTab('saved')"><span class="heart-icon" aria-hidden="true">♥</span> 찜 0개</button>
 	        </div>
 	        <div class="vault-panel" id="conversationPanel">
-	          <div class="list" id="conversationList"></div>
 	          <div class="vault-actions">
 	            <button class="primary" onclick="startBlankConversation()">새 대화 시작</button>
 	            <button onclick="loadConversationArchive(true)">새로고침</button>
 	          </div>
+	          <div class="list" id="conversationList"></div>
 	        </div>
 	        <div class="vault-panel" id="savedPanel" hidden>
 	          <div class="list" id="savedList"></div>
@@ -694,7 +697,7 @@ body{
 	  <input id="imageUploadInput" type="file" accept="image/*" hidden onchange="handleImageFile(event)">
 	  <div class="home-bottom-fade" id="homeBottomFade" hidden></div>
 	  <button class="home-scroll-cue" id="homeScrollCue" onclick="scrollHomeDown()" hidden><span>아래로 내려보세요</span></button>
-	  <button class="scroll-cue" id="scrollCue" onclick="scrollChatToBottom()" hidden><span>아래로 내려서 더 보기</span></button>
+	  <button class="scroll-cue" id="scrollCue" onclick="scrollChatToBottom()" hidden><span>더 보기</span></button>
 	  <div class="scroll-coach" id="scrollCoach" hidden aria-hidden="true">
 	    <div class="scroll-coach-card">
 	      <img class="scroll-coach-img" src="./public/assets/scroll-hand-coach.png" alt="">
@@ -850,7 +853,7 @@ const DAILY_TALK_TOPICS = [
     prompts:[
       "내 막내 손주처럼 귀엽게 이야기해 줘.",
       "생일 축하 문자 써줘",
-      "가족에게 안부 문자 보내고 싶은데 예쁘게 써줘.",
+      "지인에게 안부 문자 보내고 싶은데 예쁘게 써줘.",
       "고마운 마음을 전하는 짧은 문자 써줘."
     ]
   }
@@ -999,7 +1002,8 @@ if(store.get("cb_login_session_version")!==LOGIN_SESSION_VERSION){
   ["cb_subject","cb_user_profile","cb_current_conversation"].forEach(k=>store.set(k,""));
   store.set("cb_login_session_version",LOGIN_SESSION_VERSION);
 }
-let savedIds=(()=>{try{return JSON.parse(store.get("cb_saved")||"[]");}catch(e){return [];}})();
+let savedIds=(()=>{try{const raw=JSON.parse(store.get("cb_saved")||"[]");return Array.isArray(raw)?raw.map(x=>typeof x==="string"?x:(x&&x.id)).filter(Boolean):[];}catch(e){return [];}})();
+let savedMeta=(()=>{try{const raw=JSON.parse(store.get("cb_saved_meta")||"{}");return raw&&typeof raw==="object"?raw:{};}catch(e){return {};}})();
 let ttsOn=store.get("cb_tts")==="1";
 let fontLevel=parseInt(store.get("cb_font")||"1");
 let region=store.get("cb_region")||"서울 광진구";
@@ -1099,6 +1103,11 @@ function search(tokens,opt={}){
 /* 카드 */
 function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
 function clip(s,n){s=(s||"").replace(/^○\s*/,"").trim();return s.length>n?s.slice(0,n)+"…":s;}
+function formatSavedAt(value){
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return "";
+  return d.toLocaleString("ko-KR",{month:"long",day:"numeric",hour:"numeric",minute:"2-digit",hour12:true});
+}
 function rcard(r){
   const cm=CAT_META[r.category]||{label:r.categoryLabel,color:"#888"};
   const fav=savedIds.includes(r.id);
@@ -1108,6 +1117,7 @@ function rcard(r){
   if(r.period)metas.push(["기간",clip(r.period,10)]);
   const metaHtml=metas.map(([k,v],i)=>`${i>0?'<span class="sep"></span>':''}<span class="mi"><span class="mk">${k}</span><span class="mv">${esc(v)}</span></span>`).join("");
   const reasonHtml=(r._reasons&&r._reasons.length)?`<div class="rwhy">추천 근거: ${esc(r._reasons.slice(0,2).join(" · "))}</div>`:"";
+  const savedAtHtml=r._savedAt?`<div class="rsaved">찜한 날 ${esc(formatSavedAt(r._savedAt))}</div>`:"";
   const call=r.contact?`<a class="call" href="tel:${esc(r.contact)}" onclick="logResourceEvent('resource_call_click','${esc(r.id)}')"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h3l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5V20a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>전화</a>`:"";
   const detail=r.url?`<a class="detail" href="${esc(r.url)}" target="_blank" rel="noopener" onclick="logResourceEvent('resource_detail_click','${esc(r.id)}')">자세히</a>`:`<span class="detail" style="opacity:.5">준비중</span>`;
   return `<article class="rcard" data-id="${r.id}">
@@ -1118,10 +1128,11 @@ function rcard(r){
     </button>
     <div class="rmeta">${metaHtml}</div>
     ${reasonHtml}
+    ${savedAtHtml}
     <div class="rdesc" id="d-${r.id}">${esc(r.description||"상세 설명이 준비 중입니다.")}</div>
     <div class="ract">
       ${detail}${call}
-      <button class="fav ${fav?'on':''}" aria-label="찜하기" onclick="toggleFav('${r.id}',this)"><svg viewBox="0 0 24 24" fill="${fav?'currentColor':'none'}"><path d="M12 20s-7-4.3-9.3-8.6C1.2 8.5 2.6 5 6 5c2 0 3.2 1.2 4 2.3C10.8 6.2 12 5 14 5c3.4 0 4.8 3.5 3.3 6.4C19 15.7 12 20 12 20Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>${fav?'찜함':'찜'}</span></button>
+      <button class="fav ${fav?'on':''}" aria-label="찜하기" onclick="toggleFav('${r.id}',this)"><span class="heart-icon" aria-hidden="true">♥</span><span>${fav?'찜함':'찜'}</span></button>
     </div>
   </article>`;
 }
@@ -1138,14 +1149,20 @@ function toggleDesc(id,b){const e=document.getElementById("d-"+id);if(!e)return;
 function toggleFav(id,b){
   const i=savedIds.indexOf(id);
   let action="add";
-  if(i>=0){savedIds.splice(i,1);action="remove";toast("찜을 해제했어요");}else{savedIds.push(id);toast("찜 목록에 저장했어요");}
+  if(i>=0){savedIds.splice(i,1);delete savedMeta[id];action="remove";toast("찜을 해제했어요");}else{savedIds.push(id);savedMeta[id]=new Date().toISOString();toast("찜 목록에 저장했어요");}
   store.set("cb_saved",JSON.stringify(savedIds));
-  document.querySelectorAll(`.rcard[data-id="${id}"] .fav`).forEach(x=>{const on=savedIds.includes(id);x.classList.toggle("on",on);x.querySelector("svg").setAttribute("fill",on?"currentColor":"none");const s=x.querySelector("span");if(s)s.textContent=on?"찜함":"찜";});
+  store.set("cb_saved_meta",JSON.stringify(savedMeta));
+  document.querySelectorAll(`.rcard[data-id="${id}"] .fav`).forEach(x=>{const on=savedIds.includes(id);x.classList.toggle("on",on);const s=x.querySelector("span:last-child");if(s)s.textContent=on?"찜함":"찜";});
   updateBadge();
   logResourceEvent(action==="add"?"saved_add":"saved_remove",id,{savedCount:savedIds.length});
   if(document.getElementById("screen-saved").classList.contains("active"))renderSaved();
 }
-function updateBadge(){const b=document.getElementById("savedBadge");if(savedIds.length){b.style.display="flex";b.textContent=savedIds.length;}else b.style.display="none";}
+function updateBadge(){
+  const b=document.getElementById("savedBadge");
+  const tab=document.getElementById("savedTab");
+  if(savedIds.length){b.style.display="flex";b.textContent=savedIds.length;}else b.style.display="none";
+  if(tab)tab.innerHTML=`<span class="heart-icon" aria-hidden="true">♥</span> 찜 ${savedIds.length}개`;
+}
 
 /* 첫 주체 선택 */
 function getSubject(id){return SUBJECT_OPTIONS.find(x=>x.id===id)||null;}
@@ -1510,7 +1527,7 @@ function findImageTemplate(text){
   if(/이모티콘|스티커/.test(q))return imageTemplates.find(t=>t.id==="sticker_from_photo")||imageTemplates.find(t=>t.id==="single_sticker_from_photo");
   if(/프로필|보정/.test(q))return imageTemplates.find(t=>t.id==="profile_makeover");
   if(/생일/.test(q))return imageTemplates.find(t=>t.id==="birthday_card");
-  if(/안부|가족|카드/.test(q))return imageTemplates.find(t=>t.id==="family_greeting")||imageTemplates.find(t=>t.id==="birthday_card");
+  if(/안부|지인|친구|카드/.test(q))return imageTemplates.find(t=>t.id==="family_greeting")||imageTemplates.find(t=>t.id==="birthday_card");
   if(/앨범|추억/.test(q))return imageTemplates.find(t=>t.id==="memory_album");
   if(/내 사진|사진으로|업로드|꾸며/.test(q))return imageTemplates.find(t=>t.id==="profile_makeover")||imageTemplates.find(t=>t.requiresImage&&t.id!=="sticker_from_photo")||imageTemplates.find(t=>t.requiresImage);
   return null;
@@ -1524,28 +1541,28 @@ function imagePurposeChoices(template){
     imageChoice("내 셀카 이모티콘","😊"),
     imageChoice("손주 사진 귀엽게","🫶"),
     imageChoice("좋아하는 사진 스티커","✨"),
-    imageChoice("가족에게 보내기","💌")
+    imageChoice("소중한 분께 보내기","💌")
   ];
   if(id==="birthday_card")return [
-    imageChoice("가족 생일 축하","🎂"),
+    imageChoice("생일 축하","🎂"),
     imageChoice("친구 생일 축하","🎉"),
     imageChoice("복지관에서 축하","🌿"),
     imageChoice("이름을 넣고 싶어요","✍️")
   ];
   if(id==="family_greeting")return [
-    imageChoice("가족에게 안부","💌"),
-    imageChoice("손주에게 응원","🫶"),
+    imageChoice("안부 전하기","💌"),
+    imageChoice("친한 분 응원","🫶"),
     imageChoice("친구에게 인사","🌷"),
     imageChoice("오늘 날씨 안부","☀️")
   ];
   if(template&&template.requiresImage)return [
     imageChoice("나를 귀엽게 꾸미기","😊"),
-    imageChoice("가족에게 보내기","💌"),
+    imageChoice("소중한 분께 보내기","💌"),
     imageChoice("프로필로 쓰기","👤"),
     imageChoice("문구 없이 꾸미기","✨")
   ];
   return [
-    imageChoice("가족에게 보내기","💌"),
+    imageChoice("소중한 분께 보내기","💌"),
     imageChoice("복지관에서 쓰기","🌿"),
     imageChoice("친구에게 보내기","👋"),
     imageChoice("내가 보관하기","🖼️")
@@ -1712,7 +1729,7 @@ function askImagePurpose(flow){
   flow.step="purpose";
   const msg=flow.template.requiresImage
     ?"올린 사진을 어떤 느낌으로 꾸밀까요? 셀카, 손주 사진, 좋아하는 사진 모두 가능해요. 채팅창에 직접 써도 되고, 아래에서 골라도 돼요."
-    :"누구에게 보내거나 어떤 용도로 만들까요? 예: 김영희님 생신 축하, 가족 안부, 복지관 행사처럼 알려주세요.";
+    :"누구에게 보내거나 어떤 용도로 만들까요? 예: 김영희님 생신 축하, 지인 안부, 복지관 행사처럼 알려주세요.";
   addBot(esc(msg),{text:msg});
   addChoices(imagePurposeChoices(flow.template));
 }
@@ -2749,9 +2766,7 @@ function showHomeCueSoon(delay=260){
 function showScrollCueSoon(delay=260){
   clearTimeout(scrollCueTimer);
   scrollCueTimer=setTimeout(()=>{
-    const cue=document.getElementById("scrollCue");
-    if(!cue||activeScreen!=="chat"||isNearChatBottom())return;
-    cue.hidden=false;
+    if(activeScreen!=="chat"||isNearChatBottom())return;
     showScrollCoach("chat",120);
   },delay);
 }
@@ -2892,11 +2907,15 @@ function explainCurrentRecommendations(){
   const msg=names.length
     ?`${names.join(", ")} 중 궁금한 자원이 있으면 카드의 자세히 버튼을 눌러 확인할 수 있어요. 조건을 하나 더 말씀해 주시면 더 맞는 정보로 다시 찾아드릴게요.`
     :"궁금한 점을 하나 더 말씀해 주시면 더 맞는 정보로 다시 찾아드릴게요.";
-  addBot(esc(msg),{text:msg});
-  addChoices([
-    {emoji:"✍️",label:"조건을 더 말할게요",action:"focusChat()"},
-    {emoji:"🏠",label:"처음 화면으로",action:"go('home')"}
-  ]);
+  addTyping({label:"답변 준비 중"});
+  setTimeout(()=>{
+    rmTyping();
+    addBot(esc(msg),{text:msg});
+    addChoices([
+      {emoji:"✍️",label:"조건을 더 말할게요",action:"focusChat()"},
+      {emoji:"🏠",label:"처음 화면으로",action:"go('home')"}
+    ]);
+  },360);
 }
     /* 자유 입력 → 대화형 탐색 */
     function cleanText(s){return String(s||"").trim();}
@@ -3108,7 +3127,20 @@ function explainCurrentRecommendations(){
       if(containsAny(text,["AI 배우","ai 배우","인공지능 배우","스마트폰","키오스크","디지털","컴퓨터","교육","배움"]))return "learning";
       return null;
     }
-    function sayFree(text){addBot(esc(text),{text:text});speak(text);}
+    function sayFree(text,opts={}){
+      const delay=opts.instant?0:360;
+      if(!delay){
+        addBot(esc(text),{text:text});
+        speak(text);
+        return;
+      }
+      addTyping({label:"답변 준비 중"});
+      setTimeout(()=>{
+        rmTyping();
+        addBot(esc(text),{text:text});
+        speak(text);
+      },delay);
+    }
     function askFree(text,stage,cat=null,tokens=[],query=""){
       freeCtx={stage,cat,tokens,query:query||""};
       sayFree(text);
@@ -3119,8 +3151,12 @@ function explainCurrentRecommendations(){
     }
     function continueGeneralChat(){
       const msg="좋아요. 복지 찾기 말고 편하게 이어서 이야기해요. 궁금한 말이나 하고 싶은 이야기를 그대로 적어 주세요.";
-      addBot(esc(msg),{text:msg});
-      focusChat();
+      addTyping({label:"답변 준비 중"});
+      setTimeout(()=>{
+        rmTyping();
+        addBot(esc(msg),{text:msg});
+        focusChat();
+      },360);
     }
     function answerAsGeneralChat(text){
       answerFreeChat(text);
@@ -3142,7 +3178,7 @@ function explainCurrentRecommendations(){
     function recommendWith(cat,tokens,query,intro){
       const pickedTokens=Array.isArray(tokens)?tokens:tokenize(String(tokens||query||""));
       const safeQuery=(query||pickedTokens.join(" ")||cat||"").trim();
-      if(intro)sayFree(intro);
+      if(intro)sayFree(intro,{instant:true});
       ctx={cat:cat||null,tokens:pickedTokens.length?pickedTokens:tokenize(safeQuery),query:safeQuery};
       freeCtx={stage:"idle",cat:null,tokens:[],query:""};
       recommend(false);
@@ -3409,7 +3445,10 @@ function startBlankConversation(){
 }
 function renderSaved(){
   updateBadge();
-  const list=savedIds.map(id=>WELFARE.find(r=>r.id===id)).filter(Boolean);
+  const list=savedIds.map(id=>{
+    const r=WELFARE.find(x=>x.id===id);
+    return r?Object.assign({},r,{_savedAt:savedMeta[id]||""}):null;
+  }).filter(Boolean);
   document.getElementById("savedList").innerHTML=list.length?list.map(rcard).join(""):`<div class="empty"><img src="${FACE_IDLE}" alt=""><h3>아직 찜한 복지가 없어요</h3><p>마음에 드는 복지의 하트(♥)를 누르면<br>여기에 모아드려요.</p></div>`;
 }
 
