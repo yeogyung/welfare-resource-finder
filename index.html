@@ -335,9 +335,12 @@ body{
 	.vault-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
 	.vault-actions button{border:1.4px solid var(--line);border-radius:12px;background:#fff;color:var(--ink-3);font-family:inherit;font-weight:900;font-size:.9em;padding:12px 8px;cursor:pointer;}
 	.vault-actions .primary{background:var(--teal);border-color:var(--teal);color:#fff;}
-	.conversation-card{border:1px solid var(--line-2);background:#fff;border-radius:14px;padding:14px 14px;text-align:left;font-family:inherit;box-shadow:var(--shadow-card);cursor:pointer;}
-	.conversation-card .ct{font-size:1em;font-weight:900;color:var(--ink);line-height:1.4;word-break:keep-all;}
-	.conversation-card .cm{margin-top:5px;color:var(--ink-5);font-size:.8em;font-weight:800;}
+	.conversation-card{border:1px solid var(--line-2);background:#fff;border-radius:14px;padding:15px 15px;text-align:left;font-family:inherit;box-shadow:var(--shadow-card);cursor:pointer;}
+	.conversation-card .cd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+	.conversation-card .cdate{display:block;color:var(--teal-dark);font-size:1.06em;font-weight:950;line-height:1.35;word-break:keep-all;}
+	.conversation-card .ctime{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:999px;background:var(--teal-soft);color:var(--teal-dark);font-size:.92em;font-weight:950;padding:7px 10px;white-space:nowrap;}
+	.conversation-card .ct{font-size:.98em;font-weight:900;color:var(--ink);line-height:1.45;word-break:keep-all;}
+	.conversation-card .cm{margin-top:7px;color:var(--ink-4);font-size:.86em;font-weight:850;}
 	.conversation-card:active{transform:scale(.985);background:var(--teal-soft);}
 	.image-tools{margin-top:18px;background:#fff;border:1px solid var(--line-2);border-radius:16px;padding:15px 14px;box-shadow:var(--shadow-card);}
 	.image-tools .itop{display:flex;align-items:center;justify-content:space-between;gap:10px;}
@@ -3164,10 +3167,30 @@ function focusChat(){if(!currentSubject){go("subject");return;}if(!currentUser){
 
 
 /* 찜 */
-function formatTime(value){
+function startOfDay(date){
+  return new Date(date.getFullYear(),date.getMonth(),date.getDate());
+}
+function formatConversationDate(value){
   const d=new Date(value);
-  if(Number.isNaN(d.getTime()))return "";
-  return d.toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+  if(Number.isNaN(d.getTime()))return {date:"날짜 없음",time:"시간 없음",meta:"대화 기록"};
+  const now=new Date();
+  const diffDays=Math.round((startOfDay(now)-startOfDay(d))/86400000);
+  let dateLabel="";
+  if(diffDays===0)dateLabel="오늘";
+  else if(diffDays===1)dateLabel="어제";
+  else{
+    dateLabel=d.toLocaleDateString("ko-KR",{
+      year:d.getFullYear()===now.getFullYear()?undefined:"numeric",
+      month:"long",
+      day:"numeric",
+      weekday:"long"
+    });
+  }
+  return {
+    date:dateLabel,
+    time:d.toLocaleTimeString("ko-KR",{hour:"numeric",minute:"2-digit",hour12:true}),
+    meta:d.toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric",weekday:"long"})
+  };
 }
 function showArchiveTab(tab){
   archiveTab=tab==="saved"?"saved":"conversations";
@@ -3198,10 +3221,14 @@ function renderConversationArchive(){
     box.innerHTML=`<div class="empty"><img src="${FACE_IDLE}" alt=""><h3>아직 보관된 대화가 없어요</h3><p>새 대화를 시작하면 여기에 저장돼요.</p></div>`;
     return;
   }
-  box.innerHTML=conversationArchive.map(c=>`<button class="conversation-card" onclick="openConversation('${esc(c.id)}')">
-    <div class="ct">${esc(c.title||"새 대화")}</div>
-    <div class="cm">${esc(formatTime(c.updated_at||c.created_at))} · ${esc(c.mode||"chat")}</div>
-  </button>`).join("");
+  box.innerHTML=conversationArchive.map(c=>{
+    const dt=formatConversationDate(c.updated_at||c.created_at);
+    return `<button class="conversation-card" onclick="openConversation('${esc(c.id)}')">
+      <div class="cd"><span class="cdate">${esc(dt.date)}</span><span class="ctime">${esc(dt.time)}</span></div>
+      <div class="ct">${esc(c.title||"새 대화")}</div>
+      <div class="cm">${esc(dt.meta)} · 대화 기록</div>
+    </button>`;
+  }).join("");
 }
 async function loadConversationArchive(force=false){
   if(!currentUser){renderConversationArchive();return;}
