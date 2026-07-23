@@ -1,4 +1,4 @@
-const CACHE_NAME = "chajabot-pwa-v28";
+const CACHE_NAME = "chajabot-pwa-v29";
 const APP_SHELL = [
   "/",
   "/index.html",
